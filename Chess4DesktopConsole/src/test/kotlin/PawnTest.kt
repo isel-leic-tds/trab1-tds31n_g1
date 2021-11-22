@@ -16,7 +16,7 @@ class PawnTest {
                     "        "+
                     "    P   "+
                     "PPPP PPP"+
-                    "RNBQKBNR", sut.toString() )
+                    "RNBQKBNR", sut.toStringTest() )
     }
 
     @Test
@@ -30,7 +30,7 @@ class PawnTest {
                     "        "+
                     "        "+
                     "PPPP PPP"+
-                    "RNBQKBNR", sut.toString() )
+                    "RNBQKBNR", sut.toStringTest() )
     }
 
     @Test
@@ -44,7 +44,7 @@ class PawnTest {
                     "        "+
                     "        "+
                     "PP PPPPP"+
-                    "RNBQKBNR", sut.toString() )
+                    "RNBQKBNR", sut.toStringTest() )
     }
 
     @Test
@@ -58,7 +58,7 @@ class PawnTest {
                     "    p   "+
                     "P       "+
                     " PPP PPP"+
-                    "RNBQKBNR", sut.toString() )
+                    "RNBQKBNR", sut.toStringTest() )
     }
 
     @Test
@@ -72,6 +72,6 @@ class PawnTest {
                     "  p     "+
                     "P       "+
                     " P PPPPP"+
-                    "RNBQKBNR", sut.toString() )
+                    "RNBQKBNR", sut.toStringTest())
     }
 }

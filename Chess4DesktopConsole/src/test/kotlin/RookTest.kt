@@ -7,18 +7,6 @@ import kotlin.test.assertNull
 
 class RookTest {
     @Test
-    fun `Makes one step forward with Rook in Board`() {
-        val sut = Board().makeMove("Ra1a2",Player.WHITE)!!.first
-        assertNull(sut)
-    }
-
-    @Test
-    fun `Makes two steps forward with Rook in Board`() {
-        val sut = Board().makeMove("Ra1a3",Player.WHITE)!!.first
-        assertNull(sut)
-    }
-
-    @Test
     fun `Move Rook forward and to the side`() {
         val sut = Board()
             .makeMove("Pa2a4",Player.WHITE)!!.first//W
