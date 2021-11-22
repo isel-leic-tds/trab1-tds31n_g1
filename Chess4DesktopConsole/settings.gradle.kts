@@ -1,3 +1,3 @@
 
-rootProject.name = "Chess4DesktopConsole"
+rootProject.name = "DesktopChess"
 
