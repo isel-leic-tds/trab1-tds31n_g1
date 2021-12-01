@@ -3,8 +3,11 @@ package Comands
 import DataBase.*
 import Moves
 import model.Board.Board
+import model.Board.Error
+import model.Board.Result
 import model.Player
 import model.StatusGame
+import java.lang.IllegalStateException
 
 /**
  * Checks in the database if the gameId exists.
@@ -59,17 +62,25 @@ fun saveMove(mongoChessCommands: MongoChessCommands, gameId: String, move: Strin
     return true
 }
 
+abstract class BoardResult()
+class BoardSuccess(val statusGame: StatusGame, val lastMove: String): BoardResult()
+class BoardError(val error: model.Board.Error): BoardResult()
+abstract class CommandError(val msg: String): BoardResult()
+class EmptyMove(): CommandError("Move command is empty")
+class WaitForOtherPlayer(): CommandError("Wait for your turn!")
 /**
  * Makes a given [move] to the [statusGame] board.
  * Return the new Status Game if the make move went well of null.
  */
-fun makeMove(statusGame: StatusGame, move: String?, player: Player): Pair<StatusGame,String>? {
-    if (move == null) return null
-    if (statusGame.currentPlayer != player) return null
+fun makeMove(statusGame: StatusGame, move: String?, player: Player): BoardResult {
+    if (move == null) return EmptyMove()
+    if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move, statusGame.currentPlayer)
-    if (result != null)
-        return Pair(StatusGame(result.first, statusGame.list + result.second, player.advance()),result.second)
-    return null
+    if (result is Error) return BoardError(result)
+    if (result is model.Board.Success)
+        return BoardSuccess(StatusGame(result.board, statusGame.list + result.str, player.advance()), result.str)
+    // if the result is something else other than model.Board.Sucess or model.Board.Error
+    throw IllegalStateException()
 }
 
 /**

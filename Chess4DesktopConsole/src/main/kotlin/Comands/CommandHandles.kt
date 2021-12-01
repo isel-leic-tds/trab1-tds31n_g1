@@ -77,9 +77,9 @@ fun buildMenuHandlers() = mapOf(
                 if (move == null)
                     Error(ErrorType.MISSING_CONTENT)
                 val newGame = makeMove(gameChess.status, move, gameChess.player!!)
-                if (newGame != null) {
-                    saveMove(gameChess.mongoChessCommands, gameChess.gameId, newGame.second)
-                    Success(gameChess.copy(status = newGame.first))
+                if (newGame is BoardSuccess) {
+                    saveMove(gameChess.mongoChessCommands, gameChess.gameId, newGame.lastMove)
+                    Success(gameChess.copy(status = newGame.statusGame))
                 }
                 else
                     Error(ErrorType.INVALID_MOVE)
@@ -146,11 +146,17 @@ fun buildMenuHandlers() = mapOf(
     )
 )
 
-private abstract class Result
+/*
+TODO
+Maybe its a good idea to transform the ErroType into many objects and override toString() to print every Error.
+Also the errors coming from the Board are not being displayed
+ */
+
+abstract class Result
 
 private class Error(val type: ErrorType): Result()
 
-private object Terminate: Result()
+object Terminate: Result()
 
 /**
  * Used to represent the possible Errors witch could have occured in the commands above.
@@ -159,4 +165,4 @@ private enum class ErrorType() {
     INVALID_MOVE, MISSING_CONTENT, GAME_NOT_INITIATED, NOT_YOUR_TURN
 }
 
-private class Success(val gameChess: GameChess): Result()
+class Success(val gameChess: GameChess): Result()
