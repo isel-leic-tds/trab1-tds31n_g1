@@ -1,17 +1,26 @@
-package model
+package model.Board
 
-import Bishop
-import King
-import Knight
-import Pawn
-import PieceType
-import Queen
-import Rook
 import chess.model.*
-import getAllMoves
-import getPieceType
-import toStr
+import model.GameChess
+import model.Player
 import java.util.*
+
+abstract class Result
+
+private class Error(val type: ErrorType): Result()
+/**
+ * Possible errors that can happen while trying to make a move
+ */
+private enum class ErrorType {INVALID_MOVE, FINISHED, BAD_MOVE, INVALID_SQUARE}
+class Success(val board: Board, val str: String): Result()
+
+enum class MoveType {REGULAR, CAPTURE, PROMOTION, CASTLING, EN_PASSANT}
+
+data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType) {
+    override fun toString(): String {
+        return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit
+    }
+}
 
 class Board {
     /**
@@ -157,7 +166,7 @@ class Board {
     fun makeMoveWithCorrectString(move: String): Board {
         val currSquare = move.substring(1, 3).toSquareOrNull()
         val newSquare = move.substring(3, 5).toSquareOrNull()
-        //val move = Move(getPieceType(move[0])!!,Square(currCol,currRow),Square(newCol,newRow))
+        //val move = Move(model.Board.getPieceType(move[0])!!,Square(currCol,currRow),Square(newCol,newRow))
         val piece = boardArr[currSquare!!.row.ordinal][currSquare.column.ordinal]
         val newBoard = boardArr.clone()
         boardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
@@ -168,25 +177,29 @@ class Board {
     /**
      * Used to make a move with a given String [str].
      * Needs also the [curPlayer] to check if the move is possible.
-     * Always returns the given [str] but always complete, in cases where the given [str] is not complete.
+     * Always returns the given complete [str], in cases where the given [str] is not complete.
+     * @return Result
      */
-    fun makeMove(str: String, curPlayer: Player = Player.WHITE): Pair<Board,String>? {
-        if (finished) return null
-        val move = toMoveOrNull(str, curPlayer) ?: return null
-        val newBoard = makeMove(move) ?: return null
-        return Pair(newBoard,move.toString())
+    fun makeMove(str: String, curPlayer: Player = Player.WHITE): Result {
+        if (finished) return Error(ErrorType.FINISHED)
+        val move = toMoveOrNull(str, curPlayer) ?: return Error(ErrorType.BAD_MOVE)
+        if (!isValidSquare(move, curPlayer)) return Error(ErrorType.INVALID_SQUARE)
+        val newBoard = makeMove(move) ?: return Error(ErrorType.INVALID_MOVE)
+        return Success(newBoard,move.toString())
     }
 
+    private class ValidMove(val move: Move): Result()
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
-     * Finally, checks if the give [str] represents a valid piece.
+     * @returns Result witch can be an Error or a valid Move
      */
-    private fun toMoveOrNull(str: String, curPlayer: Player): Move? {
+    private fun toMoveOrNull(str: String, curPlayer: Player): Result {
         val cmd = str.trim()
         val pieceType = getPieceType(cmd[0])
         var currSquare: Square? = null
         val newSquare: Square?
+        val moveType = if (str[3] == 'x') MoveType.CAPTURE else MoveType.REGULAR
         // omitting currentSquare
         if (str.length == 3) {
             newSquare = cmd.substring(1, 3).toSquareOrNull()
@@ -197,18 +210,15 @@ class Board {
             currSquare = cmd.substring(1, 3).toSquareOrNull()
             newSquare = cmd.substring(3, 5).toSquareOrNull()
         }
-
         if (currSquare == null || newSquare == null || pieceType == null) return null
-        val move = Move(pieceType, currSquare, newSquare)
-        if (!isValidSquare(move, curPlayer)) return null
-        return move
+        return Move(pieceType, currSquare, newSquare, moveType)
     }
 
     // TODO definir retornar uma mensagem
     private fun getOmittedCurrentSquare(newSquare: Square, curPlayer: Player): Square? {
         var counter = 0
         var currentSquare: Square? = null
-        // tries to find a valid corespondicy
+        // tries to find a valid corespondency
         Square.values.forEach { square ->
             val piece = boardArr[square.row.ordinal][square.column.ordinal]
             if (piece != null && piece.player == curPlayer) {
@@ -232,35 +242,45 @@ class Board {
      * Checks also if the given Move is correct for the current player.
      */
     private fun isValidSquare(move: Move, curPlayer: Player): Boolean {
-        // verifies if theres a piece in currentSquare
+        // verifies if there's a piece in currentSquare
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return false
-        // verifies if the piece type of the choses square is the one in the str command
+        // verifies if the piece type of the chooses square is the one in the str command
         if (piece.type.toStr() != move.piece.toStr()) return false
         if (piece.player != curPlayer) return false
         return true
     }
 
     /**
-     * Checks if the [move] is valid and if so, aplies the given [move].
-     * Returns the new Board if the [move] was valid or null.
+     * Checks if the given [move] is valid and if so, makes the [move].
+     * @returns the new Board if the [move] was valid or null.
      */
     private fun makeMove(move: Move): Board? {
-        val pos = move.piece.getAllMoves(move, boardArr)
-        if (!pos.any {
-                it.row == move.newSquare.row && it.column == move.newSquare.column
-            }) return null
+        if (!isValidMove(move)) return null
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
         val newBoardArr = boardArr.clone()
         boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
         return Board(this, newBoardArr)
     }
+
+    /**
+     * @return if the given [move] is valid.
+     */
+    private fun isValidMove(move: Move): Boolean {
+        val pos = move.piece.getAllMoves(move, boardArr)
+        if (pos.any {
+                it.row == move.newSquare.row && it.column == move.newSquare.column
+            }) return true
+        return false
+    }
+
+
     /*
     private fun isInCheck(move: Move): Boolean {
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
         val player = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player
         val isInCheckMove = Move(move.piece,move.newSquare,move.newSquare)
-        val allMoves = isInCheckMove.piece.getAllMoves(isInCheckMove,boardArr)
+        val allMoves = isInCheckMove.piece.model.Board.getAllMoves(isInCheckMove,boardArr)
         if(player == Player.WHITE) {
             if (!allMoves.any {
                     it.row == blackKingPosition.row && it.column == blackKingPosition.column
@@ -277,10 +297,10 @@ class Board {
         val player = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player
         if(player == Player.WHITE) {
             val blackKingMove = Piece(,blackKingPosition,blackKingPosition) //Criar uma peça para calcular as posições possíveis para o rei se mexer
-            val allBlackKingMoves = getAllMoves(blackKingPosition,boardArr)
+            val allBlackKingMoves = model.Board.getAllMoves(blackKingPosition,boardArr)
         }
         else{
-            val allWhiteKingMoves = getAllMoves(whiteKingPosition,boardArr)
+            val allWhiteKingMoves = model.Board.getAllMoves(whiteKingPosition,boardArr)
         }
     }*/
 }

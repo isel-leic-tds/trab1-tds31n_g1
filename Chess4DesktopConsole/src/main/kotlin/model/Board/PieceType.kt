@@ -1,8 +1,7 @@
-import chess.model.*
-import model.Board
-import model.Move
-import model.Player
+package model.Board
 
+import chess.model.*
+import model.Player
 
 /**
  * Cada peça vai receber uma tentativa de jogada, ou seja, com as coordenadas da jogada e o tabuleiro com as outras peças e DIZER se essa jogada foi valida
@@ -128,7 +127,7 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
 /**
  * Ver se a jogada é possível
  */
-private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSquare:Square, piece:PieceType):Boolean {
+private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSquare:Square, piece: PieceType):Boolean {
     val move = Move(piece,curSquare,newSquare) //Criar um novo move
     val player = board[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player //Jogador atual
 
@@ -146,6 +145,11 @@ private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSq
     return false
 }
 
+/* TODO
+    Agora o tipo Move tem um MoveType que pode ser REGULAR ou CAPTURE.
+    O que significa que esta função vai ter de verificar qual o MoveType.
+    Ou seja, se for um CAPTURE, apenas vai retornar os Square's que permitem comer uma peça
+ */
 fun PieceType.getAllMoves(move: Move, board: Array<Array<Board.Piece?>>): List<Square> {
     return when(this) {
         //Knights moves are way too different from the other pieces

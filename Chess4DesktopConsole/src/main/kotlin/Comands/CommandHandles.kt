@@ -146,17 +146,17 @@ fun buildMenuHandlers() = mapOf(
     )
 )
 
-abstract class Result
+private abstract class Result
 
-class Error(val type: ErrorType): Result()
+private class Error(val type: ErrorType): Result()
 
-object Terminate: Result()
+private object Terminate: Result()
 
 /**
  * Used to represent the possible Errors witch could have occured in the commands above.
  */
-enum class ErrorType() {
+private enum class ErrorType() {
     INVALID_MOVE, MISSING_CONTENT, GAME_NOT_INITIATED, NOT_YOUR_TURN
 }
 
-class Success(val gameChess: GameChess): Result()
+private class Success(val gameChess: GameChess): Result()

@@ -1,8 +1,7 @@
 import junit.framework.Assert.assertEquals
-import model.Board
+import model.Board.Board
 import model.Player
 import org.junit.Test
-import kotlin.test.assertNull
 
 class PawnTest {
     @Test

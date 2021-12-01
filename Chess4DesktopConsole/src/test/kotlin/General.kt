@@ -1,5 +1,5 @@
 import junit.framework.Assert.assertEquals
-import model.Board
+import model.Board.Board
 import org.junit.Test
 
 class General {

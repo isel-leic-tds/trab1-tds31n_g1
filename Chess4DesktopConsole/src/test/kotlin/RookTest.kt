@@ -1,9 +1,7 @@
-import junit.framework.Assert
-import model.Board
+import model.Board.Board
 import model.Player
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 class RookTest {
     @Test

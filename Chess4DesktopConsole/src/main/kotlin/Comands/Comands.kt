@@ -2,8 +2,7 @@ package Comands
 
 import DataBase.*
 import Moves
-import model.Board
-import model.Move
+import model.Board.Board
 import model.Player
 import model.StatusGame
 

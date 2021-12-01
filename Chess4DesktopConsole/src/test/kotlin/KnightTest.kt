@@ -1,4 +1,4 @@
-import model.Board
+import model.Board.Board
 import model.Player
 import org.junit.Test
 import kotlin.test.assertEquals
