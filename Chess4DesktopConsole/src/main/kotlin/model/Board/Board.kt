@@ -5,22 +5,21 @@ import model.Player
 import java.util.*
 
 abstract class Result
-
-abstract class Error(val str: String): Result()
 /**
  * Possible errors that can happen while trying to make a move
  */
-/* TODO fix this erros
-Some Erros need to receive a specific [str]
- */
-private class InvalidMove(val str: String): Error(str)
-private class Finished(val str: String): Error(str)
-private class BadMove(val str: String = "Invalid command"): Error(str)
-private class InvalidSquare(val str: String): Error(str)
-private class Ambiguity(val str: String = "Specify the command"): Error(str)
+private class InvalidMove(override val str: String): Error("Invalid move $str")
+abstract class Error(open val str: String): Result()
+private class Finished(): Error("Game has finished")
+private class BadMove(): Error("Invalid command")
+private class InvalidSquare(override val str: String): Error(str)
+private class Ambiguity(): Error("Specify the command")
+private class EmptySquare(): Error("Given quare is empty")
+private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
+private class BadPiece(): Error("Given piece type does not correspond to the given current square")
 class Success(val board: Board, val str: String): Result()
 
-enum class MoveType {REGULAR, CAPTURE, PROMOTION, CASTLING, EN_PASSANT}
+enum class MoveType{ REGULAR, CAPTURE, PROMOTION, CASTLING, EN_PASSANT }
 
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType) {
     override fun toString(): String {
@@ -187,17 +186,21 @@ class Board {
      * @return Result
      */
     fun makeMove(str: String, curPlayer: Player = Player.WHITE): Result {
-        if (finished) return Error(ErrorType.FINISHED)
+        if (finished) return Finished()
+        // checks if the [str] is valid
         var result = toMoveOrNull(str, curPlayer)
         if (result is Error) return result
-        result = result as ValidMove
-        val move = result.move
-        if (!isValidSquare(move, curPlayer)) return Error(ErrorType.INVALID_SQUARE)
-        val newBoard = makeMove(move) ?: return Error(ErrorType.INVALID_MOVE)
+        result = result as Aux
+        val move = result.content as Move
+        // checks if the given Square is valid
+        result = isValidSquare(move, curPlayer)
+        if (result is Error) return result
+        // tries to make the Move
+        val newBoard = makeMove(move) ?: return InvalidMove(move.toString())
         return Success(newBoard, move.toString())
     }
 
-    private class ValidMove(val move: Move): Result()
+    private class Aux(val content: Any): Result()
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
@@ -208,25 +211,24 @@ class Board {
         val pieceType = getPieceType(cmd[0])
         var currSquare: Square? = null
         val newSquare: Square?
-        val moveType = if (str[3] == 'x') MoveType.CAPTURE else MoveType.REGULAR
         // omitting currentSquare
         if (str.length == 3) {
             newSquare = cmd.substring(1, 3).toSquareOrNull()
-            if (newSquare == null) return Error(ErrorType.BAD_MOVE)
+            if (newSquare == null) return BadMove()
             val result = getOmittedCurrentSquare(newSquare, curPlayer)
             if (result is Error) return result
-            if (result is ValidSquare)
-                currSquare = result.square
+            if (result is Aux)
+                currSquare = result.content as Square
         }
         else {
             currSquare = cmd.substring(1, 3).toSquareOrNull()
             newSquare = cmd.substring(3, 5).toSquareOrNull()
         }
-        if (currSquare == null || newSquare == null || pieceType == null) return Error(ErrorType.BAD_MOVE)
-        return ValidMove(Move(pieceType, currSquare, newSquare, moveType))
+        val moveType = if (str[3] == 'x') MoveType.CAPTURE else MoveType.REGULAR
+        if (currSquare == null || newSquare == null || pieceType == null) return BadMove()
+        return Aux(Move(pieceType, currSquare, newSquare, moveType))
     }
 
-    private class ValidSquare(val square: Square): Result()
     private fun getOmittedCurrentSquare(newSquare: Square, curPlayer: Player): Result {
         var counter = 0
         var currentSquare: Square? = null
@@ -242,23 +244,23 @@ class Board {
             }
         }
         // there's ambiguity
-        if (counter > 1) return Error(ErrorType.AMBIGUITY)
+        if (counter > 1) return Ambiguity()
         // no correspondicy found
-        if (counter == 0) return Error(ErrorType.INVALID_MOVE)
-        return ValidSquare(currentSquare!!)
+        if (counter == 0) return InvalidMove("")
+        return Aux(currentSquare!!)
     }
 
     /**
      * Checks if there's actually a Piece in the given Square
      * Checks also if the given Move is correct for the current player.
      */
-    private fun isValidSquare(move: Move, curPlayer: Player): Boolean {
+    private fun isValidSquare(move: Move, curPlayer: Player): Result {
         // verifies if there's a piece in currentSquare
-        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return false
+        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return EmptySquare()
         // verifies if the piece type of the chooses square is the one in the str command
-        if (piece.type.toStr() != move.piece.toStr()) return false
-        if (piece.player != curPlayer) return false
-        return true
+        if (piece.type.toStr() != move.piece.toStr()) return BadPiece()
+        if (piece.player != curPlayer) return OponentSquare()
+        return Aux(true)
     }
 
     /**
