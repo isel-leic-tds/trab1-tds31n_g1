@@ -35,10 +35,11 @@ fun buildMenuHandlers() = mapOf(
     "OPEN" to Command(
         // returns a new Board (restored or new)
         action = { gameChess: GameChess, gameId: String? ->
-            val newGame = restoreGame(gameChess.mongoChessCommands, gameId)
-            if (newGame == null)
+            Success(restoreGame(gameChess.mongoChessCommands, gameId))
+            /*if (newGame == null)
                 Error(ErrorType.MISSING_CONTENT)
             Success(gameChess.copy(player = Player.WHITE, status = newGame!!, gameId = gameId))
+             */
         },
         show = { result: Result ->
             if (result is Error)
@@ -153,7 +154,9 @@ Also the errors coming from the Board are not being displayed
 
 abstract class Result
 
-private class Error(val type: ErrorType): Result()
+private abstract class Error(private val msg: String): Result()
+// TODO continue to define all types of errors
+private data class InvalidMove(): Error("Invalid move")
 
 object Terminate: Result()
 
@@ -164,4 +167,5 @@ private enum class ErrorType() {
     INVALID_MOVE, MISSING_CONTENT, GAME_NOT_INITIATED, NOT_YOUR_TURN
 }
 
-class Success(val boardResult: BoardResult): Result()
+
+class Success(val commandResult: CommandResult): Result()
