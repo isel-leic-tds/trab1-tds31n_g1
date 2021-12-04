@@ -79,18 +79,17 @@ fun buildMenuHandlers() = mapOf(
                 val newGame = makeMove(gameChess.status, move, gameChess.player!!)
                 if (newGame is BoardSuccess) {
                     saveMove(gameChess.mongoChessCommands, gameChess.gameId, newGame.lastMove)
-                    Success(gameChess.copy(status = newGame.statusGame))
                 }
-                else
-                    Error(ErrorType.INVALID_MOVE)
+                Success(newGame)
             }
             else
                 Error(ErrorType.GAME_NOT_INITIATED)
         },
         show = { result: Result ->
             if (result is Success) {
-                println(result.gameChess.status.board.toString())
-                println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
+                println(result)
+                //println(result.gameChess.status.board.toString())
+                //println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
             if (result is Error)
                 when(result.type) {
@@ -148,7 +147,7 @@ fun buildMenuHandlers() = mapOf(
 
 /*
 TODO
-Maybe its a good idea to transform the ErroType into many objects and override toString() to print every Error.
+Maybe its a good idea to transform the ErrorType into many objects and override toString() to print every Error.
 Also the errors coming from the Board are not being displayed
  */
 
@@ -165,4 +164,4 @@ private enum class ErrorType() {
     INVALID_MOVE, MISSING_CONTENT, GAME_NOT_INITIATED, NOT_YOUR_TURN
 }
 
-class Success(val gameChess: GameChess): Result()
+class Success(val boardResult: BoardResult): Result()

@@ -63,22 +63,33 @@ fun saveMove(mongoChessCommands: MongoChessCommands, gameId: String, move: Strin
 }
 
 abstract class BoardResult()
-class BoardSuccess(val statusGame: StatusGame, val lastMove: String): BoardResult()
-class BoardError(val error: model.Board.Error): BoardResult()
-abstract class CommandError(val msg: String): BoardResult()
+data class BoardSuccess(val statusGame: StatusGame, val lastMove: String): BoardResult() {
+    override fun toString(): String {
+        return statusGame.board.toString()
+    }
+}
+data class BoardError(val error: model.Board.Error): BoardResult() {
+    override fun toString(): String {
+        return error.msg
+    }
+}
+abstract class CommandResult()
+abstract class CommandError(val msg: String): CommandResult()
+abstract class CommandSucess(val result: Any): CommandResult()
 class EmptyMove(): CommandError("Move command is empty")
 class WaitForOtherPlayer(): CommandError("Wait for your turn!")
 /**
  * Makes a given [move] to the [statusGame] board.
  * Return the new Status Game if the make move went well of null.
  */
-fun makeMove(statusGame: StatusGame, move: String?, player: Player): BoardResult {
+// TODO CONTINUE THIS FUNCTION. NEEDS TO RETURN A CommandSucess
+fun makeMove(statusGame: StatusGame, move: String?, player: Player): CommandResult {
     if (move == null) return EmptyMove()
     if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move, statusGame.currentPlayer)
     if (result is Error) return BoardError(result)
     if (result is model.Board.Success)
-        return BoardSuccess(StatusGame(result.board, statusGame.list + result.str, player.advance()), result.str)
+        return CommandResult(BoardSuccess(StatusGame(result.board, statusGame.list + result.str, player.advance()), result.str))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
     throw IllegalStateException()
 }

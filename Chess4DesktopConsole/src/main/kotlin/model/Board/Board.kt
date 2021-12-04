@@ -8,11 +8,11 @@ abstract class Result
 /**
  * Possible errors that can happen while trying to make a move
  */
-private class InvalidMove(override val str: String): Error("Invalid move $str")
-abstract class Error(open val str: String): Result()
+private class InvalidMove(override val msg: String): Error("Invalid move $msg")
+abstract class Error(open val msg: String): Result()
 private class Finished(): Error("Game has finished")
 private class BadMove(): Error("Invalid command")
-private class InvalidSquare(override val str: String): Error(str)
+private class InvalidSquare(override val msg: String): Error(msg)
 private class Ambiguity(): Error("Specify the command")
 private class EmptySquare(): Error("Given quare is empty")
 private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
