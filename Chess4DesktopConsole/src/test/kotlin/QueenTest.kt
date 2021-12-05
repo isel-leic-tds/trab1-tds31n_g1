@@ -2,7 +2,7 @@ import model.Board.Board
 import model.Player
 import org.junit.Test
 import kotlin.test.assertEquals
-
+/*
 class QueenTest {
     @Test
     fun `Moves Queen`() {
@@ -28,3 +28,5 @@ class QueenTest {
                     "RNB KBNR", sut.toStringTest() )
     }
 }
+
+ */

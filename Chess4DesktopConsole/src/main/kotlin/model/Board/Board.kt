@@ -5,23 +5,31 @@ import model.Player
 import java.util.*
 
 abstract class Result
+data class Success(val board: Board, val str: String): Result() {
+    override fun toString(): String {
+        return board.toString()
+    }
+}
+abstract class Error(open val error: String): Result() {
+    override fun toString(): String {
+        return error
+    }
+}
 /**
  * Possible errors that can happen while trying to make a move
  */
-private class InvalidMove(override val msg: String): Error("Invalid move $msg")
-abstract class Error(open val msg: String): Result()
+private class InvalidMove(override val error: String): Error("Invalid move $error")
 private class Finished(): Error("Game has finished")
 private class BadMove(): Error("Invalid command")
-private class InvalidSquare(override val msg: String): Error(msg)
+private class InvalidSquare(override val error: String): Error(error)
 private class Ambiguity(): Error("Specify the command")
 private class EmptySquare(): Error("Given quare is empty")
 private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
 private class BadPiece(): Error("Given piece type does not correspond to the given current square")
-class Success(val board: Board, val str: String): Result()
 
 enum class MoveType{ REGULAR, CAPTURE, PROMOTION, CASTLING, EN_PASSANT }
 
-data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType) {
+data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = MoveType.REGULAR) {
     override fun toString(): String {
         return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit
     }

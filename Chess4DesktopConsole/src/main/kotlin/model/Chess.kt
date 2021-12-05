@@ -10,6 +10,6 @@ enum class Player {
 
 
 // TODO maybe SatusGame could also have a value that holds the lastMove
-data class StatusGame(val board: Board?, val list: List<String>, val currentPlayer: Player?)
+data class StatusGame(val board: Board?, val list: List<String>, val currentPlayer: Player?, val lastMove: String?)
 
 data class GameChess(val mongoChessCommands: MongoChessCommands, val gameId: String?, val player: Player?, val status: StatusGame)

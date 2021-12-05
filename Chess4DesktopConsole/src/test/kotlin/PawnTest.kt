@@ -2,7 +2,7 @@ import junit.framework.Assert.assertEquals
 import model.Board.Board
 import model.Player
 import org.junit.Test
-
+/*
 class PawnTest {
     @Test
     fun `Makes one step forward with Pawn in Board`() {
@@ -74,3 +74,5 @@ class PawnTest {
                     "RNBQKBNR", sut.toStringTest())
     }
 }
+
+ */

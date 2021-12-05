@@ -39,7 +39,7 @@ fun buildMenuHandlers() = mapOf(
             if (gameId == null)
                 MissingContent("GameId at fault")
             val commandResult = restoreGame(gameChess.mongoChessCommands, gameId)
-            if (commandResult is BoardSuccess)
+            if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
             // restoreGame should always produce a BoardSucess(). If not:
             throw IllegalStateException()
@@ -61,7 +61,7 @@ fun buildMenuHandlers() = mapOf(
             if (gameId == null)
                 MissingContent("GameId at fault")
             val commandResult = joinGame(gameChess.mongoChessCommands, gameId)
-            if (commandResult is BoardSuccess)
+            if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
             // restoreGame should always produce a BoardSucess(). If not:
             throw IllegalStateException()
@@ -85,8 +85,8 @@ fun buildMenuHandlers() = mapOf(
                 if (move == null)
                     MissingContent("GameId at fault")
                 val commandResult = makeMove(gameChess.status, move, gameChess.player!!)
-                if (commandResult is BoardSuccess) {
-                    saveMove(gameChess.mongoChessCommands, gameChess.gameId, commandResult.lastMove!!)
+                if (commandResult is NewBoard) {
+                    saveMove(gameChess.mongoChessCommands, gameChess.gameId, commandResult.statusGame.lastMove!!)
                     Success(gameChess.copy(status = commandResult.statusGame))
                 }
                 CommandError1(commandResult)
@@ -96,22 +96,12 @@ fun buildMenuHandlers() = mapOf(
         },
         show = { result: Result ->
             if (result is Success) {
+                // dysplays board
                 println(result)
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
             if (result is Error)
                 println(result)
-               /* when(result.type) {
-                    ErrorType.GAME_NOT_INITIATED ->
-                        println("Can't play without a game: try open or join commands.")
-                    ErrorType.NOT_YOUR_TURN ->
-                        println("Wait for your turn: try refresh command")
-                    ErrorType.MISSING_CONTENT ->
-                        println("Missing move.")
-                    ErrorType.INVALID_MOVE ->
-                        println("Invalid move.")
-                }
-                */
         }
     ),
     "REFRESH" to Command(
@@ -119,7 +109,7 @@ fun buildMenuHandlers() = mapOf(
             if (gameChess.gameId == null)
                 GameNotIniciated()
             val commandResult = restoreGame(gameChess.mongoChessCommands, gameChess.gameId)
-            if (commandResult is BoardSuccess)
+            if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameChess.gameId))
             // restoreGame should always produce a BoardSucess(). If not:
             throw IllegalStateException()
@@ -153,33 +143,15 @@ fun buildMenuHandlers() = mapOf(
     )
 )
 
-/*
-TODO
-Maybe its a good idea to transform the ErrorType into many objects and override toString() to print every Error.
-Also the errors coming from the Board are not being displayed
- */
-
 abstract class Result
-
+class Success(val gameChess: GameChess): Result()
 abstract class Error(): Result() {
     override fun toString(): String {
         return super.toString()
     }
 }
-private data class InvalidMove(val error: String ="Invalid move"): Error()
 private data class MissingContent(val msg: String): Error()
 private data class GameNotIniciated(val error: String = "Game not iniciated yet"): Error()
-//private data class InvalidMove(): Error("Invalid move")
 class CommandError1(val error: Any): Error()
 
 object Terminate: Result()
-
-/**
- * Used to represent the possible Errors witch could have occured in the commands above.
- */
-private enum class ErrorType() {
-    INVALID_MOVE, MISSING_CONTENT, GAME_NOT_INITIATED, NOT_YOUR_TURN
-}
-
-
-class Success(val gameChess: GameChess): Result()

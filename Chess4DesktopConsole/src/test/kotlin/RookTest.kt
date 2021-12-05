@@ -2,7 +2,7 @@ import model.Board.Board
 import model.Player
 import org.junit.Test
 import kotlin.test.assertEquals
-
+/*
 class RookTest {
     @Test
     fun `Move Rook forward and to the side`() {
@@ -22,3 +22,5 @@ class RookTest {
                     " NBQKBNR", sut.toStringTest() )
     }
 }
+
+ */

@@ -21,7 +21,7 @@ fun main() {
     MongoDriver().use { driver ->
         try {
             val mongoChessCommands = MongoChessCommands(driver)
-            var gameChess = GameChess(mongoChessCommands, null, null, StatusGame(null,listOf(),null))
+            var gameChess = GameChess(mongoChessCommands, null, null, StatusGame(null,listOf(),null, null))
             val menuHandlers = buildMenuHandlers()
 
             while (true) {
