@@ -10,24 +10,19 @@ import model.StatusGame
 import java.lang.IllegalStateException
 
 abstract class CommandResult()
-abstract class CommandError(private val msg: String): CommandResult() {
-    override fun toString() = msg
+abstract class CommandError(val error: Any): CommandResult() {
+    override fun toString() = super.toString()
 }
 class CommandSucess(val result: Any): CommandResult()
 class EmptyMove(): CommandError("Move command is empty")
 class WaitForOtherPlayer(): CommandError("Wait for your turn!")
 class InvalidGameId(): CommandError("Invalid or emprty gameId")
 class GameDoesNotExist(): CommandError("Game not created yet")
-
-abstract class BoardResult()
-data class BoardSuccess(val statusGame: StatusGame, val lastMove: String?): BoardResult() {
+data class BoardError(val error: model.Board.Error): CommandError(error)
+// TODO should exist a BoardRestored() where lastMove didnt exist
+data class BoardSuccess(val statusGame: StatusGame, val lastMove: String?): CommandResult() {
     override fun toString(): String {
         return statusGame.board.toString()
-    }
-}
-data class BoardError(val error: model.Board.Error): BoardResult() {
-    override fun toString(): String {
-        return error.msg
     }
 }
 
@@ -91,7 +86,8 @@ fun makeMove(statusGame: StatusGame, move: String?, player: Player): CommandResu
     if (move == null) return EmptyMove()
     if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move, statusGame.currentPlayer)
-    if (result is Error) return CommandSucess(BoardError(result))
+    if (result is model.Board.Error)
+        return BoardError(result)
     if (result is model.Board.Success)
         return CommandSucess(BoardSuccess(StatusGame(result.board, statusGame.list + result.str, player.advance()), result.str))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
