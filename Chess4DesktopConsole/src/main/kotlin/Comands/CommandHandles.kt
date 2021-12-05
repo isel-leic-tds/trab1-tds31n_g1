@@ -35,6 +35,8 @@ fun buildMenuHandlers() = mapOf(
     "OPEN" to Command(
         // returns a new Board (restored or new)
         action = { gameChess: GameChess, gameId: String? ->
+            if (gameId == null)
+                MissingContent("Game Id at fault")
             Success(restoreGame(gameChess.mongoChessCommands, gameId))
             /*if (newGame == null)
                 Error(ErrorType.MISSING_CONTENT)
@@ -43,11 +45,19 @@ fun buildMenuHandlers() = mapOf(
         },
         show = { result: Result ->
             if (result is Error)
-                if (result.type === ErrorType.MISSING_CONTENT)
-                    println("Missing gameId.")
+               println(result)
             if (result is Success) {
-                println(result.gameChess.status.board.toString())
-                println("Game "+result.gameChess.gameId+" opened. Play with white pieces")
+                val boardResult = result.commandResult
+                if (boardResult is CommandSucess) {
+                    // TODO continue here
+                    val board = boardResult as BoardSuccess
+                    // displays Board
+                    println(result)
+                    println("Game "+board.statusGame.gameChess.gameId+" opened. Play with white pieces")
+                }
+
+                println(result)
+                println("Game "+result.commandResult.gameChess.gameId+" opened. Play with white pieces")
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
         }
@@ -93,6 +103,7 @@ fun buildMenuHandlers() = mapOf(
                 //println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
             if (result is Error)
+                println(result)
                 when(result.type) {
                     ErrorType.GAME_NOT_INITIATED ->
                         println("Can't play without a game: try open or join commands.")
@@ -154,8 +165,15 @@ Also the errors coming from the Board are not being displayed
 
 abstract class Result
 
-private abstract class Error(private val msg: String): Result()
+private abstract class Error(private val msg: String): Result() {
+    override fun toString(): String {
+        return msg
+    }
+}
 // TODO continue to define all types of errors
+private data class InvalidMove(): Error("Invalid move")
+private data class MissingContent(val msg: String): Error(msg)
+private data class InvalidMove(): Error("Invalid move")
 private data class InvalidMove(): Error("Invalid move")
 
 object Terminate: Result()
