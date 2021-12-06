@@ -37,7 +37,7 @@ fun buildMenuHandlers() = mapOf(
         // returns a new Board (restored or new)
         action = { gameChess: GameChess, gameId: String? ->
             if (gameId == null)
-                MissingContent("GameId at fault")
+                MissingContent(gameChess, "GameId at fault")
             val commandResult = restoreGame(gameChess.mongoChessCommands, gameId)
             if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
@@ -60,7 +60,7 @@ fun buildMenuHandlers() = mapOf(
     "JOIN" to Command(
         action = { gameChess: GameChess, gameId: String? ->
             if (gameId == null)
-                MissingContent("GameId at fault")
+                MissingContent(gameChess, "GameId at fault")
             val commandResult = joinGame(gameChess.mongoChessCommands, gameId)
             if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.BLACK, status = commandResult.statusGame, gameId = gameId))
@@ -85,19 +85,19 @@ fun buildMenuHandlers() = mapOf(
         action = { gameChess: GameChess, move: String? ->
             if (gameChess.gameId != null) {
                 if (move == null)
-                    MissingContent("GameId at fault")
+                    MissingContent(gameChess, "GameId at fault")
                 val commandResult = makeMove(gameChess.status, move, gameChess.player!!)
                 when (commandResult) {
                     is NewBoard -> {
                         saveMove(gameChess.mongoChessCommands, gameChess.gameId, commandResult.statusGame.lastMove!!)
                         Success(gameChess.copy(status = commandResult.statusGame))
                     }
-                    is CommandError -> CommandError1(commandResult)
+                    is CommandError -> CommandError1(gameChess, commandResult)
                     else -> throw IllegalStateException()
                 }
             }
             else
-                GameNotIniciated()
+                GameNotIniciated(gameChess)
         },
         show = { result: Result ->
             if (result is Success) {
@@ -105,14 +105,16 @@ fun buildMenuHandlers() = mapOf(
                 println(result)
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
-            if (result is Error)
+            if (result is Error) {
                 println(result)
+                println(result.gameChess.gameId + ':' + result.gameChess.status.currentPlayer + '>')
+            }
         }
     ),
     "REFRESH" to Command(
         action = { gameChess: GameChess, gameId: String? ->
             if (gameChess.gameId == null)
-                GameNotIniciated()
+                GameNotIniciated(gameChess)
             val commandResult = restoreGame(gameChess.mongoChessCommands, gameChess.gameId)
             if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameChess.gameId))
@@ -135,7 +137,7 @@ fun buildMenuHandlers() = mapOf(
             if (gameChess.gameId != null)
                 Success(gameChess)
             else
-               GameNotIniciated()
+               GameNotIniciated(gameChess)
         },
         show = { result ->
             if (result is Error)
@@ -151,14 +153,14 @@ fun buildMenuHandlers() = mapOf(
 
 abstract class Result
 data class Success(val gameChess: GameChess): Result()
-abstract class Error(val error: Any): Result() {
+abstract class Error(open val gameChess: GameChess, open val error: Any): Result() {
     override fun toString() = error.toString()
 }
-private data class MissingContent(val error_: String): Error(error_)
-private data class GameNotIniciated(val error_: String = "Game not iniciated yet"): Error(error_)
-data class CommandError1(val error_: CommandError): Error(error_) {
+private data class MissingContent(override val gameChess: GameChess, override val error: String): Error(gameChess, error)
+private data class GameNotIniciated(override val gameChess: GameChess, override val error: String = "Game not iniciated yet"): Error(gameChess, error)
+data class CommandError1(override val gameChess: GameChess, override val error: CommandError): Error(gameChess, error) {
     override fun toString(): String {
-        return error_.toString()
+        return error.toString()
     }
 }
 
