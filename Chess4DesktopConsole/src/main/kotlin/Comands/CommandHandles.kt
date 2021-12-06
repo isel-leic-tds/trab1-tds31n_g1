@@ -42,7 +42,8 @@ fun buildMenuHandlers() = mapOf(
             if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
             // restoreGame should always produce a BoardSucess(). If not:
-            throw IllegalStateException()
+            else
+                throw IllegalStateException()
         },
         show = { result: Result ->
             if (result is Error)
@@ -62,9 +63,10 @@ fun buildMenuHandlers() = mapOf(
                 MissingContent("GameId at fault")
             val commandResult = joinGame(gameChess.mongoChessCommands, gameId)
             if (commandResult is NewBoard)
-                Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
+                Success(gameChess.copy(player = Player.BLACK, status = commandResult.statusGame, gameId = gameId))
             // restoreGame should always produce a BoardSucess(). If not:
-            throw IllegalStateException()
+            else
+                throw IllegalStateException()
         },
         show = { result: Result ->
             if (result is Error)
@@ -85,11 +87,14 @@ fun buildMenuHandlers() = mapOf(
                 if (move == null)
                     MissingContent("GameId at fault")
                 val commandResult = makeMove(gameChess.status, move, gameChess.player!!)
-                if (commandResult is NewBoard) {
-                    saveMove(gameChess.mongoChessCommands, gameChess.gameId, commandResult.statusGame.lastMove!!)
-                    Success(gameChess.copy(status = commandResult.statusGame))
+                when (commandResult) {
+                    is NewBoard -> {
+                        saveMove(gameChess.mongoChessCommands, gameChess.gameId, commandResult.statusGame.lastMove!!)
+                        Success(gameChess.copy(status = commandResult.statusGame))
+                    }
+                    is CommandError -> CommandError1(commandResult)
+                    else -> throw IllegalStateException()
                 }
-                CommandError1(commandResult)
             }
             else
                 GameNotIniciated()
@@ -112,7 +117,8 @@ fun buildMenuHandlers() = mapOf(
             if (commandResult is NewBoard)
                 Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameChess.gameId))
             // restoreGame should always produce a BoardSucess(). If not:
-            throw IllegalStateException()
+            else
+                throw IllegalStateException()
         },
         show = {result ->
             if (result is Error)
@@ -144,14 +150,16 @@ fun buildMenuHandlers() = mapOf(
 )
 
 abstract class Result
-class Success(val gameChess: GameChess): Result()
-abstract class Error(): Result() {
+data class Success(val gameChess: GameChess): Result()
+abstract class Error(val error: Any): Result() {
+    override fun toString() = error.toString()
+}
+private data class MissingContent(val error_: String): Error(error_)
+private data class GameNotIniciated(val error_: String = "Game not iniciated yet"): Error(error_)
+data class CommandError1(val error_: CommandError): Error(error_) {
     override fun toString(): String {
-        return super.toString()
+        return error_.toString()
     }
 }
-private data class MissingContent(val msg: String): Error()
-private data class GameNotIniciated(val error: String = "Game not iniciated yet"): Error()
-class CommandError1(val error: Any): Error()
 
 object Terminate: Result()

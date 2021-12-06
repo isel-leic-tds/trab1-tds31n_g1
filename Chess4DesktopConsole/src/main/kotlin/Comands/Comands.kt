@@ -17,7 +17,11 @@ class EmptyMove(): CommandError("Move command is empty")
 class WaitForOtherPlayer(): CommandError("Wait for your turn!")
 class InvalidGameId(): CommandError("Invalid or emprty gameId")
 class GameDoesNotExist(): CommandError("Game not created yet")
-data class BoardError(val boardError: model.Board.Error): CommandError(boardError)
+data class BoardError(val boardError: model.Board.Error): CommandError(boardError) {
+    override fun toString(): String {
+        return boardError.toString()
+    }
+}
 class NewBoard(val statusGame: StatusGame): CommandSucess()
 
 /**
@@ -52,7 +56,7 @@ fun joinGame(mongoChessCommands: MongoChessCommands, gameId: String?): CommandRe
     if (gameId == null) return InvalidGameId()
     val newBoard = Board()
     val moves = DataBase.getMoves(mongoChessCommands,gameId) ?: return GameDoesNotExist()
-    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.BLACK, null))
+    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
     list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithCorrectString(move),

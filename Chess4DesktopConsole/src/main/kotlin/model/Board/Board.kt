@@ -10,7 +10,7 @@ data class Success(val board: Board, val str: String): Result() {
         return board.toString()
     }
 }
-abstract class Error(open val error: String): Result() {
+abstract class Error(val error: String): Result() {
     override fun toString(): String {
         return error
     }
@@ -18,10 +18,10 @@ abstract class Error(open val error: String): Result() {
 /**
  * Possible errors that can happen while trying to make a move
  */
-private class InvalidMove(override val error: String): Error("Invalid move $error")
+private class InvalidMove(val error_: String): Error("Invalid move $error_")
 private class Finished(): Error("Game has finished")
 private class BadMove(): Error("Invalid command")
-private class InvalidSquare(override val error: String): Error(error)
+private class InvalidSquare(val error_: String): Error(error_)
 private class Ambiguity(): Error("Specify the command")
 private class EmptySquare(): Error("Given quare is empty")
 private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")

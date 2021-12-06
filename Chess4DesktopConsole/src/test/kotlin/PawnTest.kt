@@ -1,12 +1,13 @@
 import junit.framework.Assert.assertEquals
 import model.Board.Board
+import model.Board.Success
 import model.Player
 import org.junit.Test
-/*
+
 class PawnTest {
     @Test
     fun `Makes one step forward with Pawn in Board`() {
-        val sut = Board().makeMove("Pe2e3",Player.WHITE)!!.first
+        val sut = Board().makeMove("Pe2e3",Player.WHITE) as Success
         assertEquals(
             "rnbqkbnr"+
                     "pppppppp"+
@@ -15,12 +16,14 @@ class PawnTest {
                     "        "+
                     "    P   "+
                     "PPPP PPP"+
-                    "RNBQKBNR", sut.toStringTest() )
+                    "RNBQKBNR", sut.board.toStringTest() )
     }
 
     @Test
     fun `White eats Left`() {
-        val sut = Board().makeMove("Pe2e4",Player.WHITE)!!.first.makeMove("Pd7d5",Player.BLACK)!!.first.makeMove("Pe4d5",Player.WHITE)!!.first
+        var sut = Board().makeMove("Pe2e4",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
+        sut = sut.board.makeMove("Pe4d5",Player.WHITE) as Success
         assertEquals(
             "rnbqkbnr"+
                     "ppp pppp"+
@@ -29,12 +32,14 @@ class PawnTest {
                     "        "+
                     "        "+
                     "PPPP PPP"+
-                    "RNBQKBNR", sut.toStringTest() )
+                    "RNBQKBNR", sut.board.toStringTest() )
     }
 
     @Test
     fun `White eats Right`() {
-        val sut = Board().makeMove("Pc2c4",Player.WHITE)!!.first.makeMove("Pd7d5",Player.BLACK)!!.first.makeMove("Pc4d5",Player.WHITE)!!.first
+        var sut = Board().makeMove("Pc2c4",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
+        sut = sut.board.makeMove("Pc4d5",Player.WHITE) as Success
         assertEquals(
             "rnbqkbnr"+
                     "ppp pppp"+
@@ -43,12 +48,15 @@ class PawnTest {
                     "        "+
                     "        "+
                     "PP PPPPP"+
-                    "RNBQKBNR", sut.toStringTest() )
+                    "RNBQKBNR", sut.board.toStringTest() )
     }
 
     @Test
     fun `Black eats Left`() {
-        val sut = Board().makeMove("Pe2e4",Player.WHITE)!!.first.makeMove("Pd7d5",Player.BLACK)!!.first.makeMove("Pa2a3",Player.WHITE)!!.first.makeMove("Pd5e4",Player.BLACK)!!.first
+        var sut = Board().makeMove("Pe2e4",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
+        sut = sut.board.makeMove("Pa2a3",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd5e4",Player.BLACK) as Success
         assertEquals(
             "rnbqkbnr"+
                     "ppp pppp"+
@@ -57,12 +65,15 @@ class PawnTest {
                     "    p   "+
                     "P       "+
                     " PPP PPP"+
-                    "RNBQKBNR", sut.toStringTest() )
+                    "RNBQKBNR", sut.board.toStringTest() )
     }
 
     @Test
     fun `Black eats Right`() {
-        val sut = Board().makeMove("Pc2c4",Player.WHITE)!!.first.makeMove("Pd7d5",Player.BLACK)!!.first.makeMove("Pa2a3",Player.WHITE)!!.first.makeMove("Pd5c4",Player.BLACK)!!.first
+        var sut = Board().makeMove("Pc2c4",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
+        sut = sut.board.makeMove("Pa2a3",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd5c4",Player.BLACK) as Success
         assertEquals(
             "rnbqkbnr"+
                     "ppp pppp"+
@@ -71,8 +82,7 @@ class PawnTest {
                     "  p     "+
                     "P       "+
                     " P PPPPP"+
-                    "RNBQKBNR", sut.toStringTest())
+                    "RNBQKBNR", sut.board.toStringTest())
     }
 }
 
- */

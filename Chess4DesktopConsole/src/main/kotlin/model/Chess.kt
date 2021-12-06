@@ -8,8 +8,14 @@ enum class Player {
     fun advance() = if (this === WHITE) BLACK else WHITE
 }
 
+data class StatusGame(val board: Board?, val list: List<String>, val currentPlayer: Player?, val lastMove: String?) {
+    override fun toString(): String {
+        return board.toString()
+    }
+}
 
-// TODO maybe SatusGame could also have a value that holds the lastMove
-data class StatusGame(val board: Board?, val list: List<String>, val currentPlayer: Player?, val lastMove: String?)
-
-data class GameChess(val mongoChessCommands: MongoChessCommands, val gameId: String?, val player: Player?, val status: StatusGame)
+data class GameChess(val mongoChessCommands: MongoChessCommands, val gameId: String?, val player: Player?, val status: StatusGame) {
+    override fun toString(): String {
+        return status.toString()
+    }
+}
