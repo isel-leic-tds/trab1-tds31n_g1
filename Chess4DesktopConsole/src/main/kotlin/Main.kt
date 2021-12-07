@@ -26,8 +26,6 @@ fun main() {
 
             while (true) {
                 val (name, parameter) = readCommand()
-                // parameter can never be null
-                //if (parameter == null) continue
                 val cmd = menuHandlers[name]
                 if (cmd == null)
                     println("Invalid command")
