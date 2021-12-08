@@ -27,9 +27,13 @@ private class EmptySquare(): Error("Given quare is empty")
 private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
 private class BadPiece(): Error("Given piece type does not correspond to the given current square")
 
-enum class MoveType{ REGULAR, CAPTURE, PROMOTION, CASTLING, EN_PASSANT }
+//enum class MoveType{ REGULAR, CAPTURE, PROMOTION, CASTLING, EN_PASSANT }
+abstract class MoveType()
+class Regular(): MoveType()
+class Capture(): MoveType()
+class Promotion(val newPiece: PieceType): MoveType()
 
-data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = MoveType.REGULAR) {
+data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = Regular) {
     override fun toString(): String {
         return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit
     }
@@ -205,7 +209,50 @@ class Board {
         if (result is Error) return result
         // tries to make the Move
         val newBoard = makeMove(move) ?: return InvalidMove(move.toString())
+        tryPromotion(move.newSquare, move)
         return Success(newBoard, move.toString())
+    }
+    /*
+    private fun tryPromotion(newSquare: Square, move: Move) {
+        if (checkPromotion(newSquare))
+            doPromotion(newSquare, move)
+    }
+     */
+
+    /**
+     * Tries to do a Promotion move if it is possible to do so.
+     */
+    private fun tryPromotion(newSquare: Square, move: Move): Boolean {
+        val piece = boardArr[newSquare.row.ordinal][newSquare.column.ordinal]
+        if (piece != null && piece.type is Pawn) {
+            if (piece.player === Player.WHITE && newSquare.row === Row.ONE || piece.player === Player.BLACK && newSquare.row === Row.EIGHT) {
+                val newPiece = getNewPieceForPromotion(move)
+                if (newPiece != null) {
+                    doPromotion(newSquare, newPiece)
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    /**
+     * @Returns the new PieceType to be promoted to or null if the PieceType is invalid.
+     */
+    private fun getNewPieceForPromotion(move: Move): PieceType? {
+        val newPiece = (move.type as Promotion).newPiece
+        if (newPiece is Pawn || newPiece is King)
+            return newPiece
+        return null
+    }
+
+    /**
+     * Does explicitly a Promotion move given in [square] with [newPiece].
+     * @Throws IllegalCallerException if the [square] is empty.
+     */
+    private fun doPromotion(square: Square, newPiece: PieceType) {
+        val test = boardArr[square.row.ordinal][square.column.ordinal] ?: throw IllegalCallerException()
+        boardArr[square.row.ordinal][square.column.ordinal] = Piece(newPiece, test.player)
     }
 
     private class Aux(val content: Any): Result()
@@ -232,9 +279,14 @@ class Board {
             currSquare = cmd.substring(1, 3).toSquareOrNull()
             newSquare = cmd.substring(3, 5).toSquareOrNull()
         }
-        val moveType = if (str[3] == 'x') MoveType.CAPTURE else MoveType.REGULAR
+        val moveType = getMoveType(str)
         if (currSquare == null || newSquare == null || pieceType == null) return BadMove()
         return Aux(Move(pieceType, currSquare, newSquare, moveType))
+    }
+
+    // TODO implement this function
+    private fun getMoveType(str: String): MoveType {
+        val moveType = if (str[3] == 'x') Capture() else Regular()
     }
 
     private fun getOmittedCurrentSquare(newSquare: Square, curPlayer: Player): Result {
