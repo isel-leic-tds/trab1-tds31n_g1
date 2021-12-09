@@ -41,7 +41,7 @@ fun restoreGame(mongoChessCommands: MongoChessCommands, gameId: String?): Comman
     if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
-    list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithCorrectString(move),
+    list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithoutCheck(move),
                                                                 currentPlayer = statusGame.currentPlayer!!.advance(),
                                                                 lastMove = move) }
     return NewBoard(statusGame)
@@ -59,7 +59,7 @@ fun joinGame(mongoChessCommands: MongoChessCommands, gameId: String?): CommandRe
     if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
-    list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithCorrectString(move),
+    list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithoutCheck(move),
                                                                 currentPlayer = statusGame.currentPlayer!!.advance(),
                                                                 lastMove = move) }
     return NewBoard(statusGame)
