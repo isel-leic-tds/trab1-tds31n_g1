@@ -44,6 +44,7 @@ class Board {
     private val LINES = 8
     private val COLS = 8
     private val boardArr: Array<Array<Piece?>>
+    operator fun get(square: Square) = boardArr[square.row.ordinal][square.column.ordinal]
     private val finished: Boolean
 
     /**
