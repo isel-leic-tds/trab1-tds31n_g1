@@ -3,6 +3,7 @@ package model.Board
 import chess.model.*
 import model.Player
 import java.util.*
+import kotlin.reflect.KProperty
 
 abstract class Result
 data class Success(val board: Board, val str: String): Result() {
@@ -295,7 +296,6 @@ class Board {
             }) return true
         return false
     }
-
 
     /*
     private fun isInCheck(move: Move): Boolean {
