@@ -58,7 +58,7 @@ typealias LineCommand = Pair<String, String?>
  */
 fun readCommand(): LineCommand {
     print("> ")
-    return readln().parseCommand()
+    return readLine()!!.parseCommand()
 }
 
 /**
