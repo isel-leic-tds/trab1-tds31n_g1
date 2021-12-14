@@ -1,8 +1,11 @@
 package ui
 
+import androidx.compose.desktop.DesktopMaterialTheme
+import androidx.compose.desktop.Window
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.window.FrameWindowScope
-import androidx.compose.ui.window.MenuBar
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.*
 
 /**
  * MunuBar of the game.
@@ -15,4 +18,14 @@ fun FrameWindowScope.ChessMenuBar(onOpen: ()->Unit, onExit: ()->Unit ) =  MenuBa
         Item("Open", onClick = onOpen )
         Item("Exit", onClick = onExit )
     }
+}
+
+@Composable
+fun ApplicationScope.myWindow() {
+    val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
+    androidx.compose.ui.window.Window(
+        onCloseRequest = ::exitApplication,
+        state = winState,
+        title = "Jogo do Galo"
+    ) {}
 }
