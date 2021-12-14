@@ -19,6 +19,8 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
     implementation(compose.desktop.currentOs)
+    // Dependencies for using MongoDB and its LOG
+    implementation("org.litote.kmongo:kmongo:4.3.0")
 }
 
 tasks.test {
