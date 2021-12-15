@@ -39,6 +39,19 @@ fun main() = application {
                         if (result != null) gameChess = result
                     }
                 )
+                Column {
+                    ChessView(gameChess.status.board) { square ->
+                        /*if (curSquare != null) {
+                            val playerType = board.get(curSquare!!)!!.type
+                            val str = "($playerType)$curSquare$square"
+                            board.makeMove(str)
+                            curSquare = null
+                        } else
+                            curSquare = square
+
+                         */
+                    }
+                }
             }
         }
     }
@@ -60,6 +73,18 @@ private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
 }
 
 private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
+    print("GameName: ")
+    val gameName = readLine()
+    val name = "JOIN "
+    LineCommand(name,gameName)
+    val cmd: Command? = menuHandlers[name]
+    val result =  cmd!!.action(gameChess, gameName)
+    if (result is Success)
+        return result.gameChess
+    return null
+}
+
+private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     print("GameName: ")
     val gameName = readLine()
     val name = "JOIN "

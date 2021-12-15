@@ -11,45 +11,67 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import chess.model.Square
 import model.Board.*
-import model.GameChess
 import model.Player
+import kotlin.math.sqrt
 
-val PLAY_SIDE = 150.dp
+val PLAY_SIDE = 80.dp
 val GRID_WIDTH = 5.dp
-const val GAME_DIM = 8
+val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
 val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
 
 @Composable
-fun PlayView(square: Square, board: Board, onClick: () -> Unit) {
+fun PlayView(square: Square, board: Board?, onClick: () -> Unit) {
+    paintSquare(square)
     Box(
         Modifier
             .size(PLAY_SIDE)
             .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
-            .background(Color.White)
             .clickable { onClick() }
     ) {
-        val player = board[square]!!.player
-        val img =
-            when (board[square]!!.type) {
-                is Pawn -> "pawn"
-                is Rook -> "rook"
-                is Bishop -> "bishop"
-                is King -> "king"
-                is Queen -> "queen"
-                else -> "knight"
-            }
-        if (player === Player.WHITE)
-            Image(painterResource("($img)W.png"), img)
-        else
-            Image(painterResource("($img)B.png"), img)
+        if (board != null) {
+            val player = board[square]!!.player
+            val img =
+                when (board[square]!!.type) {
+                    is Pawn -> "pawn"
+                    is Rook -> "rook"
+                    is Bishop -> "bishop"
+                    is King -> "king"
+                    is Queen -> "queen"
+                    else -> "knight"
+                }
+            if (player === Player.WHITE)
+                Image(painterResource("($img)W.png"), img)
+            else
+                Image(painterResource("($img)B.png"), img)
+        }
     }
 }
 
 @Composable
-fun ChessView(board: Board, onClick: (Square)->Unit ) {
+fun ChessView(board: Board?, onClick: (Square)->Unit ) {
     Box(Modifier.background(Color.Black).size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
+        val test = Square.values
         Square.values.forEach { square ->
             PlayView(square, board) { onClick(square) }
         }
     }
+}
+
+@Composable
+private fun paintSquare(square: Square) {
+    if ((square.row.ordinal + square.column.ordinal) % 2 == 1)
+        Box(
+            Modifier
+                .size(PLAY_SIDE)
+                .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
+                .background(Color.White)
+        )
+    else
+        Box(
+            Modifier
+                .size(PLAY_SIDE)
+                .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
+                .background(Color.Gray)
+        )
+
 }
