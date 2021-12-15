@@ -52,7 +52,7 @@ fun buildMenuHandlers() = mapOf(
             if (result is Success) {
                 val gameChess = result.gameChess
                 // displays Board
-                println(result)
+                println(result.gameChess.status)
                 println("Game "+gameChess.gameId+" opened. Play with white pieces")
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
@@ -77,7 +77,7 @@ fun buildMenuHandlers() = mapOf(
             if (result is Success) {
                 val gameChess = result.gameChess
                 // displays Board
-                println(result)
+                println(result.gameChess.status)
                 println("Game "+gameChess.gameId+" opened. Play with black pieces")
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
@@ -105,7 +105,7 @@ fun buildMenuHandlers() = mapOf(
         show = { result: Result ->
             if (result is Success) {
                 // dysplays board
-                println(result)
+                println(result.gameChess.status)
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
             if (result is Error) {
@@ -138,7 +138,7 @@ fun buildMenuHandlers() = mapOf(
                 println(result)
             if (result is Success) {
                 // dysplays board
-                println(result)
+                println(result.gameChess.status)
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
         }

@@ -14,8 +14,4 @@ data class StatusGame(val board: Board?, val list: List<String>, val currentPlay
     }
 }
 
-data class GameChess(val mongoChessCommands: MongoChessCommands, val gameId: String?, val player: Player?, val status: StatusGame) {
-    override fun toString(): String {
-        return status.toString()
-    }
-}
+data class GameChess(val mongoChessCommands: MongoChessCommands, val gameId: String?, val player: Player?, val status: StatusGame)

@@ -25,6 +25,7 @@ fun main() = application {
         state = winState,
         title = "Jogo de Xadrez"
     ) {
+        // TODO connection is etablished but the code cant acess database!!
         MongoDriver().use { driver ->
             val menuHandlers = buildMenuHandlers()
             var gameChess by remember { mutableStateOf(createGame(driver)) }
@@ -40,17 +41,20 @@ fun main() = application {
                     }
                 )
                 Column {
+                    ChessView(Board()) { square ->
+
+                    }
+                    /*
                     ChessView(gameChess.status.board) { square ->
-                        /*if (curSquare != null) {
+                        if (curSquare != null) {
                             val playerType = board.get(curSquare!!)!!.type
                             val str = "($playerType)$curSquare$square"
                             board.makeMove(str)
                             curSquare = null
                         } else
                             curSquare = square
-
-                         */
                     }
+                     */
                 }
             }
         }

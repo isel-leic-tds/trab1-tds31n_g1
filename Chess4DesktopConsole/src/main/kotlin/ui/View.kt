@@ -29,20 +29,24 @@ fun PlayView(square: Square, board: Board?, onClick: () -> Unit) {
             .clickable { onClick() }
     ) {
         if (board != null) {
-            val player = board[square]!!.player
-            val img =
-                when (board[square]!!.type) {
-                    is Pawn -> "pawn"
-                    is Rook -> "rook"
-                    is Bishop -> "bishop"
-                    is King -> "king"
-                    is Queen -> "queen"
-                    else -> "knight"
-                }
-            if (player === Player.WHITE)
-                Image(painterResource("($img)W.png"), img)
-            else
-                Image(painterResource("($img)B.png"), img)
+            val place = board[square]
+            if (place != null) {
+                val player = place.player
+                val img =
+                    when (board[square]!!.type) {
+                        is Pawn -> "pawn"
+                        is Rook -> "rook"
+                        is Bishop -> "bishop"
+                        is King -> "king"
+                        is Queen -> "queen"
+                        else -> "knight"
+                    }
+                val test = img + "W.png"
+                if (player === Player.WHITE)
+                    Image(painterResource(img + "W.png"), img)
+                else
+                    Image(painterResource(img + "B.png"), img)
+            }
         }
     }
 }
