@@ -1,3 +1,6 @@
+import Comands.Command
+import Comands.Success
+import Comands.buildMenuHandlers
 import DataBase.MongoChessCommands
 import androidx.compose.desktop.ComposeWindow
 import androidx.compose.desktop.DesktopMaterialTheme
@@ -11,6 +14,7 @@ import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
+import kotlin.Result
 
 var curSquare: Square? = null
 
@@ -22,11 +26,18 @@ fun main() = application {
         title = "Jogo de Xadrez"
     ) {
         MongoDriver().use { driver ->
+            val menuHandlers = buildMenuHandlers()
             var gameChess by remember { mutableStateOf(createGame(driver)) }
             DesktopMaterialTheme {
                 ChessMenuBar(
-                    onOpen = {},
-                    onExit = ::exitApplication
+                    onOpen = {
+                        val result = openGame(menuHandlers, gameChess)
+                        if (result != null) gameChess = result
+                    },
+                    onJoin = {
+                        val result = joinGame(menuHandlers, gameChess)
+                        if (result != null) gameChess = result
+                    }
                 )
             }
         }
@@ -35,3 +46,27 @@ fun main() = application {
 
 fun createGame(driver: MongoDriver) =
     GameChess(MongoChessCommands(driver), null, null, StatusGame(null,listOf(),null, null))
+
+private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
+    print("GameName: ")
+    val gameName = readLine()
+    val name = "OPEN"
+    LineCommand(name,gameName)
+    val cmd: Command? = menuHandlers[name]
+    val result =  cmd!!.action(gameChess, gameName)
+    if (result is Success)
+        return result.gameChess
+    return null
+}
+
+private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
+    print("GameName: ")
+    val gameName = readLine()
+    val name = "JOIN "
+    LineCommand(name,gameName)
+    val cmd: Command? = menuHandlers[name]
+    val result =  cmd!!.action(gameChess, gameName)
+    if (result is Success)
+        return result.gameChess
+    return null
+}
