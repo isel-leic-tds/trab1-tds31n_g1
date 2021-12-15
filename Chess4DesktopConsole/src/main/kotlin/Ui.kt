@@ -75,7 +75,7 @@ private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
 private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     print("GameName: ")
     val gameName = readLine()
-    val name = "JOIN "
+    val name = "JOIN"
     LineCommand(name,gameName)
     val cmd: Command? = menuHandlers[name]
     val result =  cmd!!.action(gameChess, gameName)

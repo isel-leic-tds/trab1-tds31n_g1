@@ -18,7 +18,7 @@ import androidx.compose.ui.window.*
 fun FrameWindowScope.ChessMenuBar(onOpen: ()->Unit, onJoin: ()->Unit ) =  MenuBar {
     Menu("Game",'G') {
         Item("Open", onClick = onOpen /*{TODO open new window to receive name of the game}*/ )
-        Item("Join", onClick = {/*TODO open new window to receive name of the game*/} )
+        Item("Join", onClick = onJoin /*{TODO open new window to receive name of the game}*/ )
         Item("Options", onClick = {/*TODO */} )
     }
 }
