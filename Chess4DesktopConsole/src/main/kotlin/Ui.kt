@@ -14,9 +14,7 @@ import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
 
-var curSquare: Square? = null
-
-data class Chess(val selected: Boolean = false, val gameChess: GameChess)
+data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
 fun main() = application {
     val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
@@ -29,8 +27,8 @@ fun main() = application {
         // TODO Implement local database
         MongoDriver().use { driver ->
             val menuHandlers = buildMenuHandlers()
-            //In pvar chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
-            var selected by remember { mutableStateOf<Square?>(null) }
+            var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
+            //var selected by remember { mutableStateOf<Square?>(null) }
             DesktopMaterialTheme {
                 /*ChessMenuBar(
                     onOpen = {
@@ -43,8 +41,8 @@ fun main() = application {
                     }
                 )*/
                 Column {
-                    ChessView(board, selected) { square ->
-                        selected = square
+                    ChessView(chess) { square ->
+                        chess = Chess(square, chess.gameChess)
                     }
                 }
             }

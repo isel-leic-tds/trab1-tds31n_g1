@@ -53,11 +53,10 @@ fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Un
 }
 
 @Composable
-fun ChessView(board: Board?, from: Square?, onClick: (Square)->Unit ) {
+fun ChessView(chess: Chess, onClick: (Square)->Unit ) {
     Box(Modifier.background(Color.Black).size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
-        val test = Square.values
         Square.values.forEach { square ->
-            PlayView(square, board, from === square) { onClick(square) }
+            PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
         }
     }
 }
