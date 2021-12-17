@@ -28,18 +28,17 @@ fun main() = application {
         MongoDriver().use { driver ->
             val menuHandlers = buildMenuHandlers()
             var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
-            //var selected by remember { mutableStateOf<Square?>(null) }
             DesktopMaterialTheme {
-                /*ChessMenuBar(
+                ChessMenuBar(
                     onOpen = {
-                        val result = openGame(menuHandlers, gameChess)
-                        if (result != null) gameChess = result
+                        val result = openGame(menuHandlers, chess.gameChess)
+                        if (result != null) chess = chess.copy(gameChess = result)
                     },
                     onJoin = {
-                        val result = joinGame(menuHandlers, gameChess)
-                        if (result != null) gameChess = result
+                        val result = joinGame(menuHandlers, chess.gameChess)
+                        if (result != null) chess = chess.copy(gameChess = result)
                     }
-                )*/
+                )
                 Column {
                     ChessView(chess) { square ->
                         chess = Chess(square, chess.gameChess)
