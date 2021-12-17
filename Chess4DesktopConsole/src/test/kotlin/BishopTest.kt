@@ -1,7 +1,6 @@
 import model.Board.Board
 import model.Board.Success
 import model.Player
-import org.junit.Test
 import kotlin.test.assertEquals
 
 

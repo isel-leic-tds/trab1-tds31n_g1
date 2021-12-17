@@ -1,4 +1,4 @@
-package Comands
+package Commands
 
 import DataBase.*
 import Moves
@@ -29,13 +29,13 @@ class NewBoard(val statusGame: StatusGame): CommandSucess()
  * If so, returns a new Board with all saved moves executed.
  * Otherwise, will create a new document with empty list of moves. Then returns a new Board,
  */
-fun restoreGame(mongoChessCommands: MongoChessCommands, gameId: String?): CommandResult {
+fun restoreGame(chessDb: ChessDb, gameId: String?): CommandResult {
     if (gameId == null) return InvalidGameId()
     val newBoard = Board()
-    val moves = DataBase.getMoves(mongoChessCommands,gameId)
+    val moves = DataBase.getMoves(chessDb,gameId)
     if (moves == null) {
         // inserts one document in the database so the other player can join the game
-        postMoves(mongoChessCommands,gameId,"")
+        postMoves(chessDb,gameId,"")
         return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE,null))
     }
     if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
@@ -52,10 +52,10 @@ fun restoreGame(mongoChessCommands: MongoChessCommands, gameId: String?): Comman
  * If so, returns a new Board with all saved moves executed.
  * Otherwise, will report an error.
  */
-fun joinGame(mongoChessCommands: MongoChessCommands, gameId: String?): CommandResult {
+fun joinGame(chessDb: ChessDb, gameId: String?): CommandResult {
     if (gameId == null) return InvalidGameId()
     val newBoard = Board()
-    val moves = DataBase.getMoves(mongoChessCommands,gameId) ?: return GameDoesNotExist()
+    val moves = DataBase.getMoves(chessDb,gameId) ?: return GameDoesNotExist()
     if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
@@ -68,14 +68,14 @@ fun joinGame(mongoChessCommands: MongoChessCommands, gameId: String?): CommandRe
 /**
  * Appends a given [move] to the database with the [gameId] game identifier.
  */
-fun saveMove(mongoChessCommands: MongoChessCommands, gameId: String, move: String): CommandResult {
-    val moves: Moves? = DataBase.getMoves(mongoChessCommands,gameId)
+fun saveMove(chessDb: ChessDb, gameId: String, move: String): CommandResult {
+    val moves: Moves? = DataBase.getMoves(chessDb,gameId)
     if (moves == null)
         // adds a new document in the collection to hold the moves for the new chess game
-        postMoves(mongoChessCommands,gameId,move)
+        postMoves(chessDb,gameId,move)
     else
         // replace the first document (which) contains the saved moves for the current chess game
-        replaceMoves(mongoChessCommands, gameId, moves.content+" "+move)
+        replaceMoves(chessDb, gameId, moves.content+" "+move)
     return MoveSaved()
 }
 /**

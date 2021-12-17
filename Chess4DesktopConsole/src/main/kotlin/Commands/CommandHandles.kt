@@ -1,4 +1,4 @@
-package Comands
+package Commands
 
 import model.GameChess
 import model.Player
@@ -37,7 +37,7 @@ fun buildMenuHandlers() = mapOf(
         // returns a new Board (restored or new)
         action = { gameChess: GameChess, gameId: String? ->
             if (gameId != null) {
-                val commandResult = restoreGame(gameChess.mongoChessCommands, gameId)
+                val commandResult = restoreGame(gameChess.chessDb, gameId)
                 if (commandResult is NewBoard)
                     Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
                 // restoreGame should always produce a BoardSucess(). If not:
@@ -62,7 +62,7 @@ fun buildMenuHandlers() = mapOf(
         action = { gameChess: GameChess, gameId: String? ->
             if (gameId != null) {
                 MissingContent(gameChess, "GameId at fault")
-                val commandResult = joinGame(gameChess.mongoChessCommands, gameId)
+                val commandResult = joinGame(gameChess.chessDb, gameId)
                 if (commandResult is NewBoard)
                     Success(gameChess.copy(player = Player.BLACK, status = commandResult.statusGame, gameId = gameId))
                 // restoreGame should always produce a BoardSucess(). If not:
@@ -92,7 +92,7 @@ fun buildMenuHandlers() = mapOf(
                 val commandResult = makeMove(gameChess.status, move, gameChess.player!!)
                 when (commandResult) {
                     is NewBoard -> {
-                        saveMove(gameChess.mongoChessCommands, gameChess.gameId, commandResult.statusGame.lastMove!!)
+                        saveMove(gameChess.chessDb, gameChess.gameId, commandResult.statusGame.lastMove!!)
                         Success(gameChess.copy(status = commandResult.statusGame))
                     }
                     is CommandError -> CommandError1(gameChess, commandResult)
@@ -118,7 +118,7 @@ fun buildMenuHandlers() = mapOf(
         action = { gameChess: GameChess, gameId: String? ->
             if (gameChess.gameId != null) {
                 GameNotIniciated(gameChess)
-                val commandResult = restoreGame(gameChess.mongoChessCommands, gameChess.gameId)
+                val commandResult = restoreGame(gameChess.chessDb, gameChess.gameId)
                 if (commandResult is NewBoard)
                     Success(
                         gameChess.copy(

@@ -1,6 +1,7 @@
-import Comands.Command
-import Comands.Success
-import Comands.buildMenuHandlers
+import Commands.Command
+import Commands.Success
+import Commands.buildMenuHandlers
+import DataBase.LocalDb
 import DataBase.MongoChessCommands
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.layout.*
@@ -8,7 +9,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import chess.model.Square
-import model.Board.*
 import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
@@ -50,7 +50,7 @@ fun main() = application {
 }
 
 fun createGame(driver: MongoDriver) =
-    GameChess(MongoChessCommands(driver), null, null, StatusGame(null,listOf(),null, null))
+    GameChess(LocalDb(), null, null, StatusGame(null,listOf(),null, null))
 
 private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     print("GameName: ")

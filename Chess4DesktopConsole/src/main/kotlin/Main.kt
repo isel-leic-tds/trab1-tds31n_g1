@@ -1,6 +1,6 @@
-import Comands.Success
-import Comands.Terminate
-import Comands.buildMenuHandlers
+import Commands.Success
+import Commands.Terminate
+import Commands.buildMenuHandlers
 import DataBase.MongoChessCommands
 import model.GameChess
 import model.StatusGame

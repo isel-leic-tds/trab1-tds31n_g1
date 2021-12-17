@@ -1,6 +1,6 @@
 package model
 
-import DataBase.MongoChessCommands
+import DataBase.ChessDb
 import model.Board.Board
 
 enum class Player {
@@ -14,4 +14,4 @@ data class StatusGame(val board: Board?, val list: List<String>, val currentPlay
     }
 }
 
-data class GameChess(val mongoChessCommands: MongoChessCommands, val gameId: String?, val player: Player?, val status: StatusGame)
+data class GameChess(val chessDb: ChessDb, val gameId: String?, val player: Player?, val status: StatusGame)
