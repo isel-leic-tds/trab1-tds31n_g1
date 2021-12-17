@@ -2,7 +2,6 @@ import Commands.Command
 import Commands.Success
 import Commands.buildMenuHandlers
 import DataBase.LocalDb
-import DataBase.MongoChessCommands
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -11,7 +10,6 @@ import androidx.compose.ui.window.*
 import chess.model.Square
 import model.GameChess
 import model.StatusGame
-import mongoDb.MongoDriver
 import ui.ChessMenuBar
 
 data class Chess(val selected: Square? = null, val gameChess: GameChess)
