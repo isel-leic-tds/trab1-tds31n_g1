@@ -1,5 +1,6 @@
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -20,10 +21,11 @@ val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
 val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
 
 @Composable
-fun PlayView(square: Square, board: Board?, onClick: () -> Unit) {
+fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
     paintSquare(square)
+    val m = if (selected) Modifier.border(2.dp, Color.Red) else Modifier
     Box(
-        Modifier
+        m
             .size(PLAY_SIDE)
             .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
             .clickable { onClick() }
@@ -41,22 +43,21 @@ fun PlayView(square: Square, board: Board?, onClick: () -> Unit) {
                         is Queen -> "queen"
                         else -> "knight"
                     }
-                val test = img + "W.png"
                 if (player === Player.WHITE)
-                    Image(painterResource(img + "W.png"), img)
+                    Image(painterResource("${img}W.png"), img)
                 else
-                    Image(painterResource(img + "B.png"), img)
+                    Image(painterResource("${img}B.png"), img)
             }
         }
     }
 }
 
 @Composable
-fun ChessView(board: Board?, onClick: (Square)->Unit ) {
+fun ChessView(board: Board?, from: Square?, onClick: (Square)->Unit ) {
     Box(Modifier.background(Color.Black).size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         val test = Square.values
         Square.values.forEach { square ->
-            PlayView(square, board) { onClick(square) }
+            PlayView(square, board, from === square) { onClick(square) }
         }
     }
 }

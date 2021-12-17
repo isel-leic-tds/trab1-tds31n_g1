@@ -2,7 +2,6 @@ import Comands.Command
 import Comands.Success
 import Comands.buildMenuHandlers
 import DataBase.MongoChessCommands
-import androidx.compose.desktop.ComposeWindow
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
@@ -14,9 +13,10 @@ import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
-import kotlin.Result
 
 var curSquare: Square? = null
+
+data class Chess(val selected: Boolean = false, val gameChess: GameChess)
 
 fun main() = application {
     val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
@@ -25,12 +25,14 @@ fun main() = application {
         state = winState,
         title = "Jogo de Xadrez"
     ) {
-        // TODO connection is etablished but the code cant acess database!!
+        // TODO The code cant acess database!!
+        // TODO Implement local database
         MongoDriver().use { driver ->
             val menuHandlers = buildMenuHandlers()
-            var gameChess by remember { mutableStateOf(createGame(driver)) }
+            //In pvar chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
+            var selected by remember { mutableStateOf<Square?>(null) }
             DesktopMaterialTheme {
-                ChessMenuBar(
+                /*ChessMenuBar(
                     onOpen = {
                         val result = openGame(menuHandlers, gameChess)
                         if (result != null) gameChess = result
@@ -39,22 +41,11 @@ fun main() = application {
                         val result = joinGame(menuHandlers, gameChess)
                         if (result != null) gameChess = result
                     }
-                )
+                )*/
                 Column {
-                    ChessView(Board()) { square ->
-
+                    ChessView(board, selected) { square ->
+                        selected = square
                     }
-                    /*
-                    ChessView(gameChess.status.board) { square ->
-                        if (curSquare != null) {
-                            val playerType = board.get(curSquare!!)!!.type
-                            val str = "($playerType)$curSquare$square"
-                            board.makeMove(str)
-                            curSquare = null
-                        } else
-                            curSquare = square
-                    }
-                     */
                 }
             }
         }
