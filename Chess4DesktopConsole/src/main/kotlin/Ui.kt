@@ -23,33 +23,30 @@ fun main() = application {
         state = winState,
         title = "Jogo de Xadrez"
     ) {
-        // TODO The code cant acess database!!
-        // TODO Implement local database
-        MongoDriver().use { driver ->
-            val menuHandlers = buildMenuHandlers()
-            var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
-            DesktopMaterialTheme {
-                ChessMenuBar(
-                    onOpen = {
-                        val result = openGame(menuHandlers, chess.gameChess)
-                        if (result != null) chess = chess.copy(gameChess = result)
-                    },
-                    onJoin = {
-                        val result = joinGame(menuHandlers, chess.gameChess)
-                        if (result != null) chess = chess.copy(gameChess = result)
-                    }
-                )
-                Column {
-                    ChessView(chess) { square ->
-                        chess = Chess(square, chess.gameChess)
-                    }
+        // TODO The code cant acess remote database!!
+        val menuHandlers = buildMenuHandlers()
+        var chess by remember { mutableStateOf(Chess(gameChess = createGame())) }
+        DesktopMaterialTheme {
+            ChessMenuBar(
+                onOpen = {
+                    val result = openGame(menuHandlers, chess.gameChess)
+                    if (result != null) chess = chess.copy(gameChess = result)
+                },
+                onJoin = {
+                    val result = joinGame(menuHandlers, chess.gameChess)
+                    if (result != null) chess = chess.copy(gameChess = result)
+                }
+            )
+            Column {
+                ChessView(chess) { square ->
+                    chess = Chess(square, chess.gameChess)
                 }
             }
         }
     }
 }
 
-fun createGame(driver: MongoDriver) =
+fun createGame() =
     GameChess(LocalDb(), null, null, StatusGame(null,listOf(),null, null))
 
 private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
