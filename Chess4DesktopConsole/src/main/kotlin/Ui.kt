@@ -38,25 +38,37 @@ fun main() = application {
             )
             Column {
                 ChessView(chess) { square ->
-                    val selected = chess.selected
-                    if (selected == null)
-                        chess = Chess(square, chess.gameChess)
-                    else {
-                        val board = chess.gameChess.status.board
-                        if (board != null) {
-                            val pieceType = board[selected]!!.type.toStr()
-                            val current = chess.selected.toString()
-                            val target = square.toString()
-                            val move = pieceType + current + target
-                            val gameChess = makeMove(menuHandlers, chess.gameChess, move)
-                            if (gameChess != null)
-                                chess = Chess(gameChess = gameChess)
-                        }
-                    }
+                    chess = pressSquare(chess, square, menuHandlers)
                 }
             }
         }
     }
+}
+
+private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, Command>): Chess {
+    val selected = chess.selected
+    val board = chess.gameChess.status.board
+    if (board != null) {
+        // marks a piece
+        if (selected == null)
+            return chess.copy(selected = square)
+        else {
+            // unmarc selected piece
+            if (selected === square)
+                return chess.copy(selected = null)
+            // tries to make a move
+            else {
+                val pieceType = board[selected]!!.type.toStr()
+                val current = chess.selected.toString()
+                val target = square.toString()
+                val move = pieceType + current + target
+                val gameChess = makeMove(menuHandlers, chess.gameChess, move)
+                if (gameChess != null)
+                    return Chess(gameChess = gameChess)
+            }
+        }
+    }
+    return chess
 }
 
 fun createGame() =
@@ -73,7 +85,7 @@ private fun makeMove(menuHandlers: Map<String, Command>, gameChess: GameChess, m
 }
 
 private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
-    print("GameName: ")
+    //print("GameName: ")
     //val gameName = readLine()
     val gameName = "test"
     val command = "OPEN"
@@ -86,8 +98,9 @@ private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
 }
 
 private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
-    print("GameName: ")
-    val gameName = readLine()
+    //print("GameName: ")
+    //val gameName = readLine()
+    val gameName = "test"
     val command = "JOIN"
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]
