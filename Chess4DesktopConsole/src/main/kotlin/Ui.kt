@@ -49,7 +49,8 @@ fun createGame() =
 
 private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     print("GameName: ")
-    val gameName = readLine()
+    //val gameName = readLine()
+    val gameName = "test"
     val name = "OPEN"
     LineCommand(name,gameName)
     val cmd: Command? = menuHandlers[name]

@@ -23,13 +23,11 @@ val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
 @Composable
 fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
     paintSquare(square)
-    val m = if (selected) Modifier.border(2.dp, Color.Red) else Modifier
-    Box(
-        m
-            .size(PLAY_SIDE)
-            .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
-            .clickable { onClick() }
-    ) {
+    var m = Modifier.size(PLAY_SIDE)
+        .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
+        .clickable { onClick() }
+    if (selected) m = m.border(2.dp, Color.Red)
+    Box(m) {
         if (board != null) {
             val place = board[square]
             if (place != null) {
@@ -56,7 +54,6 @@ fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Un
 fun ChessView(chess: Chess, onClick: (Square)->Unit ) {
     Box(Modifier.background(Color.Black).size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         Square.values.forEach { square ->
-            if (chess.selected === square )println("aye aye sir")
             PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
         }
     }
