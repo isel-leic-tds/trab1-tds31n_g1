@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import chess.model.Square
+import model.Board.toStr
 import model.GameChess
 import model.StatusGame
 import ui.ChessMenuBar
@@ -27,17 +28,31 @@ fun main() = application {
         DesktopMaterialTheme {
             ChessMenuBar(
                 onOpen = {
-                    val result = openGame(menuHandlers, chess.gameChess)
-                    if (result != null) chess = chess.copy(gameChess = result)
+                    val gameChess = openGame(menuHandlers, chess.gameChess)
+                    if (gameChess != null) chess = chess.copy(gameChess = gameChess)
                 },
                 onJoin = {
-                    val result = joinGame(menuHandlers, chess.gameChess)
-                    if (result != null) chess = chess.copy(gameChess = result)
+                    val gameChess = joinGame(menuHandlers, chess.gameChess)
+                    if (gameChess != null) chess = chess.copy(gameChess = gameChess)
                 }
             )
             Column {
                 ChessView(chess) { square ->
-                    chess = Chess(square, chess.gameChess)
+                    val selected = chess.selected
+                    if (selected == null)
+                        chess = Chess(square, chess.gameChess)
+                    else {
+                        val board = chess.gameChess.status.board
+                        if (board != null) {
+                            val pieceType = board[selected]!!.type.toStr()
+                            val current = chess.selected.toString()
+                            val target = square.toString()
+                            val move = pieceType + current + target
+                            val gameChess = makeMove(menuHandlers, chess.gameChess, move)
+                            if (gameChess != null)
+                                chess = Chess(gameChess = gameChess)
+                        }
+                    }
                 }
             }
         }
@@ -47,13 +62,23 @@ fun main() = application {
 fun createGame() =
     GameChess(LocalDb(), null, null, StatusGame(null,listOf(),null, null))
 
+private fun makeMove(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
+    val command = "PLAY"
+    LineCommand(command, null)
+    val cmd: Command? = menuHandlers[command]
+    val result =  cmd!!.action(gameChess, move)
+    if (result is Success)
+        return result.gameChess
+    return null
+}
+
 private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     print("GameName: ")
     //val gameName = readLine()
     val gameName = "test"
-    val name = "OPEN"
-    LineCommand(name,gameName)
-    val cmd: Command? = menuHandlers[name]
+    val command = "OPEN"
+    LineCommand(command,gameName)
+    val cmd: Command? = menuHandlers[command]
     val result =  cmd!!.action(gameChess, gameName)
     if (result is Success)
         return result.gameChess
@@ -63,9 +88,9 @@ private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
 private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     print("GameName: ")
     val gameName = readLine()
-    val name = "JOIN"
-    LineCommand(name,gameName)
-    val cmd: Command? = menuHandlers[name]
+    val command = "JOIN"
+    LineCommand(command,gameName)
+    val cmd: Command? = menuHandlers[command]
     val result =  cmd!!.action(gameChess, gameName)
     if (result is Success)
         return result.gameChess
