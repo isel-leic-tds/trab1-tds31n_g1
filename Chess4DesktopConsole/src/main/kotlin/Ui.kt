@@ -45,6 +45,9 @@ fun main() = application {
     }
 }
 
+/**
+ * Tries to make a move if two pieces were selected or selects one.
+ */
 private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, Command>): Chess {
     val selected = chess.selected
     val board = chess.gameChess.status.board
@@ -56,6 +59,10 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
             // unmarc selected piece
             if (selected === square)
                 return chess.copy(selected = null)
+            val piece = board[square]
+            // select another piece when one is already selected
+            if (piece != null && piece.player === chess.gameChess.player)
+                return chess.copy(selected = square)
             // tries to make a move
             else {
                 val pieceType = board[selected]!!.type.toStr()
