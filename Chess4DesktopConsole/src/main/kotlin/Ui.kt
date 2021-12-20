@@ -36,10 +36,11 @@ fun main() = application {
                     if (gameChess != null) chess = chess.copy(gameChess = gameChess)
                 }
             )
-            Column {
-                ChessView(chess) { square ->
+            Row {
+                BoardView(chess) { square ->
                     chess = pressSquare(chess, square, menuHandlers)
                 }
+                MoveView(chess)
             }
         }
     }

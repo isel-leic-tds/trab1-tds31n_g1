@@ -4,6 +4,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,10 +16,11 @@ import model.Board.*
 import model.Player
 import kotlin.math.sqrt
 
-val PLAY_SIDE = 80.dp
+val PLAY_SIDE = 60.dp
 val GRID_WIDTH = 5.dp
 val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
 val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
+val HISTORY_DIM = 300.dp
 
 @Composable
 fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
@@ -50,12 +52,29 @@ fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Un
     }
 }
 
+/**
+ * Draws the board.
+ */
 @Composable
-fun ChessView(chess: Chess, onClick: (Square)->Unit ) {
-    Box(Modifier.background(Color.Black).size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
+fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
+    Box(Modifier
+        .background(Color(225, 172, 27))
+        .padding(20.dp).background(Color.Black)
+        .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         Square.values.forEach { square ->
             PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
         }
+    }
+}
+
+@Composable
+fun MoveView(chess: Chess) {
+    Box(Modifier
+        .background(Color(225, 172, 27))
+        .padding(20.dp)
+        .size(HISTORY_DIM, PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))
+        .background(Color.White)) {
+
     }
 }
 
