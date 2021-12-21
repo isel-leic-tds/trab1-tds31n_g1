@@ -89,7 +89,7 @@ fun makeMove(statusGame: StatusGame, move: String?, player: Player): CommandResu
     if (result is model.Board.Error)
         return BoardError(result)
     if (result is model.Board.Success)
-        return NewBoard(StatusGame(result.board, statusGame.list + result.str, player.advance(),result.str))
+        return NewBoard(StatusGame(result.board, statusGame.moves + result.str, player.advance(),result.str))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
     throw IllegalStateException()
 }

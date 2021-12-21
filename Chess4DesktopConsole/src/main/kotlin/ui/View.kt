@@ -2,18 +2,23 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import chess.model.Square
 import model.Board.*
 import model.Player
+import org.jetbrains.skija.FontStyle
+import org.litote.kmongo.text
 import kotlin.math.sqrt
 
 val PLAY_SIDE = 60.dp
@@ -74,7 +79,19 @@ fun MoveView(chess: Chess) {
         .padding(20.dp)
         .size(HISTORY_DIM, PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))
         .background(Color.White)) {
-
+        Column {
+            val moves = chess.gameChess.status.moves
+            val size = moves.size
+            moves.forEachIndexed { n, move ->
+                if (n % 2 == 0) {
+                    Row {
+                        Text("${n/2+1} $move", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                        if(size > n+1)
+                            Text(" - ${moves[n + 1]}", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 }
 

@@ -154,7 +154,7 @@ fun buildMenuHandlers() = mapOf(
             if (result is Error)
                println(result)
             if (result is Success) {
-                println(result.gameChess.status.list.toString())
+                println(result.gameChess.status.moves.toString())
                 println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
             }
 
