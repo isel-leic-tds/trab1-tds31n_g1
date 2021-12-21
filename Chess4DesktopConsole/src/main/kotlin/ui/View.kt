@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -14,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import chess.model.Square
 import model.Board.*
 import model.Player
@@ -84,10 +86,28 @@ fun MoveView(chess: Chess) {
             val size = moves.size
             moves.forEachIndexed { n, move ->
                 if (n % 2 == 0) {
-                    Row {
-                        Text("${n/2+1} $move", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-                        if(size > n+1)
-                            Text(" - ${moves[n + 1]}", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(10.dp).fillMaxWidth()) {
+                        Text(
+                            "${n/2+1}. $move",
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                        )
+                        if(size > n+1) {
+                            Text(
+                                " - ",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                moves[n + 1],
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+
                     }
                 }
             }
