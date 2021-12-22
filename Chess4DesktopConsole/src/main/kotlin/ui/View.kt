@@ -87,10 +87,22 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
 @Composable
 fun LogView(chess: Chess) {
     Box(Modifier
-        .padding(20.dp)
-        .background(Color.White)
-        .fillMaxHeight().width(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
+        .padding(10.dp)
+        .fillMaxHeight().width(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))
 
+    ) {
+        val mod = Modifier.padding(5.dp)
+        val gameId = chess.gameChess.gameId
+        val currentPlayer = chess.gameChess.status.currentPlayer
+        if (gameId != null)
+            Column {
+                Row {
+                    Text("Game: $gameId", fontWeight = FontWeight.Bold, modifier = mod)
+                    Text(" | Turn: $currentPlayer", fontWeight = FontWeight.Bold, modifier = mod)
+                }
+                // TODO will display all error messages
+                Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod)
+            }
     }
 }
 
@@ -99,7 +111,8 @@ fun MoveView(chess: Chess) {
     Box(Modifier
         .padding(20.dp)
         .fillMaxHeight().width(MOVES_DIM)
-        .background(Color.White)) {
+        .background(Color.White)
+    ) {
         Column {
             val moves = chess.gameChess.status.moves
             val size = moves.size
