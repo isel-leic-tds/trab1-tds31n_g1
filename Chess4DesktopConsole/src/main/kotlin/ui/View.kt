@@ -5,29 +5,39 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import chess.model.Square
 import model.Board.*
 import model.Player
-import org.jetbrains.skija.FontStyle
-import org.litote.kmongo.text
 import kotlin.math.sqrt
 
 val PLAY_SIDE = 60.dp
 val GRID_WIDTH = 5.dp
 val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
 val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
-val HISTORY_DIM = 300.dp
+val MOVES_DIM = 300.dp
+
+@Composable
+fun MainView(chess: Chess, onClick: (Square)->Unit ) {
+    Box(Modifier
+        .background(Color(225, 172, 27))
+    ) {
+        Row {
+            Column {
+                BoardView(chess, onClick)
+                LogView(chess)
+            }
+            MoveView(chess)
+        }
+    }
+}
 
 @Composable
 fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
@@ -65,8 +75,8 @@ fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Un
 @Composable
 fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
     Box(Modifier
-        .background(Color(225, 172, 27))
-        .padding(20.dp).background(Color.Black)
+        .padding(20.dp)
+        .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         Square.values.forEach { square ->
             PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
@@ -75,11 +85,20 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
 }
 
 @Composable
+fun LogView(chess: Chess) {
+    Box(Modifier
+        .padding(20.dp)
+        .background(Color.White)
+        .fillMaxHeight().width(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
+
+    }
+}
+
+@Composable
 fun MoveView(chess: Chess) {
     Box(Modifier
-        .background(Color(225, 172, 27))
         .padding(20.dp)
-        .size(HISTORY_DIM, PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))
+        .fillMaxHeight().width(MOVES_DIM)
         .background(Color.White)) {
         Column {
             val moves = chess.gameChess.status.moves
