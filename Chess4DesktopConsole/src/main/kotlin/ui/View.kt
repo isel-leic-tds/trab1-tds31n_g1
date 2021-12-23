@@ -26,6 +26,7 @@ val GRID_WIDTH = 5.dp
 val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
 val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
 val MOVES_DIM = 300.dp
+val LOG_HEIGHT = 80.dp
 
 @Composable
 fun MainView(chess: Chess, onClick: (Square)->Unit ) {
@@ -139,7 +140,7 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
 fun LogView(chess: Chess) {
     Box(Modifier
         .padding(10.dp)
-        .size(width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), height = Dp.Unspecified)
+        .size(width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), height = LOG_HEIGHT)
 
     ) {
         val mod = Modifier.padding(5.dp)
