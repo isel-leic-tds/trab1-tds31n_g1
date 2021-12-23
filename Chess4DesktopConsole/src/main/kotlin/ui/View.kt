@@ -5,11 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,12 +32,60 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
     Box(Modifier
         .background(Color(225, 172, 27))
     ) {
-        Row {
-            Column {
-                BoardView(chess, onClick)
-                LogView(chess)
+        Column {
+            LettersView()
+            Row {
+                NumbersView()
+                Column {
+                    BoardView(chess, onClick)
+                    LogView(chess)
+                }
+                MoveView(chess)
             }
-            MoveView(chess)
+        }
+    }
+}
+
+
+@Composable
+fun LettersView() {
+    Box(
+        Modifier
+            .padding(start = 50.dp, top = 20.dp)
+            .size(height = Dp.Unspecified, width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1),)
+        //.background(Color.Red)
+    ) {
+        Row {
+            repeat(8) {
+                Text(
+                    text = "${('a'.code +it).toChar()}",
+                    modifier = Modifier
+                        .size(height = Dp.Unspecified, width = PLAY_SIDE+GRID_WIDTH),
+                        //.background(Color.White)
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun NumbersView() {
+    Box(
+        Modifier
+            .padding(start = 20.dp, top = 20.dp)
+            .size(height = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), width = Dp.Unspecified)
+            //.background(Color.Red)
+    ) {
+        Column {
+            repeat(8) {
+                Text(
+                    text = "${8 - it}",
+                    modifier = Modifier
+                        .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
+                        //.background(Color.White)
+                )
+            }
         }
     }
 }
@@ -88,7 +139,7 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
 fun LogView(chess: Chess) {
     Box(Modifier
         .padding(10.dp)
-        .fillMaxHeight().width(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))
+        .size(width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), height = Dp.Unspecified)
 
     ) {
         val mod = Modifier.padding(5.dp)
@@ -97,11 +148,11 @@ fun LogView(chess: Chess) {
         if (gameId != null)
             Column {
                 Row {
-                    Text("Game: $gameId", fontWeight = FontWeight.Bold, modifier = mod)
-                    Text(" | Turn: $currentPlayer", fontWeight = FontWeight.Bold, modifier = mod)
+                    Text("Game: $gameId", fontWeight = FontWeight.Bold, modifier = mod.background(Color.Red))
+                    Text(" | Turn: $currentPlayer", fontWeight = FontWeight.Bold, modifier = mod.background(Color.Blue))
                 }
                 // TODO will display all error messages
-                Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod)
+                Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod.background(Color.Yellow))
             }
     }
 }
@@ -110,7 +161,7 @@ fun LogView(chess: Chess) {
 fun MoveView(chess: Chess) {
     Box(Modifier
         .padding(20.dp)
-        .fillMaxHeight().width(MOVES_DIM)
+        .size(width = MOVES_DIM, height = Dp.Unspecified)
         .background(Color.White)
     ) {
         Column {
