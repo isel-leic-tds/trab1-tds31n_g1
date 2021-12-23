@@ -149,11 +149,11 @@ fun LogView(chess: Chess) {
         if (gameId != null)
             Column {
                 Row {
-                    Text("Game: $gameId", fontWeight = FontWeight.Bold, modifier = mod.background(Color.Red))
-                    Text(" | Turn: $currentPlayer", fontWeight = FontWeight.Bold, modifier = mod.background(Color.Blue))
+                    Text("Game: $gameId", fontWeight = FontWeight.Bold, modifier = mod)
+                    Text(" | Turn: $currentPlayer", fontWeight = FontWeight.Bold, modifier = mod)
                 }
                 // TODO will display all error messages
-                Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod.background(Color.Yellow))
+                Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod)
             }
     }
 }
