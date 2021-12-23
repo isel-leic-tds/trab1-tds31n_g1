@@ -154,14 +154,14 @@ private fun paintSquare(square: Square) {
             Modifier
                 .size(PLAY_SIDE)
                 .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
-                .background(Color.White)
+                .background(Color.Gray)
         )
     else
         Box(
             Modifier
                 .size(PLAY_SIDE)
                 .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
-                .background(Color.Gray)
+                .background(Color.White)
         )
 
 }
