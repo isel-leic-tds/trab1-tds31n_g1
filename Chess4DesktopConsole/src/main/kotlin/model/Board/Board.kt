@@ -284,7 +284,7 @@ class Board {
             currSquare = cmd.substring(1, 3).toSquareOrNull()
             newSquare = cmd.substring(3, 5).toSquareOrNull()
         }
-        val result = getPieceForPromotion(str)
+        val result = getMoveType(str)
         if (result is ISuccess) {
             val moveType = result.content as MoveType
             if (currSquare == null || newSquare == null || pieceType == null) return BadMove()
@@ -293,7 +293,7 @@ class Board {
         return result // returns the error messaage
     }
 
-    private fun getPieceForPromotion(str: String): Result {
+    private fun getMoveType(str: String): Result {
         val moveType =
             if (str[3] == 'x') Capture()
             else if (str.length > 5 && str[5] == '=') {

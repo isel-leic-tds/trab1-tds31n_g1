@@ -149,6 +149,7 @@ private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSq
     Agora o tipo Move tem um MoveType que pode ser REGULAR ou CAPTURE.
     O que significa que esta função vai ter de verificar qual o MoveType.
     Ou seja, se for um CAPTURE, apenas vai retornar os Square's que permitem comer uma peça
+    Se for REGULAR, vai retornar as jogadas normais (que nao comem outra peça)
  */
 fun PieceType.getAllMoves(move: Move, board: Array<Array<Board.Piece?>>): List<Square> {
     return when(this) {
