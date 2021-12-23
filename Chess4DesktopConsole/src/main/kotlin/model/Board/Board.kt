@@ -27,6 +27,8 @@ private class EmptySquare(): Error("Given quare is empty")
 private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
 private class BadPiece(): Error("Given piece type does not correspond to the given current square")
 private class PromotionNotValid(): Error("Given piece type for Promotion is not valid")
+private class BadPromotion(): Error("Promotion shouldnt have been made")
+private class MakePromotion(): Error("Promotion should have been made")
 
 abstract class MoveType()
 class Regular(): MoveType()
@@ -198,6 +200,7 @@ class Board {
      * @return Result
      */
     // TODO ORGANIZE THIS FUNCTION
+    // TODO theres a bug when Promotion is made but it shouldt, then when we try to make a new move it says that the square is empty
     fun makeMove(str: String, curPlayer: Player = Player.WHITE): Result {
         if (finished) return Finished()
         // checks if the [str] is valid
@@ -213,10 +216,14 @@ class Board {
         if (result is Error) return result
         var newBoard = ((result) as ISuccess).content as Board
         if (checkPromotion(move.newSquare)) {
+            if (!(move.type is Promotion))
+                return MakePromotion()
             result = doPromotion(newBoard.boardArr, move.newSquare, move)
             if (result is Error) return result
             newBoard = ((result) as ISuccess).content as Board
         }
+        else if (move.type is Promotion)
+            return BadPromotion()
         return Success(newBoard, move.toString())
     }
 
