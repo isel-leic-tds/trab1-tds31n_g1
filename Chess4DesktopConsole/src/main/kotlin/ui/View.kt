@@ -92,33 +92,53 @@ fun NumbersView() {
 }
 
 @Composable
-fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
-    paintSquare(square)
+fun PlayView(square: Square, board: Board?, selected: Boolean, check: Boolean, onClick: () -> Unit) {
+    paintSquare(square, onClick)
     var m = Modifier.size(PLAY_SIDE)
         .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
-        .clickable { onClick() }
     if (selected) m = m.border(2.dp, Color.Red)
-    Box(m) {
-        if (board != null) {
-            val place = board[square]
-            if (place != null) {
-                val player = place.player
-                val img =
-                    when (board[square]!!.type) {
-                        is Pawn -> "pawn"
-                        is Rook -> "rook"
-                        is Bishop -> "bishop"
-                        is King -> "king"
-                        is Queen -> "queen"
-                        else -> "knight"
-                    }
-                if (player === Player.WHITE)
-                    Image(painterResource("${img}W.png"), img)
-                else
-                    Image(painterResource("${img}B.png"), img)
-            }
+    if (board != null) {
+        //if (!check) m = m.clickable { onClick() }
+        val place = board[square]
+        if (place != null) {
+            /*if (!check && place.type === Queen())
+                m = m.clickable { onClick() }*/
+            val player = place.player
+            val img =
+                when (board[square]!!.type) {
+                    is Pawn -> "pawn"
+                    is Rook -> "rook"
+                    is Bishop -> "bishop"
+                    is King -> "king"
+                    is Queen -> "queen"
+                    else -> "knight"
+                }
+            if (player === Player.WHITE)
+                Image(painterResource("${img}W.png"), img, m)
+            else
+                Image(painterResource("${img}B.png"), img, m)
         }
     }
+}
+
+@Composable
+private fun paintSquare(square: Square, onClick: () -> Unit) {
+    if ((square.row.ordinal + square.column.ordinal) % 2 == 1)
+        Box(
+            Modifier
+                .size(PLAY_SIDE)
+                .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
+                .background(Color.Gray)
+                .clickable {onClick()}
+        )
+    else
+        Box(
+            Modifier
+                .size(PLAY_SIDE)
+                .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
+                .background(Color.White)
+                .clickable {onClick()}
+        )
 }
 
 /**
@@ -131,7 +151,7 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         Square.values.forEach { square ->
-            PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
+            PlayView(square, chess.gameChess.status.board, chess.selected === square, chess.gameChess.status.ckeck) { onClick(square) }
         }
     }
 }
@@ -197,23 +217,4 @@ fun MoveView(chess: Chess) {
             }
         }
     }
-}
-
-@Composable
-private fun paintSquare(square: Square) {
-    if ((square.row.ordinal + square.column.ordinal) % 2 == 1)
-        Box(
-            Modifier
-                .size(PLAY_SIDE)
-                .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
-                .background(Color.Gray)
-        )
-    else
-        Box(
-            Modifier
-                .size(PLAY_SIDE)
-                .offset((PLAY_SIDE + GRID_WIDTH) * square.column.ordinal, (PLAY_SIDE + GRID_WIDTH) * square.row.ordinal)
-                .background(Color.White)
-        )
-
 }

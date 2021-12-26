@@ -51,8 +51,12 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
     val board = chess.gameChess.status.board
     if (board != null) {
         // marks a piece
-        if (selected == null)
-            return chess.copy(selected = square)
+        if (selected == null) {
+            return if (board[square] != null)
+                chess.copy(selected = square)
+            else
+                chess
+        }
         else {
             // unmarc selected piece
             if (selected === square)
