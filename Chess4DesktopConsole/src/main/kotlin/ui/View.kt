@@ -40,6 +40,7 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
                 Column {
                     BoardView(chess, onClick)
                     LogView(chess)
+                    CheckView(chess.gameChess.status.ckeck)
                 }
                 MoveView(chess)
             }
@@ -47,6 +48,18 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
     }
 }
 
+@Composable
+fun CheckView(check: Boolean) {
+    if (check) {
+        Text(
+            text = "CHECK",
+            color = Color.Red,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
+        )
+    }
+}
 
 @Composable
 fun LettersView() {

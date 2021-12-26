@@ -8,7 +8,7 @@ enum class Player {
     fun advance() = if (this === WHITE) BLACK else WHITE
 }
 
-data class StatusGame(val board: Board?, val moves: List<String>, val currentPlayer: Player?, val lastMove: String?) {
+data class StatusGame(val board: Board?, val moves: List<String>, val currentPlayer: Player?, val lastMove: String?, val ckeck: Boolean = false) {
     override fun toString(): String {
         return board.toString()
     }
