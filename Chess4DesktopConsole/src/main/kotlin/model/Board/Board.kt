@@ -2,6 +2,7 @@ package model.Board
 
 import chess.model.*
 import model.Player
+import org.litote.kmongo.insertOne
 import java.util.*
 import kotlin.reflect.KProperty
 
@@ -283,6 +284,9 @@ class Board {
         val newBoardArr = boardArr.clone()
         boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        if(isInCheck(move)) {
+            isInCheckMate(move)
+        }
         return Board(this, newBoardArr)
     }
 
@@ -297,33 +301,77 @@ class Board {
         return false
     }
 
-    /*
+
     private fun isInCheck(move: Move): Boolean {
-        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
-        val player = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player
+        val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]
+        val player = piece!!.player
         val isInCheckMove = Move(move.piece,move.newSquare,move.newSquare)
-        val allMoves = isInCheckMove.piece.model.Board.getAllMoves(isInCheckMove,boardArr)
+        val allMoves = isInCheckMove.piece.getAllMoves(isInCheckMove,boardArr)
+        //Iterar sobre todos os moves dessa peça para ver se me estou a mover para um sitio em que o rei está em check
         if(player == Player.WHITE) {
             if (!allMoves.any {
                     it.row == blackKingPosition.row && it.column == blackKingPosition.column
-                }) return false
+                }) return false //Nao Está em check
         }
         else
             if (!allMoves.any {
                     it.row == whiteKingPosition.row && it.column == whiteKingPosition.column
-                }) return false
+                }) return false //Nao Está em check
         return true
-    }*/
+    }
 
-    /*private fun isInCheckMate(move: Move):Boolean {
-        val player = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player
-        if(player == Player.WHITE) {
-            val blackKingMove = Piece(,blackKingPosition,blackKingPosition) //Criar uma peça para calcular as posições possíveis para o rei se mexer
-            val allBlackKingMoves = model.Board.getAllMoves(blackKingPosition,boardArr)
+    private fun isInCheckMate(move: Move):Boolean {
+        val player = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
+        val blackKing = boardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]
+        val whiteKing = boardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]
+
+        //Ver se alguma peça adversária pode comer a peça que está a por em check o rei
+        Square.values.forEach { square ->
+            val piece = boardArr[square.row.ordinal][square.column.ordinal]
+            if(piece != null) {
+                //Peça que irá poder comer a peça que está a por em check o rei
+                val possibleSquares = piece.type.getAllMoves(Move(piece.type, square, square), boardArr)
+                if (possibleSquares.any{it.row == move.newSquare.row && it.column == move.newSquare.column}) {
+                    println("No checkMate")
+                    return false
+                }
+            }
         }
-        else{
-            val allWhiteKingMoves = model.Board.getAllMoves(whiteKingPosition,boardArr)
+
+        var counter1 = 0
+        var counter2 = 0
+        if (player == Player.WHITE && blackKing != null) {
+            val possibleBlackKingSquares = blackKing.type.getAllMoves(Move(blackKing.type,blackKingPosition,blackKingPosition),boardArr)
+            for(i in possibleBlackKingSquares) {
+                Square.values.forEach { square ->
+                    val piece = boardArr[square.row.ordinal][square.column.ordinal]
+                    if(piece != null && counter1 == counter2 ) {
+                        val possibleSquares = piece.type.getAllMoves(Move(piece.type, square, square), boardArr)
+                        if (possibleSquares.any{it.row == i.row && it.column == i.column}) {
+                            counter2++
+                        }
+                    }
+                    counter1++
+                }
+            }
         }
-    }*/
+        else if (player == Player.BLACK && whiteKing != null) {
+            val possibleWhiteKingSquares = whiteKing.type.getAllMoves(Move(whiteKing.type,whiteKingPosition,whiteKingPosition),boardArr)
+            for(i in possibleWhiteKingSquares) {
+                Square.values.forEach { square ->
+                    val piece = boardArr[square.row.ordinal][square.column.ordinal]
+                    if(piece != null && counter1 == counter2 ) {
+                        val possibleSquares = piece.type.getAllMoves(Move(piece.type, square, square), boardArr)
+                        if (possibleSquares.any{it.row == i.row && it.column == i.column}) {
+                            counter2++
+                        }
+                    }
+                    counter1++
+                }
+            }
+        }
+        println("CHECK MATE")
+        return true
+    }
 }
 

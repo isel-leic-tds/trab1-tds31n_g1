@@ -45,7 +45,7 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
             if (!(player === Player.WHITE && pieceType is Pawn)) { //Verificar se a peça não é branca e não é Pawn
                 if (!(board[newRow][newCol] != null && pieceType is Pawn)) { //Verificar se o sítio para onde se vai está vazio
                     //Verificar se é possivel mover a peça para o novo Square, quando não for o while acaba
-                    while (newRow <= Row.ONE.ordinal && tryToMove(curSquare, board, Square(curSquare.column.ordinal.toColumn(), newRow.toRow()), pieceType)) {
+                    while (newRow <= Row.ONE.ordinal && tryToMove(curSquare, board, Square(curSquare.column.ordinal.toColumn(), newRow.toRow()), pieceType) ) {
                         //King e Pawn só podem andar uma posição por isso este caso especial
                         if (pieceType is King || (pieceType is Pawn && newRow != Row.SIX.ordinal && board[newRow][newCol] == null)) break
                         newRow++
@@ -163,9 +163,6 @@ fun getAllMovesKnight(move: Move, board: Array<Array<Board.Piece?>>): List<Squar
     val offsetRow = intArrayOf(2, 1, -1, -2, -2, -1, 1, 2) //Array com os offsets das posições possíveis do cavalo
     val offsetColumn = intArrayOf(1, 2, 2, 1, -1, -2, -2, -1)
     allAvailablePositions = mutableListOf()
-
-    // Se o jogador escolher o mesmo sitio
-    if (move.newSquare.row === move.curSquare.row && move.newSquare.column === move.curSquare.column) return allAvailablePositions
 
     for (i in 0..7) { // Percorrer os arrays de offsets
         //Verificar se o Square está dentro do board
