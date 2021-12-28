@@ -3,6 +3,7 @@ package DataBase
 
 import Moves
 import mongoDb.*
+import java.io.File
 
 /**
  * The Chess basic operations.
@@ -39,7 +40,6 @@ class MongoChessCommands(val driver: MongoDriver): ChessDb {
         driver.getCollection<Moves>(COLLECTION).insertDocument(moves)
 
     override fun getDocument(gameId: String) = driver.getCollection<Moves>(COLLECTION).getDocument(gameId)
-
 }
 
 class LocalDb(): ChessDb {
@@ -56,4 +56,23 @@ class LocalDb(): ChessDb {
     }
 
     override fun getDocument(gameId: String): Moves? = map[gameId]
+
+}
+
+class FileDb(): ChessDb {
+    override fun replaceDocument(moves: Moves): Boolean {
+        File(moves._id).writeText( moves.content )
+        return true
+    }
+
+    override fun insertDocument(moves: Moves): Boolean {
+        File(moves._id).writeText( moves.content )
+        return true
+    }
+
+    override fun getDocument(gameId: String): Moves? {
+        val content = File(gameId).readLines().joinToString { str -> "$str" }
+        if (content.isEmpty()) return null
+        return Moves(gameId, content)
+    }
 }

@@ -1,6 +1,7 @@
 import Commands.Command
 import Commands.Success
 import Commands.buildMenuHandlers
+import DataBase.FileDb
 import DataBase.LocalDb
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.layout.*
@@ -81,7 +82,7 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
 }
 
 fun createGame() =
-    GameChess(LocalDb(), null, null, StatusGame(null,listOf(),null, null))
+    GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null))
 
 private fun makeMove(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
     val command = "PLAY"
@@ -96,7 +97,7 @@ private fun makeMove(menuHandlers: Map<String, Command>, gameChess: GameChess, m
 private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     //print("GameName: ")
     //val gameName = readLine()
-    val gameName = "test"
+    val gameName = "gameTest"
     val command = "OPEN"
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]
@@ -109,7 +110,7 @@ private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
 private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
     //print("GameName: ")
     //val gameName = readLine()
-    val gameName = "test"
+    val gameName = "gameTest"
     val command = "JOIN"
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]
