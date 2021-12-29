@@ -114,19 +114,31 @@ fun buildMenuHandlers() = mapOf(
             }
         }
     ),
+    /**
+     * If the refresh results in the same list of moves, the Result object returned conatins the same gameChess.
+     */
     "REFRESH" to Command(
         action = { gameChess: GameChess, gameId: String? ->
             if (gameChess.gameId != null) {
                 GameNotIniciated(gameChess)
                 val commandResult = restoreGame(gameChess.chessDb, gameChess.gameId)
                 if (commandResult is NewBoard)
-                    Success(
-                        gameChess.copy(
-                            player = Player.WHITE,
-                            status = commandResult.statusGame,
-                            gameId = gameChess.gameId
+                    // if the refresh returns a similar board
+                    if (gameChess.status.moves == commandResult.statusGame.moves)
+                        Success(
+                            gameChess.copy(
+                                player = Player.WHITE,
+                                gameId = gameChess.gameId
+                            )
                         )
-                    )
+                    else
+                        Success(
+                            gameChess.copy(
+                                player = Player.WHITE,
+                                status = commandResult.statusGame,
+                                gameId = gameChess.gameId
+                            )
+                        )
                 // restoreGame should always produce a BoardSucess(). If not:
                 else
                     throw IllegalStateException()

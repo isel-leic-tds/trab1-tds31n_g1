@@ -2,13 +2,15 @@ import Commands.Command
 import Commands.Success
 import Commands.buildMenuHandlers
 import DataBase.FileDb
-import DataBase.LocalDb
 import androidx.compose.desktop.DesktopMaterialTheme
-import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import chess.model.Square
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import model.Board.toStr
 import model.GameChess
 import model.StatusGame
@@ -23,6 +25,7 @@ fun main() = application {
         state = winState,
         title = "Jogo de Xadrez"
     ) {
+        val scope = rememberCoroutineScope()
         // TODO The code cant acess remote database!!
         val menuHandlers = buildMenuHandlers()
         var chess by remember { mutableStateOf(Chess(gameChess = createGame())) }
@@ -35,10 +38,14 @@ fun main() = application {
                 onJoin = {
                     val gameChess = joinGame(menuHandlers, chess.gameChess)
                     if (gameChess != null) chess = chess.copy(gameChess = gameChess)
-                }
+                },
             )
             MainView(chess) { square ->
                 chess = pressSquare(chess, square, menuHandlers)
+                scope.launch {
+                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                    chess = chess.copy(gameChess = gameChess)
+                }
             }
         }
     }
@@ -72,7 +79,7 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
                 val current = chess.selected.toString()
                 val target = square.toString()
                 val move = pieceType + current + target
-                val gameChess = makeMove(menuHandlers, chess.gameChess, move)
+                val gameChess = play(menuHandlers, chess.gameChess, move)
                 if (gameChess != null)
                     return Chess(gameChess = gameChess)
             }
@@ -84,7 +91,7 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
 fun createGame() =
     GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null))
 
-private fun makeMove(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
+private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
     val command = "PLAY"
     LineCommand(command, null)
     val cmd: Command? = menuHandlers[command]
@@ -120,14 +127,20 @@ private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
     return null
 }
 
-private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
-    print("GameName: ")
-    val gameName = readLine()
-    val name = "JOIN "
-    LineCommand(name,gameName)
-    val cmd: Command? = menuHandlers[name]
-    val result =  cmd!!.action(gameChess, gameName)
-    if (result is Success)
-        return result.gameChess
-    return null
+private suspend fun refreshGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess {
+    return withContext(Dispatchers.IO) {
+        val gameName = "gameTest"
+        val command = "REFRESH"
+        LineCommand(command, gameName)
+        val cmd: Command? = menuHandlers[command]
+        var result = cmd!!.action(gameChess, gameName)
+        do {
+            delay(2000)
+            result = cmd!!.action(gameChess, gameName)
+            if (result is Success)
+                println(result.gameChess.status.moves)
+            println(gameChess.status.moves)
+        } while (!(result is Success) || result.gameChess.status.board === gameChess.status.board)
+        result.gameChess
+    }
 }
