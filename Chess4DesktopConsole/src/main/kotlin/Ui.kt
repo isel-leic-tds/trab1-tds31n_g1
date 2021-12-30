@@ -58,12 +58,13 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
     val selected = chess.selected
     val board = chess.gameChess.status.board
     if (board != null) {
+        // if it's not the players turn
+        if (chess.gameChess.player !== chess.gameChess.status.currentPlayer) return chess
         // marks a piece
         if (selected == null) {
-            return if (board[square] != null)
+            return if (board[square] != null && board[square]!!.player === chess.gameChess.player)
                 chess.copy(selected = square)
-            else
-                chess
+            else chess
         }
         else {
             // unmarc selected piece
@@ -71,8 +72,11 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
                 return chess.copy(selected = null)
             val piece = board[square]
             // select another piece when one is already selected
-            if (piece != null && piece.player === chess.gameChess.player)
-                return chess.copy(selected = square)
+            if (piece != null && board[square] != null)
+                return if (piece.player === chess.gameChess.player) // if the player presses one of its own pieces
+                    chess.copy(selected = square)
+                else chess.copy(selected = null) // if the player presses one of its own pieces
+
             // tries to make a move
             else {
                 val pieceType = board[selected]!!.type.toStr()
@@ -137,10 +141,7 @@ private suspend fun refreshGame(menuHandlers: Map<String, Command>, gameChess: G
         do {
             delay(2000)
             result = cmd!!.action(gameChess, gameName)
-            if (result is Success)
-                println(result.gameChess.status.moves)
-            println(gameChess.status.moves)
-        } while (!(result is Success) || result.gameChess.status.board === gameChess.status.board)
+        } while (result !is Success || result.gameChess.status.board === gameChess.status.board)
         result.gameChess
     }
 }

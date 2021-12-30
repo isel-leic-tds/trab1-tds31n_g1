@@ -21,7 +21,7 @@ import model.Board.*
 import model.Player
 import kotlin.math.sqrt
 
-val PLAY_SIDE = 60.dp
+val PLAY_SIDE = 40.dp
 val GRID_WIDTH = 5.dp
 val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
 val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)

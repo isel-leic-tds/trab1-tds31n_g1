@@ -125,20 +125,9 @@ fun buildMenuHandlers() = mapOf(
                 if (commandResult is NewBoard)
                     // if the refresh returns a similar board
                     if (gameChess.status.moves == commandResult.statusGame.moves)
-                        Success(
-                            gameChess.copy(
-                                player = Player.WHITE,
-                                gameId = gameChess.gameId
-                            )
-                        )
+                        Success(gameChess)
                     else
-                        Success(
-                            gameChess.copy(
-                                player = Player.WHITE,
-                                status = commandResult.statusGame,
-                                gameId = gameChess.gameId
-                            )
-                        )
+                        Success(gameChess.copy(status = commandResult.statusGame))
                 // restoreGame should always produce a BoardSucess(). If not:
                 else
                     throw IllegalStateException()
