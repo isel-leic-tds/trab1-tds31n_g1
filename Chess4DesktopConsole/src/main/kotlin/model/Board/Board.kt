@@ -2,9 +2,7 @@ package model.Board
 
 import chess.model.*
 import model.Player
-import org.litote.kmongo.insertOne
 import java.util.*
-import kotlin.reflect.KProperty
 
 abstract class Result
 data class Success(val board: Board, val str: String): Result() {
@@ -284,7 +282,9 @@ class Board {
         val newBoardArr = boardArr.clone()
         boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-        if(isInCheck(move)) {
+        val checkSquares = isInCheck(move).size
+        if(checkSquares > 0) {
+            if(checkSquares == 1) canAnyPieceProtectKing()
             isInCheckMate(move)
         }
         return Board(this, newBoardArr)
@@ -302,42 +302,67 @@ class Board {
     }
 
 
-    private fun isInCheck(move: Move): Boolean {
-        val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]
-        val player = piece!!.player
+    /*TODO: Verificar primeiro se ao fazer a minha jogada o meu rei fica em check
+    Se ficar, dizer que o movimento não é válido
+    Se não ficar, verificar se o rei adversário está em check
+    Se estiver em check ativar a mensagem a dizer CHECK
+    Depois ver quantas peças estão a meter o rei em check
+    Se nao houver nenhuma nao ha check
+    Se houver 1, primeiro ver se existe alguma peça que se possa sacrificar pelo rei
+    Se nao existir nenhuma que se possa sacrificar pelo rei vemos se o rei tem para onde ir sem ficar em check
+    Se houver 1+,nenhuma peça se pode sacrificar por isso apenas ver se o rei pode fugir
+    Se nao conseguir fugir aparece a mensagem de CHECKMATE e termina o jogo
+    */
+
+
+
+    private fun isInCheck(move: Move): Array<Square> { //TODO: Todas as peças que estão a fazer check ao rei
+        val ret = arrayOf<Square>()
+
+        //Obter a cor do player que está a por em check
+        val currentPlayerColor = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
+
         val isInCheckMove = Move(move.piece,move.newSquare,move.newSquare)
         val allMoves = isInCheckMove.piece.getAllMoves(isInCheckMove,boardArr)
         //Iterar sobre todos os moves dessa peça para ver se me estou a mover para um sitio em que o rei está em check
-        if(player == Player.WHITE) {
-            if (!allMoves.any {
-                    it.row == blackKingPosition.row && it.column == blackKingPosition.column
-                }) return false //Nao Está em check
+        Square.values.forEach { square ->
+            val piece = boardArr[square.row.ordinal][square.column.ordinal]
+            if (piece != null) {
+                if (currentPlayerColor == Player.WHITE) {
+                    if (!allMoves.any {
+                            it.row == whiteKingPosition.row && it.column == whiteKingPosition.column
+                        }) ret[ret.size] = square
+                }
+                else
+                    if (!allMoves.any {
+                            it.row == whiteKingPosition.row && it.column == whiteKingPosition.column
+                        })ret[ret.size] = square
+            }
         }
-        else
-            if (!allMoves.any {
-                    it.row == whiteKingPosition.row && it.column == whiteKingPosition.column
-                }) return false //Nao Está em check
-        return true
+        return ret
     }
 
     private fun isInCheckMate(move: Move):Boolean {
-        val player = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
-        val blackKing = boardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]
-        val whiteKing = boardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]
-
         //Ver se alguma peça adversária pode comer a peça que está a por em check o rei
         Square.values.forEach { square ->
             val piece = boardArr[square.row.ordinal][square.column.ordinal]
-            if(piece != null) {
+            if (piece != null) {
                 //Peça que irá poder comer a peça que está a por em check o rei
                 val possibleSquares = piece.type.getAllMoves(Move(piece.type, square, square), boardArr)
-                if (possibleSquares.any{it.row == move.newSquare.row && it.column == move.newSquare.column}) {
+                if (possibleSquares.any { it.row == move.newSquare.row && it.column == move.newSquare.column }) {
                     println("No checkMate")
                     return false
                 }
             }
         }
+        println("CHECK MATE")
+        return true
+    }
 
+    private fun canAnyPieceProtectKing(move: Move):Boolean {
+        val player = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
+        val blackKing = boardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]
+        val whiteKing = boardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]
         var counter1 = 0
         var counter2 = 0
         if (player == Player.WHITE && blackKing != null) {
@@ -374,4 +399,3 @@ class Board {
         return true
     }
 }
-

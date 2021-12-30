@@ -19,7 +19,7 @@ class PawnTest {
                     "        "+
                     "   PP   "+
                     "        "+
-                    "PPPP PPP"+
+                    "PPP  PPP"+
                     "RNBQKBNR", sut.board.toStringTest() )
     }
 
