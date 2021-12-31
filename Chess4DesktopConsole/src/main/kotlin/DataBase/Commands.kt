@@ -6,11 +6,12 @@ import Moves
  * Retrieves the document with the [gameId].
  */
 fun getMoves(chessDb: ChessDb, gameId: String): Moves? {
-    return try {
-        chessDb.getDocument(gameId)
+    try {
+        return chessDb.getDocument(gameId)
     } catch (ex: Exception) {
-        null
+        println(ex)
     }
+    return null
 }
 
 /**

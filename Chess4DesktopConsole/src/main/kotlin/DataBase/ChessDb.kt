@@ -72,7 +72,7 @@ class FileDb(): ChessDb {
 
     override fun getDocument(gameId: String): Moves? {
         val content = File(gameId).readLines().joinToString { str -> "$str" }
-        if (content.isEmpty()) return null
+        if (content.isEmpty()) return Moves(gameId,"")
         return Moves(gameId, content)
     }
 }

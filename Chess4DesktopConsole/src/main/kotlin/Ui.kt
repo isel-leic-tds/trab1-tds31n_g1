@@ -71,12 +71,9 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
             if (selected === square)
                 return chess.copy(selected = null)
             val piece = board[square]
-            // select another piece when one is already selected
-            if (piece != null && board[square] != null)
-                return if (piece.player === chess.gameChess.player) // if the player presses one of its own pieces
-                    chess.copy(selected = square)
-                else chess.copy(selected = null) // if the player presses one of its own pieces
-
+            // if the player presses one of its own pieces
+            if (piece != null && piece.player === chess.gameChess.player)
+                return chess.copy(selected = square)
             // tries to make a move
             else {
                 val pieceType = board[selected]!!.type.toStr()
