@@ -42,7 +42,7 @@ fun restoreGame(chessDb: ChessDb, gameId: String?): CommandResult {
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
     list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithCorrectString(move),
-                                                                currentPlayer = statusGame.currentPlayer!!.advance(),
+                                                                currentPlayer = statusGame.currentPlayer!!.other(),
                                                                 lastMove = move) }
     return NewBoard(statusGame)
 }
@@ -60,7 +60,7 @@ fun joinGame(chessDb: ChessDb, gameId: String?): CommandResult {
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
     list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithCorrectString(move),
-                                                                currentPlayer = statusGame.currentPlayer!!.advance(),
+                                                                currentPlayer = statusGame.currentPlayer!!.other(),
                                                                 lastMove = move) }
     return NewBoard(statusGame)
 }
@@ -89,7 +89,7 @@ fun makeMove(statusGame: StatusGame, move: String?, player: Player): CommandResu
     if (result is model.Board.Error)
         return BoardError(result)
     if (result is model.Board.Success)
-        return NewBoard(StatusGame(result.board, statusGame.moves + result.str, player.advance(),result.str))
+        return NewBoard(StatusGame(result.board, statusGame.moves + result.str, player.other(),result.str))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
     throw IllegalStateException()
 }

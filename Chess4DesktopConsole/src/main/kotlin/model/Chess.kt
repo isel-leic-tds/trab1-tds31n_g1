@@ -5,7 +5,7 @@ import model.Board.Board
 
 enum class Player {
     WHITE, BLACK;
-    fun advance() = if (this === WHITE) BLACK else WHITE
+    fun other() = if (this === WHITE) BLACK else WHITE
 }
 
 data class StatusGame(val board: Board?, val moves: List<String>, val currentPlayer: Player?, val lastMove: String?, val ckeck: Boolean = false) {
