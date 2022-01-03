@@ -6,6 +6,24 @@ import org.junit.Test
 
 class PawnTest {
     @Test
+    fun `Masdasdas`() {
+        var sut = Board().makeMove("Pe2e3",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
+        sut = sut.board.makeMove("Pe3e4",Player.WHITE) as Success
+        sut = sut.board.makeMove("Pd5d4",Player.BLACK) as Success
+        sut = sut.board.makeMove("Pd2d4",Player.WHITE) as Success
+        assertEquals(
+            "rnbqkbnr"+
+                    "ppp pppp"+
+                    "        "+
+                    "        "+
+                    "   PP   "+
+                    "        "+
+                    "PPP  PPP"+
+                    "RNBQKBNR", sut.board.toStringTest() )
+    }
+
+    @Test
     fun `Makes one step forward with Pawn in Board`() {
         val sut = Board().makeMove("Pe2e3",Player.WHITE) as Success
         assertEquals(
