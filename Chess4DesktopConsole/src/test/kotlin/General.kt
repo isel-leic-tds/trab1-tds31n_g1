@@ -16,7 +16,7 @@ class General {
 
     @Test
     fun `MakeMove in Board`() {
-        val sut = Board().makeMoveWithCorrectString("Pe2e4").makeMoveWithCorrectString("Pe7e5").makeMoveWithCorrectString("Nb1c3")
+        val sut = Board().makeMoveWithoutCheck("Pe2e4").makeMoveWithoutCheck("Pe7e5").makeMoveWithoutCheck("Nb1c3")
         assertEquals(
             "rnbqkbnr"+
                     "pppp ppp"+
