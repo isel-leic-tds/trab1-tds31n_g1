@@ -377,5 +377,54 @@ class Board {
         return false
     }
 
+    private fun canCastle(move: Move):Boolean {
+        val player = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player
+        var checkPieceAllMoves = mutableListOf<Square>()
+        if(player == Player.WHITE) {
+            checkPieceAllMoves = getPath(whiteKingPosition,move.newSquare,checkPieceAllMoves)
+            if() {//Verificar se é a primeira jogada tanto do rei como da torre
+                val pieceToSwitch = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
+            }
+        }
+    }
+
+    private fun getPath(kingSquare:Square, checkSquare: Square, checkPieceAllMoves:List<Square>):MutableList<Square> {
+        val list = mutableListOf<Square>()
+        val rowDiffCheck = checkSquare.row.ordinal - kingSquare.row.ordinal
+        val colDiffCheck = checkSquare.column.ordinal - kingSquare.column.ordinal
+        val pieceType = boardArr[checkSquare.row.ordinal][checkSquare.column.ordinal]!!.type
+        if(pieceType is Knight) list.add(checkSquare)
+        //Adicionar o currSquare para ver se alguma peça adversária pode comer a peça a por o rei em check
+        list.add(checkSquare)
+        checkPieceAllMoves.forEach { square->
+            val rowDiff = square.row.ordinal - kingSquare.row.ordinal
+            val colDiff = square.column.ordinal - kingSquare.column.ordinal
+            if((rowDiff in 1 until rowDiffCheck) && (colDiff in (colDiffCheck + 1)..-1)) { //Move UP_RIGHT
+                list.add(square)
+            }
+            else if((rowDiff in (rowDiffCheck + 1)..-1) && (colDiff in (colDiffCheck + 1)..-1)) { //Move DOWN_RIGHT
+                list.add(square)
+            }
+            else if((rowDiff in 1 until rowDiffCheck) && (colDiff in 1 until colDiffCheck)) { //Move UP_LEFT
+                list.add(square)
+            }
+            else if((rowDiff in (rowDiffCheck + 1)..-1) && (colDiff in 1 until colDiffCheck)) { //Move DOWN_LEFT
+                list.add(square)
+            }
+            else if((rowDiff in 1 until rowDiffCheck) && square.column.ordinal == kingSquare.column.ordinal) { //Move UP
+                list.add(square)
+            }
+            else if((rowDiff in (rowDiffCheck + 1)..-1) && square.column.ordinal == kingSquare.column.ordinal) { //Move DOWN
+                list.add(square)
+            }
+            else if(square.row.ordinal == kingSquare.row.ordinal && (colDiff in (colDiffCheck + 1)..-1)) { //Move RIGHT
+                list.add(square)
+            }
+            else if(square.row.ordinal == kingSquare.row.ordinal && (colDiff in 1 until colDiffCheck)) { //Move LEFT
+                list.add(square)
+            }
+        }
+        return list
+    }
 }
 
