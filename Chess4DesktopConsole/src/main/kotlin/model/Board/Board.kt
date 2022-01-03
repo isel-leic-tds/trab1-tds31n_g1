@@ -292,7 +292,7 @@ class Board {
         var counter = 0
         if(checkSquares > 0) {
             if(checkSquares == 1) {
-                val square = isAdversaryKingInCheck(move)
+                val square = isAdversaryKingInCheck(move) //Número de peças que metem o rei em check
                 if (canAnyPieceProtectKing(square, move).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
                     if(!kingHasValidMoves(move)) { //Ver depois se o rei tem movimentos validos
                         println("CHECKMATE") //Se nao tiver chequemate
@@ -339,7 +339,6 @@ class Board {
             }) return true
         return false
     }
-
 
     /*TODO:
     Verificar primeiro se ao fazer a minha jogada o meu rei fica em check -> isMyKingInCheck() DONE
