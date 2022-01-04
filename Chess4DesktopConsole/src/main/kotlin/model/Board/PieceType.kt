@@ -77,7 +77,7 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
     if(pieceType !is Rook && !(player===Player.BLACK && pieceType is Pawn)) { //O rook e o Pawn preto não se podem mover nas diagonais para cima
         newRow = curSquare.row.ordinal - 1
         newCol = curSquare.column.ordinal + 1
-        if(newCol in 0..7) { //Check if Col is not out of bounds from the board
+        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
             //Verificar se para onde o Pawn se está a mover está uma peça inimiga
             if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
                 while (newRow >= Row.EIGHT.ordinal && newCol <= Column.H.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType)) {
@@ -89,7 +89,7 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
         }
         newRow = curSquare.row.ordinal - 1
         newCol = curSquare.column.ordinal - 1
-        if(newCol in 0..7) { //Check if Col is not out of bounds from the board
+        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
             //Verificar se para onde o Pawn se está a mover está uma peça inimiga
             if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
                 while (newRow >= Row.EIGHT.ordinal && newCol >= Column.A.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType)) {
@@ -104,7 +104,7 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
     if(pieceType !is Rook && !(player===Player.WHITE && pieceType is Pawn)) { //O rook e o Pawn branco não se podem mover nas diagonais para cima
         newRow = curSquare.row.ordinal + 1
         newCol = curSquare.column.ordinal + 1
-        if(newCol in 0..7) { //Check if Col is not out of bounds from the board
+        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
             //Verificar se para onde o Pawn se está a mover está uma peça inimiga
             if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
                 while (newRow <= Row.ONE.ordinal && newCol <= Column.H.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType)) {
@@ -116,7 +116,7 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
         }
         newRow = curSquare.row.ordinal + 1
         newCol = curSquare.column.ordinal - 1
-        if(newCol in 0..7) { //Check if Col is not out of bounds from the board
+        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
             //Verificar se para onde o Pawn se está a mover está uma peça inimiga
             if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
                 while (newRow <= Row.ONE.ordinal && newCol >= Column.A.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType)) {

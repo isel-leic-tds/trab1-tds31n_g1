@@ -40,7 +40,7 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
                 Column {
                     BoardView(chess, onClick)
                     LogView(chess)
-                    CheckView(chess.gameChess.status.ckeck)
+                    CheckView(chess.gameChess.status.check)
                 }
                 MoveView(chess)
             }
@@ -164,7 +164,7 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         Square.values.forEach { square ->
-            PlayView(square, chess.gameChess.status.board, chess.selected === square, chess.gameChess.status.ckeck) { onClick(square) }
+            PlayView(square, chess.gameChess.status.board, chess.selected === square, chess.gameChess.status.check) { onClick(square) }
         }
     }
 }

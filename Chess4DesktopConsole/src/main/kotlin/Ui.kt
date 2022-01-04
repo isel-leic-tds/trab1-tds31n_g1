@@ -90,7 +90,7 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
 }
 
 fun createGame() =
-    GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null))
+    GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null,true))
 
 private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
     val command = "PLAY"

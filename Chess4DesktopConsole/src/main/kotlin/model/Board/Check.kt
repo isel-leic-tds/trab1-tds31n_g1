@@ -180,7 +180,7 @@ import java.util.HashMap
         whiteKingMoves.forEach {square1 ->
             Square.values.forEach { square2 ->
                 val piece = boardArr[square2.row.ordinal][square2.column.ordinal]
-                if (piece != null && count1==count2 && piece.player == Player.WHITE) {
+                if (piece != null && count1==count2 && piece.player == Player.BLACK) {
                     val allMoves = piece.type.getAllMoves(Move(piece.type,square2,square2),boardArr)
                     if(allMoves.any{
                             it.row == square1.row && it.column == square1.column

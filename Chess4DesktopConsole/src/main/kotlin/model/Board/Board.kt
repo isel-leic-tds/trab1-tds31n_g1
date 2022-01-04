@@ -6,7 +6,10 @@ import java.util.*
 import kotlin.reflect.KProperty
 
 abstract class Result
-data class Success(val board: Board, val str: String, val check: Boolean = false): Result() {
+
+var globalCheck: Boolean = false
+
+data class Success(val board: Board, val str: String, val check: Boolean): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -58,8 +61,8 @@ class Board {
     /**
      * Saves the position of the king throughout the game (It is going to be used for check and checkmate)
      */
-    private val whiteKingPosition: Square
-    private val blackKingPosition: Square
+    private var whiteKingPosition = Square(Column.E,Row.ONE)
+    private var blackKingPosition = Square(Column.E,Row.EIGHT)
 
     /**
      * To iniciate the Game
@@ -69,8 +72,8 @@ class Board {
         boardArr = Array(LINES) { Array(COLS) { null } }
         // updates the white and black King positions
         init()
-        whiteKingPosition = Square(Column.E,Row.ONE)
-        blackKingPosition = Square(Column.E,Row.EIGHT)
+        /*whiteKingPosition = Square(Column.E,Row.ONE)
+        blackKingPosition = Square(Column.E,Row.EIGHT)*/
     }
 
     /**
@@ -79,7 +82,7 @@ class Board {
     constructor(board: Board, boardArr: Array<Array<Piece?>>) {
         this.boardArr = boardArr
         finished = board.finished
-        var whiteKingPosition: Square? = null
+        /*var whiteKingPosition: Square? = null
         var blackKingPosition: Square? = null
         Square.values.forEach {square ->
             val piece = boardArr[square.row.ordinal][square.column.ordinal]
@@ -95,6 +98,8 @@ class Board {
         // should never be null
         this.whiteKingPosition = whiteKingPosition!!
         this.blackKingPosition = blackKingPosition!!
+
+         */
     }
 
     /**
@@ -218,7 +223,7 @@ class Board {
         result = makeMove(move)
         if (result is Error) return result
         var newBoard = ((result) as ISuccess).content as Board
-        val inCheck = (result).check
+        //val inCheck = (result).check
 
         // promotion
         if (checkPromotion(move.newSquare)) {
@@ -230,7 +235,7 @@ class Board {
         }
         else if (move.type is Promotion)
             return BadPromotion()
-        return Success(newBoard, move.toString(), inCheck)
+        return Success(newBoard, move.toString(),globalCheck)
     }
 
     private fun checkPromotion(newSquare: Square): Boolean {
@@ -273,7 +278,7 @@ class Board {
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
-    private class ISuccess(val content: Any, val check: Boolean = false): Result()
+    private class ISuccess(val content: Any): Result()
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
@@ -358,19 +363,43 @@ class Board {
         return ISuccess(true)
     }
 
+    private fun updateKingsPositions() {
+        Square.values.forEach {square ->
+            val piece = boardArr[square.row.ordinal][square.column.ordinal]
+            if (piece != null) {
+                if (piece.type is King) {
+                    if (piece.player === Player.WHITE)
+                        whiteKingPosition = square
+                    else
+                        blackKingPosition = square
+                }
+            }
+        }
+    }
+
+    private fun reverKingsPositions() {
+
+    }
+
     /**
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
      */
     // TODO MAYBE THIS FUNCTION SHOULD GET A BOARD ARRAY?
     private fun makeMove(move: Move): Result {
+        updateKingsPositions() //Antes de fazer um move fazer update das posições dos reis
+        globalCheck = false //Dar reset à variável que diz se o jogo está em check
         if (!isValidMove(move)) return InvalidMove(move.toString())
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
 
-        if(isMyKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
+        if(piece!!.type is King){
+            updateKingsPositions() //Antes de fazer um move fazer update das posições dos reis
+        }
+
+        if(isMyKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Problema com as posições dos reis que ainda nao foram atualizadas nesta altura
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = piece
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = null
             return MyKingInCheck()
@@ -388,12 +417,13 @@ class Board {
                         return ISuccess(Board(this, newBoardArr))
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr), true)
+                    globalCheck = true
+                    return ISuccess(Board(this, newBoardArr))
                 }
                 else {//Se alguma peça conseguir proteger o rei
                     piecesThatCanEat.forEach { square1 -> //Iterar sobre as peças que podem comer a peça que está a pôr em check o rei
                         val pieceToEat = newBoardArr[square1.row.ordinal][square1.column.ordinal]
-                        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = pieceToEat
+                        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = pieceToEat
                         newBoardArr[square1.row.ordinal][square1.column.ordinal] = null
                         if(isAdversaryKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition).size > 0) { //Se ao mover essa peça o rei continuar em check adiciona-se 1 ao contador
                             counter++
@@ -403,11 +433,14 @@ class Board {
                         newBoardArr[square1.row.ordinal][square1.column.ordinal] = pieceToEat
                     }
                     if(counter == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
-                        println("CHECKMATE") //É logo chequemate e retorna-se o board
-                        return ISuccess(Board(this, newBoardArr))
+                        if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
+                            println("CHECKMATE") //É logo chequemate e retorna-se o board
+                            return ISuccess(Board(this, newBoardArr))
+                        }
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr), true)
+                    globalCheck = true
+                    return ISuccess(Board(this, newBoardArr))
                 }
             }
             else {
@@ -416,7 +449,8 @@ class Board {
                     return ISuccess(Board(this, newBoardArr))
                 }
                 // is in check
-                return ISuccess(Board(this, newBoardArr), true)
+                globalCheck = true
+                return ISuccess(Board(this, newBoardArr))
             }
         }
         return ISuccess(Board(this, newBoardArr))
