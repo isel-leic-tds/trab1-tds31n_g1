@@ -59,8 +59,8 @@ class Board {
     /**
      * Saves the position of the king throughout the game (It is going to be used for check and checkmate)
      */
-    private var whiteKingPosition = Square(Column.E,Row.ONE)
-    private var blackKingPosition = Square(Column.E,Row.EIGHT)
+    private val whiteKingPosition: Square
+    private val blackKingPosition: Square
 
     /**
      * To iniciate the Game
@@ -70,8 +70,8 @@ class Board {
         boardArr = Array(LINES) { Array(COLS) { null } }
         // updates the white and black King positions
         init()
-        /*whiteKingPosition = Square(Column.E,Row.ONE)
-        blackKingPosition = Square(Column.E,Row.EIGHT)*/
+        whiteKingPosition = Square(Column.E,Row.ONE)
+        blackKingPosition = Square(Column.E,Row.EIGHT)
     }
 
     /**
@@ -80,7 +80,7 @@ class Board {
     constructor(board: Board, boardArr: Array<Array<Piece?>>) {
         this.boardArr = boardArr
         finished = board.finished
-        /*var whiteKingPosition: Square? = null
+        var whiteKingPosition: Square? = null
         var blackKingPosition: Square? = null
         Square.values.forEach {square ->
             val piece = boardArr[square.row.ordinal][square.column.ordinal]
@@ -96,8 +96,6 @@ class Board {
         // should never be null
         this.whiteKingPosition = whiteKingPosition!!
         this.blackKingPosition = blackKingPosition!!
-
-         */
     }
 
     /**
@@ -196,7 +194,7 @@ class Board {
         val newBoard = boardArr.clone()
         boardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoard[newSquare!!.row.ordinal][newSquare.column.ordinal] = piece
-        return Board(this,newBoard, finished)
+        return Board(this,newBoard)
     }
 
     /**
@@ -361,36 +359,21 @@ class Board {
         return ISuccess(true)
     }
 
-    private fun updateKingsPositions() {
-        Square.values.forEach {square ->
-            val piece = boardArr[square.row.ordinal][square.column.ordinal]
-            if (piece != null) {
-                if (piece.type is King) {
-                    if (piece.player === Player.WHITE)
-                        whiteKingPosition = square
-                    else
-                        blackKingPosition = square
-                }
-            }
-        }
-    }
-
     /**
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
      */
     // TODO MAYBE THIS FUNCTION SHOULD GET A BOARD ARRAY?
     private fun makeMove(move: Move): Result {
-        updateKingsPositions() //Antes de fazer um move fazer update das posições dos reis
         if (!isValidMove(move)) return InvalidMove(move.toString())
-        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
+        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
 
-        if(piece!!.type is King){
-            updateKingsPositions() //Antes de fazer um move fazer update das posições dos reis
-        }
+        // update king position
+        val whiteKingPosition = if(piece.type is King && piece.player === Player.WHITE ) move.newSquare else this.whiteKingPosition
+        val blackKingPosition = if(piece.type is King && piece.player === Player.BLACK ) move.newSquare else this.blackKingPosition
 
         if(isMyKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Problema com as posições dos reis que ainda nao foram atualizadas nesta altura
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = piece
