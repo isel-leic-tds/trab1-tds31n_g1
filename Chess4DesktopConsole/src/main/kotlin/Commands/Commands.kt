@@ -45,7 +45,7 @@ fun restoreGame(chessDb: ChessDb, gameId: String?): CommandResult {
         val result = statusGame.board!!.makeMoveWithoutCheck(move)
         val board = result.board
         val check = result.check
-        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move,ckeck = check )
+        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move, check = check )
     }
     return NewBoard(statusGame)
 }
@@ -65,7 +65,7 @@ fun joinGame(chessDb: ChessDb, gameId: String?): CommandResult {
     list.forEach{ move: String -> var result = statusGame.board!!.makeMoveWithoutCheck(move)
         var board = result.board
         val check = result.check
-        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move,ckeck = check )
+        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move, check = check )
     }
     return NewBoard(statusGame)
 }

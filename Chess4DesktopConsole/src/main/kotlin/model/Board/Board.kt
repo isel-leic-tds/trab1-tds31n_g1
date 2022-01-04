@@ -282,6 +282,7 @@ class Board {
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
     private class ISuccess(val content: Any, val check: Boolean = false): Result()
+
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
@@ -313,7 +314,6 @@ class Board {
         }
         return result // returns the error messaage
     }
-
     private fun getMoveType(str: String): Result {
         val moveType =
             if (str[3] == 'x') Capture()
@@ -393,7 +393,11 @@ class Board {
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
 
-        if(piece!!.type is King){
+        return checkAndCheckmate(move, newBoardArr, piece!!)
+    }
+
+    private fun checkAndCheckmate(move: Move, newBoardArr: Array<Array<Piece?>>, piece: Piece): Result {
+        if(piece.type is King){
             updateKingsPositions() //Antes de fazer um move fazer update das posições dos reis
         }
 
@@ -464,7 +468,4 @@ class Board {
             }) return true
         return false
     }
-
-
-
 }
