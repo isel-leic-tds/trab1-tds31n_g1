@@ -90,7 +90,7 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
 }
 
 fun createGame() =
-    GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null,true))
+    GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null))
 
 private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
     val command = "PLAY"
@@ -129,6 +129,7 @@ private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): 
 }
 
 private suspend fun refreshGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess {
+    if (gameChess.status.currentPlayer === gameChess.player) return gameChess
     return withContext(Dispatchers.IO) {
         val gameName = "gameTest"
         val command = "REFRESH"
