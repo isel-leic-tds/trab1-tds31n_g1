@@ -182,19 +182,23 @@ class Board {
         return str
     }
 
+    data class Aux(val board: Board, val check: Boolean = false)
     /**
      * Used to retrieve the current state of the game hold in the database
      * Makes the move given in the [move] without checking if the move is possible.
      */
-    fun makeMoveWithoutCheck(move: String): Board {
+    fun makeMoveWithoutCheck(move: String): Aux {
         val currSquare = move.substring(1, 3).toSquareOrNull()
         val newSquare = move.substring(3, 5).toSquareOrNull()
-        //val move = Move(model.Board.getPieceType(move[0])!!,Square(currCol,currRow),Square(newCol,newRow))
-        val piece = boardArr[currSquare!!.row.ordinal][currSquare.column.ordinal]
-        val newBoard = boardArr.clone()
-        boardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
-        newBoard[newSquare!!.row.ordinal][newSquare.column.ordinal] = piece
-        return Board(this,newBoard)
+        val move1 = Move(getPieceType(move[0])!!,currSquare!!,newSquare!!)
+        val piece = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]
+        val newBoardArr = boardArr.clone()
+        newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
+        newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
+
+        val checkResult = checkAndCheckmate(move1,newBoardArr,piece!!) as ISuccess
+
+        return Aux(checkResult.content as Board,checkResult.check)
     }
 
     /**
@@ -370,7 +374,10 @@ class Board {
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        return checkAndCheckmate(move,newBoardArr,piece)
+    }
 
+    private fun checkAndCheckmate(move: Move,newBoardArr:Array<Array<Piece?>>,piece:Piece):Result {
         // update king position
         val whiteKingPosition = if(piece.type is King && piece.player === Player.WHITE ) move.newSquare else this.whiteKingPosition
         val blackKingPosition = if(piece.type is King && piece.player === Player.BLACK ) move.newSquare else this.blackKingPosition
@@ -393,7 +400,7 @@ class Board {
                         return ISuccess(Board(this, newBoardArr))
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr))
+                    return ISuccess(Board(this, newBoardArr),true)
                 }
                 else {//Se alguma peça conseguir proteger o rei
                     piecesThatCanEat.forEach { square1 -> //Iterar sobre as peças que podem comer a peça que está a pôr em check o rei
@@ -414,7 +421,7 @@ class Board {
                         }
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr))
+                    return ISuccess(Board(this, newBoardArr),true)
                 }
             }
             else {
@@ -423,7 +430,7 @@ class Board {
                     return ISuccess(Board(this, newBoardArr))
                 }
                 // is in check
-                return ISuccess(Board(this, newBoardArr))
+                return ISuccess(Board(this, newBoardArr),true)
             }
         }
         return ISuccess(Board(this, newBoardArr))
