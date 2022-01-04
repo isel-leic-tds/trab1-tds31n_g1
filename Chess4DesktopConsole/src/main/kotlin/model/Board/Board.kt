@@ -7,9 +7,7 @@ import kotlin.reflect.KProperty
 
 abstract class Result
 
-var globalCheck: Boolean = false
-
-data class Success(val board: Board, val str: String, val check: Boolean): Result() {
+data class Success(val board: Board, val str: String, val check: Boolean = false): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -235,7 +233,7 @@ class Board {
         }
         else if (move.type is Promotion)
             return BadPromotion()
-        return Success(newBoard, move.toString(),globalCheck)
+        return Success(newBoard, move.toString())
     }
 
     private fun checkPromotion(newSquare: Square): Boolean {
@@ -278,7 +276,7 @@ class Board {
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
-    private class ISuccess(val content: Any): Result()
+    private class ISuccess(val content: Any, val check:Boolean = false): Result()
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
@@ -377,10 +375,6 @@ class Board {
         }
     }
 
-    private fun reverKingsPositions() {
-
-    }
-
     /**
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
@@ -388,7 +382,6 @@ class Board {
     // TODO MAYBE THIS FUNCTION SHOULD GET A BOARD ARRAY?
     private fun makeMove(move: Move): Result {
         updateKingsPositions() //Antes de fazer um move fazer update das posições dos reis
-        globalCheck = false //Dar reset à variável que diz se o jogo está em check
         if (!isValidMove(move)) return InvalidMove(move.toString())
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
         val newBoardArr = boardArr.clone()
@@ -417,7 +410,6 @@ class Board {
                         return ISuccess(Board(this, newBoardArr))
                     }
                     // is in check
-                    globalCheck = true
                     return ISuccess(Board(this, newBoardArr))
                 }
                 else {//Se alguma peça conseguir proteger o rei
@@ -439,7 +431,6 @@ class Board {
                         }
                     }
                     // is in check
-                    globalCheck = true
                     return ISuccess(Board(this, newBoardArr))
                 }
             }
@@ -449,7 +440,6 @@ class Board {
                     return ISuccess(Board(this, newBoardArr))
                 }
                 // is in check
-                globalCheck = true
                 return ISuccess(Board(this, newBoardArr))
             }
         }
@@ -469,7 +459,4 @@ class Board {
             }) return true
         return false
     }
-
-
-
 }
