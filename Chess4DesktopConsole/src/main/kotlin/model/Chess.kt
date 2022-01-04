@@ -9,7 +9,14 @@ enum class Player {
     fun other() = if (this === WHITE) BLACK else WHITE
 }
 
-data class StatusGame(val board: Board?, val moves: List<String>, val currentPlayer: Player?, val lastMove: String?, val check: Boolean = false) {
+data class StatusGame(
+    val board: Board?,
+    val moves: List<String>,
+    val currentPlayer: Player?,
+    val lastMove: String?,
+    val check: Boolean = false,
+    val checkmate: Boolean = false
+) {
     override fun toString(): String {
         return board.toString()
     }

@@ -7,7 +7,7 @@ import kotlin.reflect.KProperty
 
 abstract class Result
 
-data class Success(val board: Board, val str: String, val check: Boolean = false): Result() {
+data class Success(val board: Board, val str: String, val check: Boolean = false, val checkmate: Boolean = false): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -182,7 +182,7 @@ class Board {
         return str
     }
 
-    data class Aux(val board: Board, val check: Boolean = false)
+    data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false)
     /**
      * Used to retrieve the current state of the game hold in the database
      * Makes the move given in the [move] without checking if the move is possible.
@@ -198,7 +198,7 @@ class Board {
 
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece!!) as ISuccess
 
-        return Aux(checkResult.content as Board,checkResult.check)
+        return Aux(checkResult.content as Board,checkResult.check, checkResult.checkmate)
     }
 
     /**
@@ -223,8 +223,8 @@ class Board {
         result = makeMove(move)
         if (result is Error) return result
         var newBoard = ((result) as ISuccess).content as Board
-        //val inCheck = (result).check
-
+        val inCheck = (result).check
+        val inCheckmate = (result).checkmate
         // promotion
         if (checkPromotion(move.newSquare)) {
             if (!(move.type is Promotion))
@@ -235,7 +235,7 @@ class Board {
         }
         else if (move.type is Promotion)
             return BadPromotion()
-        return Success(newBoard, move.toString())
+        return Success(newBoard, move.toString(), inCheck, inCheckmate)
     }
 
     private fun checkPromotion(newSquare: Square): Boolean {
@@ -278,7 +278,7 @@ class Board {
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
-    private class ISuccess(val content: Any, val check:Boolean = false): Result()
+    private class ISuccess(val content: Any, val check:Boolean = false, val checkmate: Boolean = false): Result()
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
@@ -397,10 +397,10 @@ class Board {
                 if (canAnyPieceProtectKing(square, move, newBoardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
                     if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos
                         println("CHECKMATE") //Se nao tiver chequemate
-                        return ISuccess(Board(this, newBoardArr))
+                        return ISuccess(Board(this, newBoardArr), checkmate = true)
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr),true)
+                    return ISuccess(Board(this, newBoardArr), check = true)
                 }
                 else {//Se alguma peça conseguir proteger o rei
                     piecesThatCanEat.forEach { square1 -> //Iterar sobre as peças que podem comer a peça que está a pôr em check o rei
@@ -417,20 +417,20 @@ class Board {
                     if(counter == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
                         if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
                             println("CHECKMATE") //É logo chequemate e retorna-se o board
-                            return ISuccess(Board(this, newBoardArr))
+                            return ISuccess(Board(this, newBoardArr), checkmate = true)
                         }
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr),true)
+                    return ISuccess(Board(this, newBoardArr), check = true)
                 }
             }
             else {
                 if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
                     println("CHECKMATE")
-                    return ISuccess(Board(this, newBoardArr))
+                    return ISuccess(Board(this, newBoardArr), checkmate = true)
                 }
                 // is in check
-                return ISuccess(Board(this, newBoardArr),true)
+                return ISuccess(Board(this, newBoardArr), check = true)
             }
         }
         return ISuccess(Board(this, newBoardArr))
