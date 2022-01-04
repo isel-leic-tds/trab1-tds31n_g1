@@ -38,12 +38,15 @@ fun restoreGame(chessDb: ChessDb, gameId: String?): CommandResult {
         postMoves(chessDb,gameId,"")
         return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE,null))
     }
-    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
+    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null),)
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
-    list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithoutCheck(move),
-                                                                currentPlayer = statusGame.currentPlayer!!.other(),
-                                                                lastMove = move) }
+    list.forEach{ move: String ->
+        var result = statusGame.board!!.makeMoveWithoutCheck(move)
+        var board = result.board
+        val check = result.check
+        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move,ckeck = check )
+    }
     return NewBoard(statusGame)
 }
 
@@ -59,9 +62,11 @@ fun joinGame(chessDb: ChessDb, gameId: String?): CommandResult {
     if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
     val list = moves.content.trim().split(" ").toList()
     var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
-    list.forEach{ move: String -> statusGame = statusGame.copy(board = statusGame.board!!.makeMoveWithoutCheck(move),
-                                                                currentPlayer = statusGame.currentPlayer!!.other(),
-                                                                lastMove = move) }
+    list.forEach{ move: String -> var result = statusGame.board!!.makeMoveWithoutCheck(move)
+        var board = result.board
+        val check = result.check
+        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move,ckeck = check )
+    }
     return NewBoard(statusGame)
 }
 

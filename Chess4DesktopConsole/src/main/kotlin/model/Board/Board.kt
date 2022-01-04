@@ -181,19 +181,24 @@ class Board {
         return str
     }
 
+    data class Aux(val board: Board, val check: Boolean = false)
+
     /**
      * Used to retrieve the current state of the game hold in the database
      * Makes the move given in the [move] without checking if the move is possible.
      */
-    fun makeMoveWithoutCheck(move: String): Board {
+    fun makeMoveWithoutCheck(move: String): Aux {
         val currSquare = move.substring(1, 3).toSquareOrNull()
         val newSquare = move.substring(3, 5).toSquareOrNull()
-        //val move = Move(model.Board.getPieceType(move[0])!!,Square(currCol,currRow),Square(newCol,newRow))
-        val piece = boardArr[currSquare!!.row.ordinal][currSquare.column.ordinal]
-        val newBoard = boardArr.clone()
-        boardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
-        newBoard[newSquare!!.row.ordinal][newSquare.column.ordinal] = piece
-        return Board(this,newBoard, finished)
+        val move1 = Move(getPieceType(move[0])!!,currSquare!!,newSquare!!)
+        val piece = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]
+        val newBoardArr = boardArr.clone()
+        newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
+        newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
+
+        val checkResult = checkAndCheckmate(move1,newBoardArr,piece!!) as ISuccess
+
+        return Aux(checkResult.content as Board,checkResult.check)
     }
 
     /**
@@ -370,6 +375,10 @@ class Board {
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
 
+        return checkAndCheckmate(move,newBoardArr,piece!!)
+    }
+
+    private fun checkAndCheckmate(move: Move,newBoardArr:Array<Array<Piece?>>,piece:Piece):Result {
         if(isMyKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = piece
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = null
@@ -404,7 +413,7 @@ class Board {
                     }
                     if(counter == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
                         println("CHECKMATE") //É logo chequemate e retorna-se o board
-                        return ISuccess(Board(this, newBoardArr))
+                        return ISuccess(Board(this, newBoardArr),true)
                     }
                     // is in check
                     return ISuccess(Board(this, newBoardArr), true)
