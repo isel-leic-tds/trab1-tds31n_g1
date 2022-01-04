@@ -25,9 +25,10 @@ import java.util.HashMap
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece != null) {
             val allMoves = piece.type.getAllMoves(Move(piece.type, square, square), boardArr)
-            if (allMoves.any {
-                    it.row == move.newSquare.row && it.column == move.newSquare.column
-                }) piecesThatCanEat.add(square)
+            allMoves.forEach {
+                    if(it.row == move.newSquare.row && it.column == move.newSquare.column)
+                        piecesThatCanEat.add(square)
+            }
         }
     }
     return piecesThatCanEat
@@ -40,14 +41,18 @@ import java.util.HashMap
         if (piece != null) {
             val allMoves = piece.type.getAllMoves(Move(piece.type,square,square),boardArr)
             if (currentPlayerColor == Player.WHITE) {
-                if (allMoves.any {
-                        it.row == whiteKingPosition.row && it.column == whiteKingPosition.column
-                    }) return true
+                allMoves.forEach {
+                    if(it.row == whiteKingPosition.row && it.column == whiteKingPosition.column) {
+                        return true
+                    }
+                }
             }
             else
-                if (allMoves.any {
-                        it.row == blackKingPosition.row && it.column == blackKingPosition.column
-                    }) return true
+                allMoves.forEach {
+                    if(it.row == blackKingPosition.row && it.column == blackKingPosition.column) {
+                        return true
+                    }
+                }
         }
     }
     return false
@@ -64,14 +69,18 @@ import java.util.HashMap
         if (piece != null) {
             val allMoves = piece!!.type.getAllMoves(Move(piece!!.type,square,square),boardArr)
             if (currentPlayerColor == Player.WHITE) {
-                if (allMoves.any {
-                        it.row == blackKingPosition.row && it.column == blackKingPosition.column
-                    }) ret[square] = piece!!.type
+                allMoves.forEach {
+                    if(it.row == blackKingPosition.row && it.column == blackKingPosition.column) {
+                        ret[square] = piece!!.type
+                    }
+                }
             }
             else
-                if (allMoves.any {
-                        it.row == whiteKingPosition.row && it.column == whiteKingPosition.column
-                    }) ret[square] = piece!!.type
+                allMoves.forEach {
+                    if(it.row == whiteKingPosition.row && it.column == whiteKingPosition.column) {
+                        ret[square] = piece!!.type
+                    }
+                }
         }
     }
     return ret
@@ -97,15 +106,17 @@ import java.util.HashMap
             if (player != currPlayer) {
                 allMoves.forEach { square1 ->
                     //Trocar pelo caminho da peça a por em check até ao rei
-                    if (list.any {
-                            it.row == square1.row && it.column == square1.column
-                        }) piecesToProtect.add(square1)
+                   list.forEach {
+                       if(it.row == square1.row && it.column == square1.column)
+                            piecesToProtect.add(square1)
+                   }
                 }
             } else if (player != currPlayer)
                 allMoves.forEach { square1 ->
-                    if (list.any {
-                            it.row == square1.row && it.column == square1.column
-                        }) piecesToProtect.add(square1)
+                    list.forEach {
+                        if(it.row == square1.row && it.column == square1.column)
+                            piecesToProtect.add(square1)
+                    }
                 }
         }
     }
