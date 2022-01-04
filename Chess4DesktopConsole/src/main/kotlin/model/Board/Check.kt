@@ -75,12 +75,13 @@ import java.util.HashMap
                     }
                 }
             }
-            else
+            else {
                 allMoves.forEach {
-                    if(it.row == whiteKingPosition.row && it.column == whiteKingPosition.column) {
+                    if (it.row == whiteKingPosition.row && it.column == whiteKingPosition.column) {
                         ret[square] = piece!!.type
                     }
                 }
+            }
         }
     }
     return ret
@@ -162,7 +163,7 @@ import java.util.HashMap
     return list
 }
 
- fun kingHasValidMoves(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):Boolean {
+fun kingHasValidMoves(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):Boolean {
     val whiteKing = boardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]!!.type
     val blackKing = boardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]!!.type
     val whiteKingMoves = whiteKing.getAllMoves(Move(whiteKing, whiteKingPosition, whiteKingPosition), boardArr)
@@ -202,6 +203,54 @@ import java.util.HashMap
             count2++
         }
     }
-    if(count1==count2) return false
+    if(count1==count2) return false // Nao tem movimentos válidos
     return true
 }
+
+fun isKingStillInCheck(move: Move,piece: Board.Piece,newBoardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):Boolean {
+    //Verificar se ao fazer esses moves ao rei nao continua em check
+    if(piece.player == Player.WHITE) {
+        val kingPiece = newBoardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]
+        val allMoves = kingPiece!!.type.getAllMoves(Move(kingPiece.type, whiteKingPosition, whiteKingPosition), newBoardArr)
+        allMoves.forEach { square1 ->
+            newBoardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal] = null
+            newBoardArr[square1.row.ordinal][square1.column.ordinal] = kingPiece
+            if(isMyKingInCheck(move,newBoardArr,whiteKingPosition,blackKingPosition)) {
+                newBoardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal] = kingPiece
+                newBoardArr[move.newSquare.row.ordinal][move.newSquare.row.ordinal] = piece
+                return true //Checkmate
+            }
+        }
+    }
+    else {
+        val kingPiece = newBoardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]
+        val allMoves = kingPiece!!.type.getAllMoves(Move(piece.type, blackKingPosition, blackKingPosition), newBoardArr)
+        allMoves.forEach { square1 ->
+            newBoardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal] = null
+            newBoardArr[square1.row.ordinal][square1.column.ordinal] = kingPiece
+            if(isMyKingInCheck(move,newBoardArr,whiteKingPosition,blackKingPosition)) {
+                newBoardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal] = kingPiece
+                newBoardArr[move.newSquare.row.ordinal][move.newSquare.row.ordinal] = piece
+                return true //Checkmate
+            }
+        }
+    }
+    return false
+}
+
+fun canSomePieceEatPieceDoingCheck(move: Move,piece: Board.Piece,piecesThatCanEat:MutableList<Square>,newBoardArr: Array<Array<Board.Piece?>>,whiteKingPosition: Square,blackKingPosition: Square):Int {
+    var counter = 0
+    piecesThatCanEat.forEach { square1 -> //Iterar sobre as peças que podem comer a peça que está a pôr em check o rei
+        val pieceToEat = newBoardArr[square1.row.ordinal][square1.column.ordinal]
+        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = pieceToEat
+        newBoardArr[square1.row.ordinal][square1.column.ordinal] = null
+        if(isMyKingInCheck(move,newBoardArr,whiteKingPosition,blackKingPosition)) { //Se ao mover essa peça o rei continuar em check adiciona-se 1 ao contador
+            counter++
+        }
+        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null //Volta-se ao estado da board que se estava
+        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        newBoardArr[square1.row.ordinal][square1.column.ordinal] = pieceToEat
+    }
+    return counter
+}
+

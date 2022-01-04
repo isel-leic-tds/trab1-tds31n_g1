@@ -390,33 +390,27 @@ class Board {
 
         val checkSquares = isAdversaryKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition).size
         val piecesThatCanEat = piecesToEatCheckPiece(move, newBoardArr)
-        var counter = 0
         if(checkSquares > 0) {
             if(checkSquares == 1) {
                 val square = isAdversaryKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)
                 if (canAnyPieceProtectKing(square, move, newBoardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
-                    if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos
-                        println("CHECKMATE") //Se nao tiver chequemate
+                    if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos e ver se continua em check
+                        //Se nao tiver chequemate
                         return ISuccess(Board(this, newBoardArr), checkmate = true)
+                    }
+                    else if(kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
+                        //Verificar se ao fazer esses moves ao rei nao continua em check
+                        if(isKingStillInCheck(move,piece,newBoardArr,whiteKingPosition, blackKingPosition)) {
+                            return ISuccess(Board(this, newBoardArr), checkmate = true)
+                        }
                     }
                     // is in check
                     return ISuccess(Board(this, newBoardArr), check = true)
                 }
                 else {//Se alguma peça conseguir proteger o rei
-                    piecesThatCanEat.forEach { square1 -> //Iterar sobre as peças que podem comer a peça que está a pôr em check o rei
-                        val pieceToEat = newBoardArr[square1.row.ordinal][square1.column.ordinal]
-                        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = pieceToEat
-                        newBoardArr[square1.row.ordinal][square1.column.ordinal] = null
-                        if(isAdversaryKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition).size > 0) { //Se ao mover essa peça o rei continuar em check adiciona-se 1 ao contador
-                            counter++
-                        }
-                        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null //Volta-se ao estado da board que se estava
-                        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-                        newBoardArr[square1.row.ordinal][square1.column.ordinal] = pieceToEat
-                    }
-                    if(counter == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
-                        if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
-                            println("CHECKMATE") //É logo chequemate e retorna-se o board
+                    if(canSomePieceEatPieceDoingCheck(move,piece,piecesThatCanEat,newBoardArr,whiteKingPosition,blackKingPosition) == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
+                        if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) { // Nao tem movimentos validos
+                            //É logo chequemate e retorna-se o board
                             return ISuccess(Board(this, newBoardArr), checkmate = true)
                         }
                     }
@@ -426,7 +420,6 @@ class Board {
             }
             else {
                 if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
-                    println("CHECKMATE")
                     return ISuccess(Board(this, newBoardArr), checkmate = true)
                 }
                 // is in check
