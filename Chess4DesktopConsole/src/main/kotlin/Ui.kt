@@ -42,10 +42,10 @@ fun main() = application {
             )
             MainView(chess) { square ->
                 chess = pressSquare(chess, square, menuHandlers)
-                scope.launch {
-                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
-                    chess = chess.copy(gameChess = gameChess)
-                }
+            }
+            scope.launch {
+                val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                chess = chess.copy(gameChess = gameChess)
             }
         }
     }
