@@ -200,6 +200,13 @@ class Board {
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
+        if(piece.type is King) {
+            newBoardArr[move1.newSquare.row.ordinal][move1.newSquare.column.ordinal] = Piece(King(true),piece.player)
+        }
+        else if(piece.type is Rook) {
+            newBoardArr[move1.newSquare.row.ordinal][move1.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
+        }
+
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
 
         return Aux(checkResult.content as Board,checkResult.check, checkResult.checkmate)
@@ -249,8 +256,8 @@ class Board {
     private fun checkPromotion(newSquare: Square): Boolean {
         val piece = boardArr[newSquare.row.ordinal][newSquare.column.ordinal]
         if (piece != null && piece.type is Pawn) {
-            if (piece.player === Player.WHITE && newSquare.row === chess.model.Row.EIGHT
-                || piece.player === Player.BLACK && newSquare.row === chess.model.Row.ONE)
+            if (piece.player === Player.WHITE && newSquare.row === Row.EIGHT
+                || piece.player === Player.BLACK && newSquare.row === Row.ONE)
                return true
         }
         return false
@@ -302,26 +309,28 @@ class Board {
         if(canCastle(move,piece,newBoardArr) == 1) { //Short Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
             if(towerPiece != null) {
-                if (towerPiece.type is Rook) {
+                if(piece.type is King && !piece.type.hasMoved && towerPiece.type is Rook && !towerPiece.type.hasMoved) {
                     newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null //Where King was
                     newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece //King
                     newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal + 1] = null
                     newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = towerPiece
+                    return true
                 }
             }
-            return true
+
         }
         else if(canCastle(move,piece,newBoardArr) == 2) { //Long Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
             if(towerPiece != null) {
-                if (towerPiece.type is Rook) {
+                if(piece.type is King && !piece.type.hasMoved && towerPiece.type is Rook && !towerPiece.type.hasMoved) {
                     newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
                     newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece //King
                     newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 2] = null
                     newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = towerPiece
+                    return true
                 }
             }
-            return true
+
         }
         return false
     }
@@ -427,6 +436,12 @@ class Board {
         if (!isValidMove(move)) return InvalidMove(move.toString())
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        if(piece.type is King) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true),piece.player)
+        }
+        else if(piece.type is Rook) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
+        }
         return checkAndCheckmate(move,newBoardArr,piece)
     }
 

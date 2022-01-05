@@ -10,9 +10,9 @@ sealed class PieceType
 class Pawn: PieceType()
 class Knight: PieceType()
 class Bishop: PieceType()
-class Rook: PieceType()
+class Rook(val hasMoved:Boolean = false): PieceType()
 class Queen: PieceType()
-class King: PieceType()
+class King(val hasMoved:Boolean = false): PieceType()
 
 /**
  * Get all squares possible to move to, from one piece
