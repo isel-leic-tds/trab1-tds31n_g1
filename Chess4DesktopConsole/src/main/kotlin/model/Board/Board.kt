@@ -191,12 +191,16 @@ class Board {
         val currSquare = move.substring(1, 3).toSquareOrNull()
         val newSquare = move.substring(3, 5).toSquareOrNull()
         val move1 = Move(getPieceType(move[0])!!,currSquare!!,newSquare!!)
-        val piece = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]
+        val piece = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
+        if (doCastling(move1, piece, newBoardArr))  {
+            val result = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
+            return Aux(result.content as Board)
+        }
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
-        val checkResult = checkAndCheckmate(move1,newBoardArr,piece!!) as ISuccess
+        val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
 
         return Aux(checkResult.content as Board,checkResult.check, checkResult.checkmate)
     }
@@ -216,15 +220,18 @@ class Board {
         if (result is Error) return result
         result = result as ISuccess
         val move = result.content as Move
+
         // checks if the given Square is valid
         result = isValidSquare(move, curPlayer)
         if (result is Error) return result
+
         // tries to make the Move
         result = makeMove(move)
         if (result is Error) return result
         var newBoard = ((result) as ISuccess).content as Board
         val inCheck = (result).check
         val inCheckmate = (result).checkmate
+
         // promotion
         if (checkPromotion(move.newSquare)) {
             if (!(move.type is Promotion))
@@ -235,6 +242,7 @@ class Board {
         }
         else if (move.type is Promotion)
             return BadPromotion()
+
         return Success(newBoard, move.toString(), inCheck, inCheckmate)
     }
 
@@ -273,6 +281,49 @@ class Board {
             return ISuccess(Board(this, newBoardArr))
         }
         return result
+    }
+
+    private fun canCastle(move: Move,piece: Piece,board: Array<Array<Piece?>>):Int {
+        //Antes ainda ver se é a primeira jogada tanto do rei como da torre
+        var counter = 0
+        val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+        if(piece.type is King) {
+            if (diffCol == 2) { //ShortPath
+                counter = 1
+            } else if (diffCol == -2) { //LongPath
+                counter = 2
+            }
+        }
+        return counter
+
+    }
+
+    private fun doCastling(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>): Boolean{
+        if(canCastle(move,piece,newBoardArr) == 1) { //Short Path
+            val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
+            if(towerPiece != null) {
+                if (towerPiece.type is Rook) {
+                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null //Where King was
+                    newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece //King
+                    newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal + 1] = null
+                    newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = towerPiece
+                }
+            }
+            return true
+        }
+        else if(canCastle(move,piece,newBoardArr) == 2) { //Long Path
+            val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
+            if(towerPiece != null) {
+                if (towerPiece.type is Rook) {
+                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
+                    newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece //King
+                    newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 2] = null
+                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = towerPiece
+                }
+            }
+            return true
+        }
+        return false
     }
 
     /**
@@ -369,9 +420,11 @@ class Board {
      */
     // TODO MAYBE THIS FUNCTION SHOULD GET A BOARD ARRAY?
     private fun makeMove(move: Move): Result {
-        if (!isValidMove(move)) return InvalidMove(move.toString())
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
+        if(doCastling(move,piece,newBoardArr)) return checkAndCheckmate(move,newBoardArr,piece)
+        //Ver se é possível mover a peça para esse sitio ou se a peça para onde queremos mover é rei
+        if (!isValidMove(move)) return InvalidMove(move.toString())
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
         return checkAndCheckmate(move,newBoardArr,piece)
