@@ -200,12 +200,7 @@ class Board {
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
-        if(piece.type is King) {
-            newBoardArr[move1.newSquare.row.ordinal][move1.newSquare.column.ordinal] = Piece(King(true),piece.player)
-        }
-        else if(piece.type is Rook) {
-            newBoardArr[move1.newSquare.row.ordinal][move1.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
-        }
+        updateKingAndRook(move,piece,newBoardArr)
 
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
 
@@ -436,12 +431,9 @@ class Board {
         if (!isValidMove(move)) return InvalidMove(move.toString())
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-        if(piece.type is King) {
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true),piece.player)
-        }
-        else if(piece.type is Rook) {
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
-        }
+
+        updateKingAndRook(move,piece,newBoardArr)
+
         return checkAndCheckmate(move,newBoardArr,piece)
     }
 
@@ -509,5 +501,14 @@ class Board {
                 it.row == move.newSquare.row && it.column == move.newSquare.column
             }) return true
         return false
+    }
+
+    private fun updateKingAndRook(move:Move,piece: Piece,newBoardArr: Array<Array<Piece?>>) {
+        if(piece.type is King) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true),piece.player)
+        }
+        else if(piece.type is Rook) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
+        }
     }
 }

@@ -8,6 +8,6 @@ Tipos:
    Square(column,row)  // Posição no tabuleiro
    Board  // O tabuleiro com as peças
 
-   Move   // Regular | Captura | Promoção | Castling | EnPassant
+   Move   // Regular(DONE) | Captura(DONE) | Promoção(DONE falta view) | Castling(DONE) | EnPassant
 
    Chess(board,moves)
