@@ -17,6 +17,7 @@ import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
+import ui.DialogGameName
 
 data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
@@ -32,15 +33,24 @@ fun main() = MongoDriver().use { driver ->
             // TODO The code cant acess remote database!!
             val menuHandlers = buildMenuHandlers()
             var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
+            var startGame by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
             DesktopMaterialTheme {
                 ChessMenuBar(
                     onOpen = {
-                        val gameChess = openGame(menuHandlers, chess.gameChess)
-                        if (gameChess != null) chess = chess.copy(gameChess = gameChess)
+                        startGame = {
+                            val gameChess = openGame(menuHandlers, chess.gameChess, it)
+                            if (gameChess != null)
+                                chess = chess.copy(gameChess = gameChess)
+                            chess
+                        }
                     },
                     onJoin = {
-                        val gameChess = joinGame(menuHandlers, chess.gameChess)
-                        if (gameChess != null) chess = chess.copy(gameChess = gameChess)
+                        startGame = {
+                            val gameChess = joinGame(menuHandlers, chess.gameChess, it)
+                            if (gameChess != null)
+                                chess = chess.copy(gameChess = gameChess)
+                            chess
+                        }
                     },
                 )
                 MainView(chess) { square ->
@@ -50,10 +60,21 @@ fun main() = MongoDriver().use { driver ->
                     val gameChess = refreshGame(menuHandlers, chess.gameChess)
                     chess = chess.copy(gameChess = gameChess)
                 }
+
+                val currStartGame = startGame
+                if (currStartGame != null)
+                    DialogGameName(
+                        onOk = { chess = currStartGame(it); startGame = null },
+                        onCancel = { startGame = null }
+                    )
             }
         }
     }
 }
+
+fun createGame(driver: MongoDriver) =
+    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null, null))
+
 
 /**
  * Tries to make a move if two pieces were selected or selects one.
@@ -91,59 +112,4 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
         }
     }
     return chess
-}
-
-fun createGame(driver: MongoDriver) =
-    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null, null))
-
-private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
-    val command = "PLAY"
-    LineCommand(command, null)
-    val cmd: Command? = menuHandlers[command]
-    val result =  cmd!!.action(gameChess, move)
-    if (result is Success)
-        return result.gameChess
-    return null
-}
-
-private fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
-    //print("GameName: ")
-    //val gameName = readLine()
-    val gameName = "gameTest"
-    val command = "OPEN"
-    LineCommand(command,gameName)
-    val cmd: Command? = menuHandlers[command]
-    val result =  cmd!!.action(gameChess, gameName)
-    if (result is Success)
-        return result.gameChess
-    return null
-}
-
-private fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess? {
-    //print("GameName: ")
-    //val gameName = readLine()
-    val gameName = "gameTest"
-    val command = "JOIN"
-    LineCommand(command,gameName)
-    val cmd: Command? = menuHandlers[command]
-    val result =  cmd!!.action(gameChess, gameName)
-    if (result is Success)
-        return result.gameChess
-    return null
-}
-
-private suspend fun refreshGame(menuHandlers: Map<String, Command>, gameChess: GameChess): GameChess {
-    if (gameChess.status.currentPlayer === gameChess.player) return gameChess
-    return withContext(Dispatchers.IO) {
-        val gameName = "gameTest"
-        val command = "REFRESH"
-        LineCommand(command, gameName)
-        val cmd: Command? = menuHandlers[command]
-        var result = cmd!!.action(gameChess, gameName)
-        do {
-            delay(2000)
-            result = cmd!!.action(gameChess, gameName)
-        } while (result !is Success || result.gameChess.status.board === gameChess.status.board)
-        result.gameChess
-    }
 }
