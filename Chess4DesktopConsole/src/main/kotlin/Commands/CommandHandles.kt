@@ -65,9 +65,8 @@ fun buildMenuHandlers() = mapOf(
                 val commandResult = joinGame(gameChess.chessDb, gameId)
                 if (commandResult is NewBoard)
                     Success(gameChess.copy(player = Player.BLACK, status = commandResult.statusGame, gameId = gameId))
-                // restoreGame should always produce a BoardSucess(). If not:
                 else
-                    throw IllegalStateException()
+                    GameNotIniciated(gameChess)
             }
             else MissingContent(gameChess, "GameId at fault")
         },

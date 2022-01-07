@@ -1,7 +1,7 @@
 import Commands.Success
 import Commands.Terminate
 import Commands.buildMenuHandlers
-import DataBase.MongoChessCommands
+import DataBase.MongoDb
 import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
@@ -20,8 +20,8 @@ val moves = mutableListOf<String>()
 fun main() {
     MongoDriver().use { driver ->
         try {
-            val mongoChessCommands = MongoChessCommands(driver)
-            var gameChess = GameChess(mongoChessCommands, null, null, StatusGame(null,listOf(),null, null,true))
+            val mongoDb = MongoDb(driver)
+            var gameChess = GameChess(mongoDb, null, null, StatusGame(null,listOf(),null, null,true))
             val menuHandlers = buildMenuHandlers()
 
             while (true) {

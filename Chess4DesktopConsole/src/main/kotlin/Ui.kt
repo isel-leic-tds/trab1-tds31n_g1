@@ -2,6 +2,7 @@ import Commands.Command
 import Commands.Success
 import Commands.buildMenuHandlers
 import DataBase.FileDb
+import DataBase.MongoDb
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.*
@@ -14,38 +15,41 @@ import kotlinx.coroutines.withContext
 import model.Board.toStr
 import model.GameChess
 import model.StatusGame
+import mongoDb.MongoDriver
 import ui.ChessMenuBar
 
 data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
-fun main() = application {
-    val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
-    Window(
-        onCloseRequest = ::exitApplication,
-        state = winState,
-        title = "Jogo de Xadrez"
-    ) {
-        val scope = rememberCoroutineScope()
-        // TODO The code cant acess remote database!!
-        val menuHandlers = buildMenuHandlers()
-        var chess by remember { mutableStateOf(Chess(gameChess = createGame())) }
-        DesktopMaterialTheme {
-            ChessMenuBar(
-                onOpen = {
-                    val gameChess = openGame(menuHandlers, chess.gameChess)
-                    if (gameChess != null) chess = chess.copy(gameChess = gameChess)
-                },
-                onJoin = {
-                    val gameChess = joinGame(menuHandlers, chess.gameChess)
-                    if (gameChess != null) chess = chess.copy(gameChess = gameChess)
-                },
-            )
-            MainView(chess) { square ->
-                chess = pressSquare(chess, square, menuHandlers)
-            }
-            scope.launch {
-                val gameChess = refreshGame(menuHandlers, chess.gameChess)
-                chess = chess.copy(gameChess = gameChess)
+fun main() = MongoDriver().use { driver ->
+    application {
+        val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
+        Window(
+            onCloseRequest = ::exitApplication,
+            state = winState,
+            title = "Jogo de Xadrez"
+        ) {
+            val scope = rememberCoroutineScope()
+            // TODO The code cant acess remote database!!
+            val menuHandlers = buildMenuHandlers()
+            var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
+            DesktopMaterialTheme {
+                ChessMenuBar(
+                    onOpen = {
+                        val gameChess = openGame(menuHandlers, chess.gameChess)
+                        if (gameChess != null) chess = chess.copy(gameChess = gameChess)
+                    },
+                    onJoin = {
+                        val gameChess = joinGame(menuHandlers, chess.gameChess)
+                        if (gameChess != null) chess = chess.copy(gameChess = gameChess)
+                    },
+                )
+                MainView(chess) { square ->
+                    chess = pressSquare(chess, square, menuHandlers)
+                }
+                scope.launch {
+                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                    chess = chess.copy(gameChess = gameChess)
+                }
             }
         }
     }
@@ -89,8 +93,8 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
     return chess
 }
 
-fun createGame() =
-    GameChess(/*Uses local database*/FileDb(), null, null, StatusGame(null,listOf(),null, null))
+fun createGame(driver: MongoDriver) =
+    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null, null))
 
 private fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
     val command = "PLAY"

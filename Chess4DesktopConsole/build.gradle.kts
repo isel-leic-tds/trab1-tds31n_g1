@@ -20,8 +20,8 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(compose.desktop.currentOs)
     // Dependencies for using MongoDB and its LOG
-    implementation("org.litote.kmongo:kmongo:4.3.0")
-    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.14.1")
+    implementation("org.litote.kmongo:kmongo:4.4.0")
+    implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
 }
 
 tasks.test {

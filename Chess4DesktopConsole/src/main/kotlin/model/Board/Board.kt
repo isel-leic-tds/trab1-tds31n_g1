@@ -200,7 +200,7 @@ class Board {
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
-        updateKingAndRook(move,piece,newBoardArr)
+        updateKingAndRook(move1,piece,newBoardArr)
 
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
 

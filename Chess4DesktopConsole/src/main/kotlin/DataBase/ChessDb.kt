@@ -26,20 +26,20 @@ interface ChessDb {
 }
 
 // Name of the collection that holds all the chess games
-const val COLLECTION = "Chess"
+const val COLLECTION_NAME = "Chess"
 
 /**
  * Implements the chess operations using a MongoDB instance.
  * @property driver to access MongoDb
  */
-class MongoChessCommands(val driver: MongoDriver): ChessDb {
+class MongoDb(val driver: MongoDriver): ChessDb {
    override fun replaceDocument(moves: Moves) =
-        driver.getCollection<Moves>(COLLECTION).replaceDocument(moves)
+        driver.getCollection<Moves>(COLLECTION_NAME).replaceDocument(moves)
 
     override fun insertDocument(moves: Moves) =
-        driver.getCollection<Moves>(COLLECTION).insertDocument(moves)
+        driver.getCollection<Moves>(COLLECTION_NAME).insertDocument(moves)
 
-    override fun getDocument(gameId: String) = driver.getCollection<Moves>(COLLECTION).getDocument(gameId)
+    override fun getDocument(gameId: String) = driver.getCollection<Moves>(COLLECTION_NAME).getDocument(gameId)
 }
 
 class LocalDb(): ChessDb {
