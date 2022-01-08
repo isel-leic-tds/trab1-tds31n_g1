@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import model.Board.toStr
 import model.GameChess
+import model.Player
 import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
@@ -30,10 +31,10 @@ fun main() = MongoDriver().use { driver ->
             title = "Jogo de Xadrez"
         ) {
             val scope = rememberCoroutineScope()
-            // TODO The code cant acess remote database!!
             val menuHandlers = buildMenuHandlers()
             var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
             var startGame by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
+            var promotionPice by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
             DesktopMaterialTheme {
                 ChessMenuBar(
                     onOpen = {
@@ -104,6 +105,10 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
                 val pieceType = board[selected]!!.type.toStr()
                 val current = chess.selected.toString()
                 val target = square.toString()
+                // tests promotion
+                if (square.row.ordinal == 0 && chess.gameChess.player === Player.BLACK
+                    || square.row.ordinal == 7 && chess.gameChess.player === Player.WHITE)
+                    showPromotionWindow()
                 val move = pieceType + current + target
                 val gameChess = play(menuHandlers, chess.gameChess, move)
                 if (gameChess != null)

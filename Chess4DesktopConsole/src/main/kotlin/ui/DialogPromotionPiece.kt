@@ -1,5 +1,12 @@
 package ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+
+package ui
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.Button
@@ -15,8 +22,7 @@ import androidx.compose.ui.window.DialogState
  * @param onOk Function called when OK button is pressed. Its parameter is the edited name.
  * @param onCancel Function called when the user tries to close the window.
  */
-@Composable
-fun DialogGameName( onOk: (String)->Unit, onCancel: ()->Unit ) = Dialog(
+fun DialogPromotionPiece( onOk: (String)->Unit, onCancel: ()->Unit ) = Dialog(
     onCloseRequest = onCancel,
     title = "Game name",
     state = DialogState(width = Dp.Unspecified, height = Dp.Unspecified)
@@ -26,7 +32,16 @@ fun DialogGameName( onOk: (String)->Unit, onCancel: ()->Unit ) = Dialog(
         Text("Select promotion piece")
         Row {
             Button(onClick = { onOk(name) }) {
-                Text("OK")
+                Image(painterResource("kingB.png"), "king", Modifier)
+            }
+            Button(onClick = { onOk(name) }) {
+                Image(painterResource("rookB.png"), "rook", Modifier)
+            }
+            Button(onClick = { onOk(name) }) {
+                Image(painterResource("bishopB.png"), "bishop", Modifier)
+            }
+            Button(onClick = { onOk(name) }) {
+                Image(painterResource("horseB.png"), "horse", Modifier)
             }
         }
     }
