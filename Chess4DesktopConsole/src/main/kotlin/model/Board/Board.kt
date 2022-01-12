@@ -193,16 +193,20 @@ class Board {
         val currSquare = move.substring(1, 3).toSquareOrNull()
         val newSquare = move.substring(3, 5).toSquareOrNull()
         val move1 = Move(getPieceType(move[0])!!,currSquare!!,newSquare!!)
-        val piece = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!
+        // tests promotion
+        val player = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!.player
+        val piece = if (move.length > 5 && move[5] == '=') Piece(getPieceType(move[6])!!,player) else boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
         if (doCastling(move1, piece, newBoardArr))  {
             val result = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
             return Aux(result.content as Board)
         }
+
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
         updateKingAndRook(move1,piece,newBoardArr)
+
 
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
 

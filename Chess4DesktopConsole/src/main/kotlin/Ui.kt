@@ -22,8 +22,7 @@ import ui.ChessMenuBar
 import ui.DialogGameName
 import ui.DialogPromotionPiece
 
-// TODO a escrita do promotion na base de dados nãpo está correta.
-// TODO talvez seja necessário ver o promotion na função makeMoveWithoutCheck
+// TODO a UI vai ter de perguntar à Board se é possível fazer promotion numa dada peça
 
 data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
