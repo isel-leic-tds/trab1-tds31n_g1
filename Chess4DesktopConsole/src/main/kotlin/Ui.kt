@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import model.Board.PieceType
 import model.Board.toStr
 import model.GameChess
 import model.Player
@@ -19,6 +20,10 @@ import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
 import ui.DialogGameName
+import ui.DialogPromotionPiece
+
+// TODO a escrita do promotion na base de dados nãpo está correta.
+// TODO talvez seja necessário ver o promotion na função makeMoveWithoutCheck
 
 data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
@@ -34,7 +39,9 @@ fun main() = MongoDriver().use { driver ->
             val menuHandlers = buildMenuHandlers()
             var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
             var startGame by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
-            var promotionPice by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
+            var openPromotion by remember { mutableStateOf(false) }
+            var squareAux by remember { mutableStateOf<Square?>(null) }
+
             DesktopMaterialTheme {
                 ChessMenuBar(
                     onOpen = {
@@ -55,19 +62,35 @@ fun main() = MongoDriver().use { driver ->
                     },
                 )
                 MainView(chess) { square ->
-                    chess = pressSquare(chess, square, menuHandlers)
+                    if (square.row.ordinal == 7 && chess.gameChess.player === Player.BLACK
+                        || square.row.ordinal == 0 && chess.gameChess.player === Player.WHITE) {
+                        squareAux = square
+                        openPromotion = true
+                    }
+                    else
+                        chess = pressSquare(chess, square, menuHandlers)
                 }
                 scope.launch {
                     val gameChess = refreshGame(menuHandlers, chess.gameChess)
                     chess = chess.copy(gameChess = gameChess)
                 }
-
                 val currStartGame = startGame
                 if (currStartGame != null)
                     DialogGameName(
                         onOk = { chess = currStartGame(it); startGame = null },
                         onCancel = { startGame = null }
                     )
+                if (openPromotion) {
+                    val curSquareAux = squareAux
+                    DialogPromotionPiece(
+                        onOk = {
+                            if (curSquareAux != null)
+                                chess = pressSquare(chess, curSquareAux, menuHandlers, it)
+                            openPromotion = false
+                        },
+                        onCancel = { openPromotion = false }
+                    )
+                }
             }
         }
     }
@@ -80,7 +103,7 @@ fun createGame(driver: MongoDriver) =
 /**
  * Tries to make a move if two pieces were selected or selects one.
  */
-private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, Command>): Chess {
+private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, Command>, pieceForPormotion: PieceType? = null): Chess {
     val selected = chess.selected
     val board = chess.gameChess.status.board
     if (board != null) {
@@ -106,13 +129,18 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
                 val current = chess.selected.toString()
                 val target = square.toString()
                 // tests promotion
-                if (square.row.ordinal == 0 && chess.gameChess.player === Player.BLACK
-                    || square.row.ordinal == 7 && chess.gameChess.player === Player.WHITE)
-                    showPromotionWindow()
-                val move = pieceType + current + target
-                val gameChess = play(menuHandlers, chess.gameChess, move)
-                if (gameChess != null)
-                    return Chess(gameChess = gameChess)
+                if (pieceForPormotion != null) {
+                    val move = "$pieceType$current$target=${pieceForPormotion.toStr()}"
+                    val gameChess = play(menuHandlers, chess.gameChess, move)
+                    if (gameChess != null)
+                        return Chess(gameChess = gameChess)
+                }
+                else {
+                    val move = pieceType + current + target
+                    val gameChess = play(menuHandlers, chess.gameChess, move)
+                    if (gameChess != null)
+                        return Chess(gameChess = gameChess)
+                }
             }
         }
     }

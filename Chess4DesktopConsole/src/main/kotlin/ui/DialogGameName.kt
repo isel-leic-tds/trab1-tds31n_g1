@@ -23,8 +23,9 @@ fun DialogGameName( onOk: (String)->Unit, onCancel: ()->Unit ) = Dialog(
 ) {
     var name by remember { mutableStateOf("abc") }
     Column {
-        Text("Select promotion piece")
+        Text("Enter the name of game")
         Row {
+            TextField(name, onValueChange = { name = it })
             Button(onClick = { onOk(name) }) {
                 Text("OK")
             }
