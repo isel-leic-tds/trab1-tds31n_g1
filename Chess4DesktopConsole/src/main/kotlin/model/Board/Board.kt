@@ -254,12 +254,25 @@ class Board {
         return Success(newBoard, move.toString(), inCheck, inCheckmate)
     }
 
+    /**
+     * When we need to know if that piece can make a promotion
+     */
+    fun isPromotionPossible(curSquare: Square, newSquare: Square): Boolean {
+        val piece = boardArr[curSquare.row.ordinal][curSquare.column.ordinal]
+        if (piece != null && piece.type is Pawn) {
+            if (piece.player === Player.WHITE && newSquare.row === Row.EIGHT
+                || piece.player === Player.BLACK && newSquare.row === Row.ONE)
+               return true
+        }
+        return false
+    }
+
     private fun checkPromotion(newSquare: Square): Boolean {
         val piece = boardArr[newSquare.row.ordinal][newSquare.column.ordinal]
         if (piece != null && piece.type is Pawn) {
             if (piece.player === Player.WHITE && newSquare.row === Row.EIGHT
                 || piece.player === Player.BLACK && newSquare.row === Row.ONE)
-               return true
+                return true
         }
         return false
     }
@@ -375,7 +388,7 @@ class Board {
     private fun getMoveType(str: String): Result {
         val moveType =
             if (str[3] == 'x') Capture()
-            else if (str.length > 5 && str[5] == '=') {
+            else if (str.length > 5 && str[5] == '=' && str[0] == 'P') {
                 when (str[6]) {
                     'B' -> Promotion(Bishop())
                     'N' -> Promotion(Knight())

@@ -61,17 +61,15 @@ fun main() = MongoDriver().use { driver ->
                     },
                 )
                 MainView(chess) { square ->
-                    if (square.row.ordinal == 7 && chess.gameChess.player === Player.BLACK
-                        || square.row.ordinal == 0 && chess.gameChess.player === Player.WHITE) {
-                        squareAux = square
-                        openPromotion = true
-                    }
-                    else
+                    val board = chess.gameChess.status.board
+                    if (board != null) {
+                        // decides if its to open promotion window
+                        if (chess.selected != null && board.isPromotionPossible(chess.selected!!, square)) {
+                            squareAux = square
+                            openPromotion = true
+                        }
                         chess = pressSquare(chess, square, menuHandlers)
-                }
-                scope.launch {
-                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
-                    chess = chess.copy(gameChess = gameChess)
+                    }
                 }
                 val currStartGame = startGame
                 if (currStartGame != null)
@@ -90,6 +88,10 @@ fun main() = MongoDriver().use { driver ->
                         onCancel = { openPromotion = false }
                     )
                 }
+                scope.launch {
+                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                    chess = chess.copy(gameChess = gameChess)
+                }
             }
         }
     }
@@ -103,6 +105,7 @@ fun createGame(driver: MongoDriver) =
  * Tries to make a move if two pieces were selected or selects one.
  */
 private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, Command>, pieceForPormotion: PieceType? = null): Chess {
+
     val selected = chess.selected
     val board = chess.gameChess.status.board
     if (board != null) {
