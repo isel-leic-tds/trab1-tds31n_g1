@@ -16,6 +16,7 @@ fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String)
 }
 
 fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess, gameName: String): GameChess? {
+    val gameName = "test"
     val command = "OPEN"
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]
@@ -26,6 +27,7 @@ fun openGame(menuHandlers: Map<String, Command>, gameChess: GameChess, gameName:
 }
 
 fun joinGame(menuHandlers: Map<String, Command>, gameChess: GameChess, gameName: String): GameChess? {
+    val gameName = "test"
     val command = "JOIN"
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]

@@ -40,6 +40,8 @@ class Promotion(val newPiece: PieceType): MoveType()
 
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = Regular()) {
     override fun toString(): String {
+        if (this.type is Promotion)
+            return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit + '=' + this.type.newPiece.toStr()
         return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit
     }
 }
