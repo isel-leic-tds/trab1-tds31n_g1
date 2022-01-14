@@ -68,7 +68,7 @@ fun main() = MongoDriver().use { driver ->
                             squareAux = square
                             openPromotion = true
                         }
-                        chess = pressSquare(chess, square, menuHandlers)
+                        else chess = pressSquare(chess, square, menuHandlers)
                     }
                 }
                 val currStartGame = startGame
@@ -84,8 +84,7 @@ fun main() = MongoDriver().use { driver ->
                             if (curSquareAux != null)
                                 chess = pressSquare(chess, curSquareAux, menuHandlers, it)
                             openPromotion = false
-                        },
-                        onCancel = { openPromotion = false }
+                        }
                     )
                 }
                 scope.launch {
@@ -98,7 +97,7 @@ fun main() = MongoDriver().use { driver ->
 }
 
 fun createGame(driver: MongoDriver) =
-    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null, null))
+    GameChess(FileDb(), null, null, StatusGame(null,listOf(),null, null))
 
 
 /**

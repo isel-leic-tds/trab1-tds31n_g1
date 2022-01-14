@@ -22,8 +22,8 @@ import model.Board.*
  * @param onCancel Function called when the user tries to close the window.
  */
 @Composable
-fun DialogPromotionPiece( onOk: (PieceType)->Unit, onCancel: ()->Unit ) = Dialog(
-    onCloseRequest = onCancel,
+fun DialogPromotionPiece( onOk: (PieceType)->Unit) = Dialog(
+    onCloseRequest = {  },
     title = "Game name",
     state = DialogState(width = Dp.Unspecified, height = Dp.Unspecified)
 ) {

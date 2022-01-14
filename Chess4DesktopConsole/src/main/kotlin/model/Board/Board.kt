@@ -260,8 +260,10 @@ class Board {
     fun isPromotionPossible(curSquare: Square, newSquare: Square): Boolean {
         val piece = boardArr[curSquare.row.ordinal][curSquare.column.ordinal]
         if (piece != null && piece.type is Pawn) {
+            val move = Move(piece.type, curSquare, newSquare)
             if (piece.player === Player.WHITE && newSquare.row === Row.EIGHT
-                || piece.player === Player.BLACK && newSquare.row === Row.ONE)
+                || piece.player === Player.BLACK && newSquare.row === Row.ONE
+                && isValidMove(move))
                return true
         }
         return false
