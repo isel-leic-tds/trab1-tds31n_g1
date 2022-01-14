@@ -7,7 +7,7 @@ import model.Player
  * Cada peça vai receber uma tentativa de jogada, ou seja, com as coordenadas da jogada e o tabuleiro com as outras peças e DIZER se essa jogada foi valida
  */
 sealed class PieceType
-class Pawn: PieceType()
+class Pawn(val hasMoved:Boolean = false): PieceType()
 class Knight: PieceType()
 class Bishop: PieceType()
 class Rook(val hasMoved:Boolean = false): PieceType()

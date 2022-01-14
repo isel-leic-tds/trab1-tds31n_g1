@@ -3,7 +3,6 @@ package model.Board
 import chess.model.*
 import model.Player
 import java.util.*
-import kotlin.reflect.KProperty
 
 abstract class Result
 
@@ -26,7 +25,7 @@ private class BadMove(): Error("Invalid command")
 private class InvalidSquare(val error_: String): Error(error_)
 private class Ambiguity(): Error("Specify the command")
 private class EmptySquare(): Error("Given quare is empty")
-private class OponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
+private class OpponentSquare(): Error("Given square contains a piece witch belongs to the oponent player")
 private class BadPiece(): Error("Given piece type does not correspond to the given current square")
 private class PromotionNotValid(): Error("Given piece type for Promotion is not valid")
 private class BadPromotion(): Error("Promotion shouldnt have been made")
@@ -197,6 +196,13 @@ class Board {
             val result = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
             return Aux(result.content as Board)
         }
+
+        if(canEnPassant(move1,piece,newBoardArr)) {
+            doNormalMove(move1,piece,boardArr)
+            val result = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
+            return Aux(result.content as Board)
+        }
+
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
@@ -330,6 +336,35 @@ class Board {
         return false
     }
 
+    private fun canEnPassant(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>):Boolean {
+        val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+        val playerPiece = piece.player
+        if(diffCol == -1) {//Left
+            val advPawn = newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal-1]
+            if(advPawn != null && playerPiece != advPawn.player) {
+                if ((piece.type is Pawn) && (advPawn.type is Pawn)){
+                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal-1] = null
+                    return true
+                }
+            }
+        }
+        else if (diffCol == 1){ //Right
+            val advPawn = newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal+1]
+            if(advPawn != null && playerPiece != advPawn.player) {
+                if ((piece.type is Pawn) && (advPawn.type is Pawn)){
+                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal+1] = null
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    private fun doNormalMove(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>) {
+        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
+        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+    }
+
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
@@ -414,7 +449,7 @@ class Board {
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return EmptySquare()
         // verifies if the piece type of the chooses square is the one in the str command
         if (piece.type.toStr() != move.piece.toStr()) return BadPiece()
-        if (piece.player != curPlayer) return OponentSquare()
+        if (piece.player != curPlayer) return OpponentSquare()
         return ISuccess(true)
     }
 
@@ -427,10 +462,13 @@ class Board {
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
         if(doCastling(move,piece,newBoardArr)) return checkAndCheckmate(move,newBoardArr,piece)
+        if(canEnPassant(move,piece,newBoardArr)) {
+            doNormalMove(move,piece,boardArr)
+            return checkAndCheckmate(move,newBoardArr,piece)
+        }
         //Ver se é possível mover a peça para esse sitio ou se a peça para onde queremos mover é rei
         if (!isValidMove(move)) return InvalidMove(move.toString())
-        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
-        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        doNormalMove(move,piece,boardArr)
 
         updateKingAndRook(move,piece,newBoardArr)
 
