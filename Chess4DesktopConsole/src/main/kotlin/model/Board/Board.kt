@@ -222,6 +222,7 @@ class Board {
         var newBoard = ((result) as ISuccess).content as Board
         val inCheck = (result).check
         val inCheckmate = (result).checkmate
+        val draw = (result).draw
 
         // promotion
         if (checkPromotion(move.newSquare)) {
@@ -234,7 +235,7 @@ class Board {
         else if (move.type is Promotion)
             return BadPromotion()
 
-        return Success(newBoard, move.toString(), inCheck, inCheckmate)
+        return Success(newBoard, move.toString(), inCheck, inCheckmate,draw)
     }
 
     /**
