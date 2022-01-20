@@ -104,7 +104,6 @@ fun createGame(driver: MongoDriver) =
  * Tries to make a move if two pieces were selected or selects one.
  */
 private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, Command>, pieceForPormotion: PieceType? = null): Chess {
-
     val selected = chess.selected
     val board = chess.gameChess.status.board
     if (board != null) {

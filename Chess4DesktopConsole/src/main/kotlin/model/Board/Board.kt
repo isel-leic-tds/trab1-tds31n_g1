@@ -250,7 +250,7 @@ class Board {
     /**
      * When we need to know if that piece can make a promotion
      */
-    fun isPromotionPossible(curSquare: Square, newSquare: Square): Boolean {
+    fun isPromotionPossible(curSquare: Square, newSquare: Square): Move? {
         val piece = boardArr[curSquare.row.ordinal][curSquare.column.ordinal]
         if (piece != null && piece.type is Pawn) {
             val move = Move(piece.type, curSquare, newSquare)
