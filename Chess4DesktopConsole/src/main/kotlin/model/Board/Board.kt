@@ -195,6 +195,10 @@ class Board {
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
+        if(piece.type is Pawn) {
+            newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = Piece(updatePawn(move1),piece.player)
+        }
+
         updateKingAndRook(move1,piece,newBoardArr)
 
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
@@ -228,7 +232,6 @@ class Board {
         var newBoard = ((result) as ISuccess).content as Board
         val inCheck = (result).check
         val inCheckmate = (result).checkmate
-        val draw = (result).draw
 
         // promotion
         if (checkPromotion(move.newSquare)) {
@@ -241,7 +244,7 @@ class Board {
         else if (move.type is Promotion)
             return BadPromotion()
 
-        return Success(newBoard, move.toString(), inCheck, inCheckmate,draw)
+        return Success(newBoard, move.toString(), inCheck, inCheckmate)
     }
 
     /**
@@ -367,17 +370,13 @@ class Board {
 
     private fun updatePawn(move:Move):Pawn {
         val diffRow = abs(move.newSquare.row.ordinal - move.curSquare.row.ordinal)
-        return if(diffRow == 2) {
+        return if (diffRow == 2) {
             Pawn(twoSteps = true)
         } else {
             Pawn(twoSteps = false)
         }
-
-    private fun fiftyMoveRule():Boolean { //TODO:IMPLEMENTAR
-        return true
     }
 
-    }
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
@@ -542,7 +541,6 @@ class Board {
                 return ISuccess(Board(this, newBoardArr), check = true)
             }
         }
-        if(fiftyMoveRule()) return ISuccess(Board(this, newBoardArr),draw = true)
         return ISuccess(Board(this, newBoardArr))
     }
 

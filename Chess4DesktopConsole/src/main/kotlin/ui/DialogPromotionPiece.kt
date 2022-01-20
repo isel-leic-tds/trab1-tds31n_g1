@@ -27,12 +27,11 @@ fun DialogPromotionPiece( onOk: (PieceType)->Unit) = Dialog(
     title = "Game name",
     state = DialogState(width = Dp.Unspecified, height = Dp.Unspecified)
 ) {
-    var name by remember { mutableStateOf("") }
     Column {
         Text("Select promotion piece")
         Row {
-            Button(onClick = { onOk(King()) }) {
-                Image(painterResource("kingB.png"), "king", Modifier)
+            Button(onClick = { onOk(Queen()) }) {
+                Image(painterResource("queenB.png"), "queen", Modifier)
             }
             Button(onClick = { onOk(Rook()) }) {
                 Image(painterResource("rookB.png"), "rook", Modifier)
