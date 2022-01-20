@@ -1,25 +1,8 @@
 package model.Board
 
-import chess.model.Column
-import chess.model.Row
 import chess.model.Square
 import model.Player
 import java.util.HashMap
-
-/*TODO:
-    Verificar primeiro se ao fazer a minha jogada o meu rei fica em check -> isMyKingInCheck() DONE
-    Se ficar, dizer que o movimento não é válido -> isMyKingInCheck() DONE
-    Se não ficar, verificar se o rei adversário está em check -> isAdversaryKingInCheck() DONE
-    Se estiver em check ativar a mensagem a dizer CHECK -> isAdversaryKingInCheck() DONE
-    Depois ver quantas peças estão a meter o rei em check -> isAdversaryKingInCheck() DONE
-    Se nao houver nenhuma nao ha check -> isAdversaryKingInCheck() DONE
-    Se houver 1, primeiro ver se existe alguma peça que se possa sacrificar pelo rei ou comer a peça a por em check -> canAnyPieceProtectKing() DONE
-    Se nao existir nenhuma que se possa sacrificar pelo rei vemos se o rei tem para onde ir sem ficar em check -> canAnyPieceProtectKing() DONE
-    Se houver 1+,nenhuma peça se pode sacrificar por isso apenas ver se o rei pode fugir -> kingHasValidMoves() DONE
-    Se nao conseguir fugir aparece a mensagem de CHECKMATE e termina o jogo -> CHECKMATE
-
-    VERIFICAR SE AO COMER A PEÇA QUE ESTA A POR EM CHEQUEMATE O REI NAO CONTINUA EM CHEQUE
-    */
 
  fun piecesToEatCheckPiece(move: Move, boardArr: Array<Array<Board.Piece?>>):MutableList<Square> {
     val piecesThatCanEat = mutableListOf<Square>()

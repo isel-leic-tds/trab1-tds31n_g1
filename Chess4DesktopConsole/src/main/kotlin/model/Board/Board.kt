@@ -7,11 +7,13 @@ import kotlin.reflect.KProperty
 
 abstract class Result
 
+//TODO:Esta data classe é pa fazer a ligação entre a parte do modelo e a base de dados????
 data class Success(val board: Board, val str: String, val check: Boolean = false, val checkmate: Boolean = false): Result() {
     override fun toString(): String {
         return board.toString()
     }
 }
+
 abstract class Error(val error: String): Result() {
     override fun toString(): String {
         return error
@@ -79,12 +81,12 @@ class Board {
     /**
      * To change the [boardArr] state/make movements.
      */
-    constructor(board: Board, boardArr: Array<Array<Piece?>>) {
+    constructor(board: Board, boardArr: Array<Array<Piece?>>) { //Sempre que este construtor é chamado foi realizada uma jogada com sucesso
         this.boardArr = boardArr
         finished = board.finished
         var whiteKingPosition: Square? = null
         var blackKingPosition: Square? = null
-        Square.values.forEach {square ->
+        Square.values.forEach {square -> //Dar update da posição do rei
             val piece = boardArr[square.row.ordinal][square.column.ordinal]
             if (piece != null) {
                 if (piece.type is King) {
@@ -103,7 +105,7 @@ class Board {
     /**
      * To change the [endOfGame] state
      */
-    private constructor(board: Board, boardArr: Array<Array<Piece?>>, endOfGame: Boolean) {
+    private constructor(board: Board, boardArr: Array<Array<Piece?>>, endOfGame: Boolean) { //TODO: Não está a ser usado
         whiteKingPosition = board.whiteKingPosition
         blackKingPosition = board.blackKingPosition
         this.boardArr = boardArr
@@ -142,24 +144,6 @@ class Board {
     }
 
     /**
-     * Converts the current state of the game in a String
-     * Square.values.joinToString
-     */
-    fun toStringTest(): String {
-        var str = ""
-        Square.values.forEach { square ->
-            val piece = boardArr[square.row.ordinal][square.column.ordinal]
-            if (piece != null) {
-                var aux = piece.type.toStr()
-                if (piece.player == Player.BLACK)
-                    aux = aux.lowercase(Locale.getDefault())
-                str += aux
-            } else str += ' '
-        }
-        return str
-    }
-
-    /**
      * The chess board as a String
      */
     override fun toString(): String {
@@ -184,12 +168,12 @@ class Board {
         return str
     }
 
-    data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false)
+    data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false) //Apenas usado na função makeMoveWithoutCheck()
     /**
      * Used to retrieve the current state of the game hold in the database
      * Makes the move given in the [move] without checking if the move is possible.
      */
-    fun makeMoveWithoutCheck(move: String): Aux {
+    fun makeMoveWithoutCheck(move: String): Aux { //Usado para dar restore e Join ao jogo
         val currSquare = move.substring(1, 3).toSquareOrNull()
         val newSquare = move.substring(3, 5).toSquareOrNull()
         val move1 = Move(getPieceType(move[0])!!,currSquare!!,newSquare!!)
@@ -205,8 +189,7 @@ class Board {
         newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
-        updateKingAndRook(move1,piece,newBoardArr)
-
+        updateKingAndRook(move1,piece,newBoardArr) //Saber se o King e o Rook já se moveram para o Castling
 
         val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
 
@@ -306,7 +289,7 @@ class Board {
         return result
     }
 
-    private fun canCastle(move: Move,piece: Piece,board: Array<Array<Piece?>>):Int {
+    private fun canCastle(move: Move,piece: Piece):Int {
         //Antes ainda ver se é a primeira jogada tanto do rei como da torre
         var counter = 0
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
@@ -322,7 +305,7 @@ class Board {
     }
 
     private fun doCastling(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>): Boolean{
-        if(canCastle(move,piece,newBoardArr) == 1) { //Short Path
+        if(canCastle(move,piece) == 1) { //Short Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
             if(towerPiece != null) {
                 if(piece.type is King && !piece.type.hasMoved && towerPiece.type is Rook && !towerPiece.type.hasMoved) {
@@ -333,9 +316,8 @@ class Board {
                     return true
                 }
             }
-
         }
-        else if(canCastle(move,piece,newBoardArr) == 2) { //Long Path
+        else if(canCastle(move,piece) == 2) { //Long Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
             if(towerPiece != null) {
                 if(piece.type is King && !piece.type.hasMoved && towerPiece.type is Rook && !towerPiece.type.hasMoved) {
@@ -346,7 +328,6 @@ class Board {
                     return true
                 }
             }
-
         }
         return false
     }
@@ -443,7 +424,6 @@ class Board {
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
      */
-    // TODO MAYBE THIS FUNCTION SHOULD GET A BOARD ARRAY?
     private fun makeMove(move: Move): Result {
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
@@ -532,4 +512,25 @@ class Board {
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
         }
     }
+
+    /*************************************************ONLY USED ON TESTS******************************************************************/
+
+    /**
+     * Converts the current state of the game in a String
+     * Square.values.joinToString
+     */
+    fun toStringTest(): String { //Apenas usado nos testes
+        var str = ""
+        Square.values.forEach { square ->
+            val piece = boardArr[square.row.ordinal][square.column.ordinal]
+            if (piece != null) {
+                var aux = piece.type.toStr()
+                if (piece.player == Player.BLACK)
+                    aux = aux.lowercase(Locale.getDefault())
+                str += aux
+            } else str += ' '
+        }
+        return str
+    }
+
 }
