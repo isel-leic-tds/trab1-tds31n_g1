@@ -42,6 +42,7 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
                     LogView(chess)
                     CheckView(chess.gameChess.status.check)
                     CheckmateView(chess.gameChess.status.checkmate)
+                    DrawView(chess.gameChess.status.draw)
                 }
                 MoveView(chess)
             }
@@ -67,6 +68,19 @@ fun CheckmateView(check: Boolean) {
     if (check) {
         Text(
             text = "CHECKMATE",
+            color = Color.Red,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
+        )
+    }
+}
+
+@Composable
+fun DrawView(drawView: Boolean) {
+        if (drawView) {
+        Text(
+            text = "DRAW",
             color = Color.Red,
             fontWeight = FontWeight.Bold,
             modifier = Modifier

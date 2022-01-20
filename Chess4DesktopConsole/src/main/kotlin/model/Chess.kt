@@ -15,7 +15,8 @@ data class StatusGame(
     val currentPlayer: Player?,
     val lastMove: String?,
     val check: Boolean = false,
-    val checkmate: Boolean = false
+    val checkmate: Boolean = false,
+    val draw: Boolean = false
 ) {
     override fun toString(): String {
         return board.toString()

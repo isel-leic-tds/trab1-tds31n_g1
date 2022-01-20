@@ -8,7 +8,7 @@ import kotlin.reflect.KProperty
 abstract class Result
 
 //TODO:Esta data classe é pa fazer a ligação entre a parte do modelo e a base de dados????
-data class Success(val board: Board, val str: String, val check: Boolean = false, val checkmate: Boolean = false): Result() {
+data class Success(val board: Board, val str: String, val check: Boolean = false, val checkmate: Boolean = false,val draw:Boolean = false): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -332,10 +332,14 @@ class Board {
         return false
     }
 
+    private fun fiftyMoveRule():Boolean { //TODO:IMPLEMENTAR
+        return true
+    }
+
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
-    private class ISuccess(val content: Any, val check:Boolean = false, val checkmate: Boolean = false): Result()
+    private class ISuccess(val content: Any, val check:Boolean = false, val checkmate: Boolean = false,val draw: Boolean = false): Result()
     /**
      * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
      * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
@@ -487,6 +491,7 @@ class Board {
                 return ISuccess(Board(this, newBoardArr), check = true)
             }
         }
+        if(fiftyMoveRule()) return ISuccess(Board(this, newBoardArr),draw = true)
         return ISuccess(Board(this, newBoardArr))
     }
 
