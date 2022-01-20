@@ -37,7 +37,7 @@ private class MyKingInCheck(): Error("Current move puts your King in check")
 abstract class MoveType()
 class Regular(): MoveType()
 class Capture(): MoveType()
-class Promotion(val newPiece: PieceType): MoveType()
+class Promotion(val newPiece: PieceType?): MoveType()
 
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = Regular()) {
     override fun toString(): String {
@@ -345,7 +345,6 @@ class Board {
     }
 
     private fun canEnPassant(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>):Boolean {
-
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
         val playerPiece = piece.player
         if (diffCol == -1) {//Left

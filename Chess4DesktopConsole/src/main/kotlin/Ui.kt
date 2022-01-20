@@ -128,6 +128,7 @@ private fun pressSquare(chess: Chess, square: Square, menuHandlers: Map<String, 
                 val pieceType = board[selected]!!.type.toStr()
                 val current = chess.selected.toString()
                 val target = square.toString()
+                chess.gameChess.status.board.
                 // tests promotion
                 if (pieceForPormotion != null) {
                     val move = "$pieceType$current$target=${pieceForPormotion.toStr()}"
