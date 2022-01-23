@@ -97,7 +97,7 @@ fun main() = MongoDriver().use { driver ->
 }
 
 fun createGame(driver: MongoDriver) =
-    GameChess(FileDb(), null, null, StatusGame(null,listOf(),null, null))
+    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null, null))
 
 
 /**
