@@ -1,6 +1,7 @@
 package model.Board
 
 import chess.model.*
+import com.mongodb.client.model.geojson.Position
 import model.Player
 import java.util.*
 import kotlin.math.abs
@@ -207,28 +208,23 @@ class Board {
     }
 
     /**
-     * Used to make a move with a given String [str].
-     * Needs also the [curPlayer] to check if the move is possible.
-     * Always returns the given complete [str], in cases where the given [str] is not complete.
+     * Receives a Move [move] and tries to make a move with it.
+     * Returns Sucess with new Board or an Error with information about what went wrong.
      * @return Result
      */
-    // TODO ORGANIZE THIS FUNCTION
     // TODO theres a bug when Promotion is made but it shouldt, then when we try to make a new move it says that the square is empty
-    fun makeMove(str: String, curPlayer: Player = Player.WHITE): Result {
+    fun makeMove(move: Move, curPlayer: Player = Player.WHITE): Result {
         if (finished) return Finished()
-        // checks if the [str] is valid
-        var result = toMoveOrNull(str, curPlayer)
-        if (result is Error) return result
-        result = result as ISuccess
-        val move = result.content as Move
-
         // checks if the given Square is valid
-        result = isValidSquare(move, curPlayer)
+        var result = isValidSquare(move, curPlayer)
         if (result is Error) return result
 
         // tries to make the Move
         result = makeMove(move)
         if (result is Error) return result
+    }
+
+    fun test() {
         var newBoard = ((result) as ISuccess).content as Board
         val inCheck = (result).check
         val inCheckmate = (result).checkmate
@@ -250,16 +246,16 @@ class Board {
     /**
      * When we need to know if that piece can make a promotion
      */
-    fun isPromotionPossible(curSquare: Square, newSquare: Square): Move? {
-        val piece = boardArr[curSquare.row.ordinal][curSquare.column.ordinal]
+    fun isPromotionPossible(move: Move): Move? {
+        val piece = boardArr[move.curSquare.row.ordinal][move.newSquare.column.ordinal]
         if (piece != null && piece.type is Pawn) {
-            val move = Move(piece.type, curSquare, newSquare)
-            if (piece.player === Player.WHITE && newSquare.row === Row.EIGHT
-                || piece.player === Player.BLACK && newSquare.row === Row.ONE
-                && isValidMove(move))
-               return true
+            if (piece.player === Player.WHITE && move.newSquare.row === Row.EIGHT
+                || piece.player === Player.BLACK && move.newSquare.row === Row.ONE
+            )
+                return move.copy(type = Promotion(null))
         }
-        return false
+        return null
+
     }
 
     private fun checkPromotion(newSquare: Square): Boolean {
@@ -410,6 +406,12 @@ class Board {
             return ISuccess(Move(pieceType, currSquare, newSquare, moveType))
         }
         return result // returns the error messaage
+    }
+
+    fun toMoveOrNull(pos1: Square, pos2: Square): Move? {
+        val piece = boardArr[pos1.row.ordinal][pos2.column.ordinal] ?: return null
+        val pieceType = piece.type
+        return Move(pieceType, pos1, pos2)
     }
 
     private fun getMoveType(str: String): Result {

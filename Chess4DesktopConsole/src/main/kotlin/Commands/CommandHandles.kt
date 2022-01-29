@@ -19,7 +19,7 @@ data class Command(
      * Receive the parameter given on command line.
      * May throws exception in case of failure with appropriate error message.
      */
-    val action: (GameChess, String?) -> Result,
+    val action: (GameChess, Any) -> Result,
 
     /**
      * Displays the result returned by the action.
@@ -35,7 +35,7 @@ data class Command(
 fun buildMenuHandlers() = mapOf(
     "OPEN" to Command(
         // returns a new Board (restored or new)
-        action = { gameChess: GameChess, gameId: String? ->
+        action = { gameChess: GameChess, gameId: Any? ->
             if (gameId != null) {
                 val commandResult = restoreGame(gameChess.chessDb, gameId)
                 if (commandResult is NewBoard)
@@ -59,7 +59,7 @@ fun buildMenuHandlers() = mapOf(
         }
     ),
     "JOIN" to Command(
-        action = { gameChess: GameChess, gameId: String? ->
+        action = { gameChess: GameChess, gameId: Any? ->
             if (gameId != null) {
                 MissingContent(gameChess, "GameId at fault")
                 val commandResult = joinGame(gameChess.chessDb, gameId)
@@ -84,7 +84,7 @@ fun buildMenuHandlers() = mapOf(
     ),
     "EXIT" to Command( { _,_ -> Terminate }),
     "PLAY" to Command(
-        action = { gameChess: GameChess, move: String? ->
+        action = { gameChess: GameChess, move: Any ->
             if (gameChess.gameId != null) {
                 if (move == null)
                     MissingContent(gameChess, "GameId at fault")

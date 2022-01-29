@@ -23,12 +23,3 @@ fun FrameWindowScope.ChessMenuBar(onOpen: ()->Unit, onJoin: ()->Unit ) =  MenuBa
     }
 }
 
-@Composable
-fun ApplicationScope.myWindow() {
-    val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
-    androidx.compose.ui.window.Window(
-        onCloseRequest = ::exitApplication,
-        state = winState,
-        title = "Jogo do Galo"
-    ) {}
-}

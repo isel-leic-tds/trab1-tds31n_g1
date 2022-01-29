@@ -3,6 +3,7 @@ package Commands
 import DataBase.*
 import Moves
 import model.Board.Board
+import model.Board.Move
 import model.Player
 import model.StatusGame
 import java.lang.IllegalStateException
@@ -87,7 +88,7 @@ fun saveMove(chessDb: ChessDb, gameId: String, move: String): CommandResult {
  * Makes a given [move] to the [statusGame] board.
  * Return the new Status Game if the make move went well of null.
  */
-fun makeMove(statusGame: StatusGame, move: String?, player: Player): CommandResult {
+fun makeMove(statusGame: StatusGame, move: Move, player: Player): CommandResult {
     if (move == null) return EmptyMove()
     if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move, statusGame.currentPlayer)

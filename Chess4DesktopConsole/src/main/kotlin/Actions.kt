@@ -3,9 +3,10 @@ import Commands.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import model.Board.Move
 import model.GameChess
 
-fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: String): GameChess? {
+fun play(menuHandlers: Map<String, Command>, gameChess: GameChess, move: Move): GameChess? {
     val command = "PLAY"
     LineCommand(command, null)
     val cmd: Command? = menuHandlers[command]
