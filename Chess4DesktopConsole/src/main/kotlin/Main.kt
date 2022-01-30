@@ -18,7 +18,7 @@ import ui.DialogPromotionPiece
 
 // TODO a UI vai ter de perguntar à Board se é possível fazer promotion numa dada peça
 
-data class Chess(val selected: Square? = null, val gameChess: GameChess)
+data class Chess(val selected: Square? = null, val gameChess: GameChess) {}
 
 fun main() = MongoDriver().use { driver ->
     application {

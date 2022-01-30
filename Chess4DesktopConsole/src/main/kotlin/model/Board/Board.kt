@@ -588,4 +588,13 @@ class Board {
         return str
     }
 
+    /**
+     * Checks if given square has a piece from [player], other player or hasnt a piece at all.
+     */
+    fun isFromPlayer(square: Square, player: Player): Boolean?  {
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece == null) return null
+        return piece.player === player
+    }
+
 }

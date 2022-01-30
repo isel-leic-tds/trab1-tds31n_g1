@@ -86,15 +86,17 @@ fun createGame(driver: MongoDriver) =
  */
 private fun onSquarePressed(chess: Chess, square: Square, menuHandlers: Map<String, Command>, pieceForPormotion: PieceType? = null): Chess {
     val selected = chess.selected
+    // checks if its player turn
+    if (!chess.gameChess.isPlayerTurn()) return chess
     val board = chess.gameChess.status.board
     if (board != null) {
-        // if it's not the players turn
-        if (chess.gameChess.player !== chess.gameChess.status.currentPlayer) return chess
-        // marks a piece
+        // if the player didnt choose yet a square marks a piece
         if (selected == null) {
-            return if (board[square] != null && board[square]!!.player === chess.gameChess.player)
-                chess.copy(selected = square)
-            else chess
+            val result = board.isFromPlayer(square, chess.gameChess.player)
+            // if there's no piece in that square or contains another player's piece
+            if (result == null || !result)
+                return chess
+            return chess.copy(selected = square)
         }
         else {
             // unmarc selected piece

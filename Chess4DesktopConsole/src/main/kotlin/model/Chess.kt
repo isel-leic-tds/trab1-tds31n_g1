@@ -23,4 +23,8 @@ data class StatusGame(
     }
 }
 
-data class GameChess(val chessDb: ChessDb, val gameId: String?, val player: Player?, val status: StatusGame)
+data class GameChess(val chessDb: ChessDb, val gameId: String?, val player: Player?, val status: StatusGame) {
+    fun isBoardNull() = status.board == null
+    fun isPlayerTurn() = player === status.currentPlayer
+
+}
