@@ -1,4 +1,5 @@
 import Commands.Command
+import Commands.Option
 import Commands.buildMenuHandlers
 import DataBase.FileDb
 import androidx.compose.desktop.DesktopMaterialTheme
@@ -43,36 +44,28 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
             }
         )
         MainView(chess) { square ->
-            val board = chess.gameChess.status.board
-            if (board != null) {
-                // decides if its to open promotion window
-                if (chess.selected != null && board.isPromotionPossible(chess.selected!!, square)) {
-                    squareAux = square
-                    openPromotion = true
-                }
-                else chess = onSquarePressed(chess, square, menuHandlers)
+            chess = onSquarePressed(chess, square, menuHandlers)
+        }
+    }
+    val currStartGame = startGame
+    if (currStartGame != null)
+        DialogGameName(
+            onOk = { chess = currStartGame(it); startGame = null },
+            onCancel = { startGame = null }
+        )
+    if (openPromotion) {
+        val curSquareAux = squareAux
+        DialogPromotionPiece(
+            onOk = {
+                if (curSquareAux != null)
+                    chess = onSquarePressed(chess, curSquareAux, menuHandlers, it)
+                openPromotion = false
             }
-        }
-        val currStartGame = startGame
-        if (currStartGame != null)
-            DialogGameName(
-                onOk = { chess = currStartGame(it); startGame = null },
-                onCancel = { startGame = null }
-            )
-        if (openPromotion) {
-            val curSquareAux = squareAux
-            DialogPromotionPiece(
-                onOk = {
-                    if (curSquareAux != null)
-                        chess = onSquarePressed(chess, curSquareAux, menuHandlers, it)
-                    openPromotion = false
-                }
-            )
-        }
-        scope.launch {
-            val gameChess = refreshGame(menuHandlers, chess.gameChess)
-            chess = chess.copy(gameChess = gameChess)
-        }
+        )
+    }
+    scope.launch {
+        val gameChess = refreshGame(menuHandlers, chess.gameChess)
+        chess = chess.copy(gameChess = gameChess)
     }
 }
 
@@ -84,39 +77,41 @@ fun createGame(driver: MongoDriver) =
 /**
  * Tries to make a move if two pieces were selected or selects one.
  */
-private fun onSquarePressed(chess: Chess, square: Square, menuHandlers: Map<String, Command>, pieceForPormotion: PieceType? = null): Chess {
+private fun onSquarePressed(chess: Chess, square: Square, menuHandlers: Map<Option, Command>, pieceForPormotion: PieceType? = null): Chess {
     val selected = chess.selected
     // checks if its player turn
     if (!chess.gameChess.isPlayerTurn()) return chess
     val board = chess.gameChess.status.board
     if (board != null) {
-        // if the player didnt choose yet a square marks a piece
+        // if the player didn't choose yet a square marks a piece
         if (selected == null) {
-            val result = board.isFromPlayer(square, chess.gameChess.player)
+            val result = board.isFromPlayer(square, chess.gameChess.player!!)
             // if there's no piece in that square or contains another player's piece
             if (result == null || !result)
                 return chess
             return chess.copy(selected = square)
         }
         else {
-            // unmarc selected piece
+            // unmarcs selected piece
             if (selected === square)
                 return chess.copy(selected = null)
-            val piece = board[square]
             // if the player presses one of its own pieces
-            if (piece != null && piece.player === chess.gameChess.player)
+            val result = board.isFromPlayer(square, chess.gameChess.player!!)
+            if (result == true)
                 return chess.copy(selected = square)
             // tries to make a move
             else {
-                val move1 = board.toMoveOrNull(selected, square)
+                // will never retun null because we already check if the selected square was null (TODO fix later (remove double bunn))
+                val move1 = board.toMoveOrNull(selected, square)!! ?: return chess.copy(selected = null)
+                // makes a move
                 val gameChess = play(menuHandlers, chess.gameChess, move1)
                 if (gameChess != null) {
-                    val move2 = gameChess.status.board.isPromotionPossible(move1)
+                    val move2 = gameChess.status.board?.isPromotionPossible(move1)
+                    // if promotion possible
                     if (move2 != null)
-                        // TODO open promotion window
-                }
-                if (gameChess != null)
+                        return chess//openPromotionWindow()
                     return Chess(gameChess = gameChess)
+                }
             }
         }
     }

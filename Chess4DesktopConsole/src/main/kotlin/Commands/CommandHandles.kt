@@ -1,5 +1,6 @@
 package Commands
 
+import model.Board.Move
 import model.GameChess
 import model.Player
 import java.lang.IllegalStateException
@@ -28,23 +29,26 @@ data class Command(
     val show: (Result) -> Unit = { }
 )
 
+enum class Option{OPEN, JOIN, PLAY, REFRESH, MOVES, EXIT}
+
 /**
  * Build the associative map of command handlers to initiate/exit games.
  * @return The handlers map of all commands.
  */
 fun buildMenuHandlers() = mapOf(
-    "OPEN" to Command(
+    Option.OPEN to Command(
         // returns a new Board (restored or new)
-        action = { gameChess: GameChess, gameId: Any? ->
-            if (gameId != null) {
+        action = { gameChess: GameChess, gameId: Any ->
+            if (gameId is String) {
+                if (gameId.length == 0)
+                    MissingContent(gameChess, "GameId at fault")
                 val commandResult = restoreGame(gameChess.chessDb, gameId)
                 if (commandResult is NewBoard)
                     Success(gameChess.copy(player = Player.WHITE, status = commandResult.statusGame, gameId = gameId))
                 // restoreGame should always produce a BoardSucess(). If not:
-                else
-                    throw IllegalStateException()
+                else throw IllegalStateException()
             }
-            else MissingContent(gameChess, "GameId at fault")
+            else MissingContent(gameChess, "GameId needs to be a String")
         },
         show = { result: Result ->
             if (result is Error)
@@ -58,10 +62,11 @@ fun buildMenuHandlers() = mapOf(
             }
         }
     ),
-    "JOIN" to Command(
-        action = { gameChess: GameChess, gameId: Any? ->
-            if (gameId != null) {
-                MissingContent(gameChess, "GameId at fault")
+    Option.JOIN to Command(
+        action = { gameChess: GameChess, gameId: Any ->
+            if (gameId is String) {
+                if (gameId.length == 0)
+                    MissingContent(gameChess, "GameId at fault")
                 val commandResult = joinGame(gameChess.chessDb, gameId)
                 if (commandResult is NewBoard)
                     Success(gameChess.copy(player = Player.BLACK, status = commandResult.statusGame, gameId = gameId))
@@ -82,24 +87,25 @@ fun buildMenuHandlers() = mapOf(
             }
         }
     ),
-    "EXIT" to Command( { _,_ -> Terminate }),
-    "PLAY" to Command(
+    Option.EXIT to Command( { _, _ -> Terminate }),
+    Option.PLAY to Command(
         action = { gameChess: GameChess, move: Any ->
             if (gameChess.gameId != null) {
-                if (move == null)
-                    MissingContent(gameChess, "GameId at fault")
-                val commandResult = makeMove(gameChess.status, move, gameChess.player!!)
-                when (commandResult) {
-                    is NewBoard -> {
-                        saveMove(gameChess.chessDb, gameChess.gameId, commandResult.statusGame.lastMove!!)
-                        Success(gameChess.copy(status = commandResult.statusGame))
+                if (move !is Move)
+                    MissingContent(gameChess, "Move needs to be a Move object")
+                else {
+                    val commandResult = makeMove(gameChess.status, move, gameChess.player!!)
+                    when (commandResult) {
+                        is NewBoard -> {
+                            saveMove(gameChess.chessDb, gameChess.gameId, commandResult.statusGame.lastMove!!)
+                            Success(gameChess.copy(status = commandResult.statusGame))
+                        }
+                        is CommandError -> CommandError1(gameChess, commandResult)
+                        else -> throw IllegalStateException()
                     }
-                    is CommandError -> CommandError1(gameChess, commandResult)
-                    else -> throw IllegalStateException()
                 }
             }
-            else
-                GameNotIniciated(gameChess)
+            else GameNotIniciated(gameChess)
         },
         show = { result: Result ->
             if (result is Success) {
@@ -116,8 +122,8 @@ fun buildMenuHandlers() = mapOf(
     /**
      * If the refresh results in the same list of moves, the Result object returned conatins the same gameChess.
      */
-    "REFRESH" to Command(
-        action = { gameChess: GameChess, gameId: String? ->
+    Option.REFRESH to Command(
+        action = { gameChess: GameChess, gameId: Any ->
             if (gameChess.gameId != null) {
                 GameNotIniciated(gameChess)
                 val commandResult = restoreGame(gameChess.chessDb, gameChess.gameId)
@@ -143,8 +149,8 @@ fun buildMenuHandlers() = mapOf(
             }
         }
     ),
-    "MOVES" to Command(
-        action = { gameChess: GameChess, gameId: String? ->
+    Option.MOVES to Command(
+        action = { gameChess: GameChess, gameId: Any ->
             if (gameChess.gameId != null)
                 Success(gameChess)
             else

@@ -408,6 +408,9 @@ class Board {
         return result // returns the error messaage
     }
 
+    /**
+     * Given two squares, [pos1] and [pos2], returns a Move objetc.
+     */
     fun toMoveOrNull(pos1: Square, pos2: Square): Move? {
         val piece = boardArr[pos1.row.ordinal][pos2.column.ordinal] ?: return null
         val pieceType = piece.type
