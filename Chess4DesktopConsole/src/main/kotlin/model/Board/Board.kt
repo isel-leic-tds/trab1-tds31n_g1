@@ -1,14 +1,13 @@
 package model.Board
 
 import chess.model.*
-import com.mongodb.client.model.geojson.Position
 import model.Player
 import java.util.*
 import kotlin.math.abs
 
 abstract class Result
 
-data class Success(val board: Board, val str: String, val check: Boolean = false, val checkmate: Boolean = false): Result() {
+data class Success(val board: Board, val check: Boolean = false, val checkmate: Boolean = false): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -38,7 +37,7 @@ private class MyKingInCheck(): Error("Current move puts your King in check")
 abstract class MoveType()
 class Regular(): MoveType()
 class Capture(): MoveType()
-class Promotion(val newPiece: PieceType?): MoveType()
+class Promotion(val newPiece: PieceType): MoveType()
 
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = Regular()) {
     override fun toString(): String {
@@ -216,83 +215,13 @@ class Board {
     fun makeMove(move: Move, curPlayer: Player = Player.WHITE): Result {
         if (finished) return Finished()
         // checks if the given Square is valid
-        var result = isValidSquare(move, curPlayer)
+        val result = isValidSquare(move, curPlayer)
         if (result is Error) return result
+        val newBoardArray = makeMove(move)
+        return if (newBoardArray != null)
+            Success(Board(this, newBoardArray))
+        else InvalidMove(move.toString())
 
-        // tries to make the Move
-        result = makeMove(move)
-        if (result is Error) return result
-    }
-
-    fun test() {
-        var newBoard = ((result) as ISuccess).content as Board
-        val inCheck = (result).check
-        val inCheckmate = (result).checkmate
-
-        // promotion
-        if (checkPromotion(move.newSquare)) {
-            if (!(move.type is Promotion))
-                return MakePromotion()
-            result = doPromotion(newBoard.boardArr, move.newSquare, move)
-            if (result is Error) return result
-            newBoard = ((result) as ISuccess).content as Board
-        }
-        else if (move.type is Promotion)
-            return BadPromotion()
-
-        return Success(newBoard, move.toString(), inCheck, inCheckmate)
-    }
-
-    /**
-     * When we need to know if that piece can make a promotion
-     */
-    fun isPromotionPossible(move: Move): Move? {
-        val piece = boardArr[move.curSquare.row.ordinal][move.newSquare.column.ordinal]
-        if (piece != null && piece.type is Pawn) {
-            if (piece.player === Player.WHITE && move.newSquare.row === Row.EIGHT
-                || piece.player === Player.BLACK && move.newSquare.row === Row.ONE
-            )
-                return move.copy(type = Promotion(null))
-        }
-        return null
-
-    }
-
-    private fun checkPromotion(newSquare: Square): Boolean {
-        val piece = boardArr[newSquare.row.ordinal][newSquare.column.ordinal]
-        if (piece != null && piece.type is Pawn) {
-            if (piece.player === Player.WHITE && newSquare.row === Row.EIGHT
-                || piece.player === Player.BLACK && newSquare.row === Row.ONE)
-                return true
-        }
-        return false
-    }
-
-    /**
-     * Checks if the PieceType for Promotion is valid.
-     * Otherwise, returns an Error
-     */
-    private fun getPieceForPromotion(move: Move): Result {
-        val newPiece = (move.type as Promotion).newPiece
-        if (newPiece is King || newPiece is Pawn)
-            return PromotionNotValid()
-        return ISuccess(newPiece)
-    }
-
-    /**
-     * Does explicitly a Promotion move given in [square] with [newPiece].
-     * @Throws IllegalCallerException if the [square] is empty.
-     */
-    private fun doPromotion(board: Array<Array<Piece?>>, square: Square, move: Move): Result {
-        val result = getPieceForPromotion(move)
-        if (result is ISuccess) {
-            val newPiece = result.content as PieceType
-            val newBoardArr = board.clone()
-            val piece = newBoardArr[square.row.ordinal][square.column.ordinal] ?: throw IllegalCallerException()
-            newBoardArr[square.row.ordinal][square.column.ordinal] = Piece(newPiece, piece.player)
-            return ISuccess(Board(this, newBoardArr))
-        }
-        return result
     }
 
     private fun canCastle(move: Move,piece: Piece):Int {
@@ -473,10 +402,15 @@ class Board {
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
      */
-    private fun makeMove(move: Move): Result {
+    private fun makeMove(move: Move): Array<Array<Board.Piece?>>? {
+        if (!isValidMove(move)) return null
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
-        if(doCastling(move,piece,newBoardArr)) return checkAndCheckmate(move,newBoardArr,piece)
+        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
+        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        return newBoardArr
+    }
+        /*if(doCastling(move,piece,newBoardArr)) return checkAndCheckmate(move,newBoardArr,piece)
         if(canEnPassant(move,piece,newBoardArr)) {
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
@@ -494,7 +428,7 @@ class Board {
         updateKingAndRook(move,piece,newBoardArr)
 
         return checkAndCheckmate(move,newBoardArr,piece)
-    }
+         */
 
     private fun checkAndCheckmate(move: Move,newBoardArr:Array<Array<Piece?>>,piece:Piece):Result {
         // update king position
@@ -590,6 +524,7 @@ class Board {
         }
         return str
     }
+    /*******************************************************************************************************************************/
 
     /**
      * Checks if given square has a piece from [player], other player or hasnt a piece at all.
@@ -599,5 +534,8 @@ class Board {
         if (piece == null) return null
         return piece.player === player
     }
+
+    fun isPromotionPossible(move: Move) = isPromotionPossible(move, boardArr)
+    fun getMoveForPromotion(move: Move, pieceType: PieceType) = getMoveForPromotion(move, pieceType, boardArr)
 
 }

@@ -89,13 +89,12 @@ fun saveMove(chessDb: ChessDb, gameId: String, move: String): CommandResult {
  * Return the new Status Game if the make move went well of null.
  */
 fun makeMove(statusGame: StatusGame, move: Move, player: Player): CommandResult {
-    if (move == null) return EmptyMove()
     if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move, statusGame.currentPlayer)
     if (result is model.Board.Error)
         return BoardError(result)
     if (result is model.Board.Success)
-        return NewBoard(StatusGame(result.board, statusGame.moves + result.str, player.other(), result.str, result.check, result.checkmate))
+        return NewBoard(StatusGame(result.board, statusGame.moves + move.toString(), player.other(), move.toString(), result.check, result.checkmate))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
     throw IllegalStateException()
 }
