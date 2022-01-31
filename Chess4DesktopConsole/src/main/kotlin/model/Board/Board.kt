@@ -220,7 +220,7 @@ class Board {
         val newBoardArray = makeMove(move)
         var newBoard = if (newBoardArray != null) Board(this, newBoardArray) else return InvalidMove(move.toString())
         if (move.type is Promotion)
-            newBoard = makePromotion(move, boardArr) ?: newBoard
+            newBoard = makePromotion(move, Board(this, newBoardArray)) ?: newBoard
         return Success(newBoard)
     }
 
@@ -341,7 +341,7 @@ class Board {
      * Given two squares, [pos1] and [pos2], returns a Move objetc.
      */
     fun toMoveOrNull(pos1: Square, pos2: Square): Move? {
-        val piece = boardArr[pos1.row.ordinal][pos2.column.ordinal] ?: return null
+        val piece = boardArr[pos1.row.ordinal][pos1.column.ordinal] ?: return null
         val pieceType = piece.type
         return Move(pieceType, pos1, pos2)
     }
@@ -538,7 +538,7 @@ class Board {
     fun isPromotionPossible(move: Move) = isPromotionPossible(move, boardArr)
     fun getMoveForPromotion(move: Move, pieceType: PieceType) = getMoveForPromotion(move, pieceType, boardArr)
 
-    private fun makePromotion(move: Move, boardArr: Array<Array<Piece?>>): Board? {
+    private fun makePromotion(move: Move, board: Board): Board? {
         val boardArrAfterPromotion = makePromotion(move, boardArr)
         return if (boardArrAfterPromotion != null) Board(this, boardArrAfterPromotion)
         else null
