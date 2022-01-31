@@ -18,14 +18,17 @@ fun isPromotionPossible(move: Move, boardArr: Array<Array<Board.Piece?>>): Boole
 }
 
 fun getMoveForPromotion(move: Move, pieceType: PieceType, boardArr: Array<Array<Board.Piece?>>): Move? {
-    val piece = boardArr[move.curSquare.row.ordinal][move.newSquare.column.ordinal]
-    if (piece != null && piece.type is Pawn) {
-        if (piece.player === Player.WHITE && move.newSquare.row === Row.EIGHT
-            || piece.player === Player.BLACK && move.newSquare.row === Row.ONE
-        )
-            return move.copy(type = Promotion(pieceType))
-    }
-    return null
+    return if (isPromotionPossible(move, boardArr))
+        move.copy(type = Promotion(pieceType))
+    else null
+}
+
+fun makePromotion(move: Move, boardArr: Array<Array<Board.Piece?>>): Array<Array<Board.Piece?>>? {
+    if (move.type !is Promotion || !isPromotionPossible(move, boardArr)) return null
+    val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!
+    val newBoardArr = boardArr.clone()
+    newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Board.Piece(move.type.newPiece, piece.player)
+    return newBoardArr
 }
 
 /*

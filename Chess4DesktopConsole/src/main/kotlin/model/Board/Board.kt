@@ -218,10 +218,10 @@ class Board {
         val result = isValidSquare(move, curPlayer)
         if (result is Error) return result
         val newBoardArray = makeMove(move)
-        return if (newBoardArray != null)
-            Success(Board(this, newBoardArray))
-        else InvalidMove(move.toString())
-
+        var newBoard = if (newBoardArray != null) Board(this, newBoardArray) else return InvalidMove(move.toString())
+        if (move.type is Promotion)
+            newBoard = makePromotion(move, boardArr) ?: newBoard
+        return Success(newBoard)
     }
 
     private fun canCastle(move: Move,piece: Piece):Int {
@@ -537,5 +537,11 @@ class Board {
 
     fun isPromotionPossible(move: Move) = isPromotionPossible(move, boardArr)
     fun getMoveForPromotion(move: Move, pieceType: PieceType) = getMoveForPromotion(move, pieceType, boardArr)
+
+    private fun makePromotion(move: Move, boardArr: Array<Array<Piece?>>): Board? {
+        val boardArrAfterPromotion = makePromotion(move, boardArr)
+        return if (boardArrAfterPromotion != null) Board(this, boardArrAfterPromotion)
+        else null
+    }
 
 }
