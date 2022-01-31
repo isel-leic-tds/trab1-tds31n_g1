@@ -93,7 +93,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
 fun createGame(driver: MongoDriver) =
     GameChess(FileDb(), null, null, StatusGame(null,listOf(),null, null))
 
-abstract class Result
+abstract class Result()
 object PromotionNecessary: Result()
 class Success(val chess: Chess): Result()
 
@@ -135,10 +135,10 @@ private fun squareSelected(selected: Square, board: Board, square: Square, chess
     else {
         // will never retun null because we already check if the selected square was null
         val move = board.toMoveOrNull(selected, square) ?: return Success(chess.copy(selected = null))
-        if (board.isPromotionPossible(move))
-            return PromotionNecessary
         // makes a move
         val gameChess = play(menuHandlers, chess.gameChess, move)
+        if (board.isPromotionPossible(move))
+            return PromotionNecessary
         if (gameChess != null) {
             return Success(Chess(gameChess = gameChess))
         }

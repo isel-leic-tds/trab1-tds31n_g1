@@ -485,7 +485,7 @@ class Board {
     /**
      * @return if the given [move] is valid.
      */
-    private fun isValidMove(move: Move): Boolean {
+    fun isValidMove(move: Move): Boolean {
         if((move.newSquare.row == blackKingPosition.row && move.newSquare.column == blackKingPosition.column)
             || (move.newSquare.row == whiteKingPosition.row && move.newSquare.column == whiteKingPosition.column)) return false
         if(move.newSquare == whiteKingPosition) return false
@@ -539,7 +539,7 @@ class Board {
     fun getMoveForPromotion(move: Move, pieceType: PieceType) = getMoveForPromotion(move, pieceType, boardArr)
 
     private fun makePromotion(move: Move, board: Board): Board? {
-        val boardArrAfterPromotion = makePromotion(move, boardArr)
+        val boardArrAfterPromotion = makePromotion(move, board.boardArr)
         return if (boardArrAfterPromotion != null) Board(this, boardArrAfterPromotion)
         else null
     }

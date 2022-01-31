@@ -6,8 +6,9 @@ import model.Player
 /**
  * When we need to know if that piece can make a promotion
  */
-fun isPromotionPossible(move: Move, boardArr: Array<Array<Board.Piece?>>): Boolean {
-    val piece = boardArr[move.curSquare.row.ordinal][move.newSquare.column.ordinal]
+fun isPromotionPossible(move: Move, board: Board): Boolean {
+    if (!board.isValidMove(move)) return false
+    val piece = board[move.curSquare]
     if (piece != null && piece.type is Pawn) {
         if (piece.player === Player.WHITE && move.newSquare.row === Row.EIGHT
             || piece.player === Player.BLACK && move.newSquare.row === Row.ONE
