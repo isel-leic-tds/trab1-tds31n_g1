@@ -9,7 +9,6 @@ import chess.model.Square
 import kotlinx.coroutines.launch
 import model.Board.Board
 import model.Board.Move
-import model.Board.PieceType
 import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
@@ -58,7 +57,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
                 val board = chess.gameChess.status.board
                 if (board != null) {
                     val move = board.toMoveOrNull(chess.selected!!, square)
-                    if (board.isPromotionPossible(move!!)) {
+                    if (board.needsPromotion(move!!)) {
                         moveForPromotion = move
                         openPromotion = true
                     }
@@ -72,7 +71,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
             onOk = {
                 val board = chess.gameChess.status.board
                 if (board != null && moveForPromotionAux != null) {
-                    val moveWithPromotion = board.getMoveForPromotion(moveForPromotionAux, it)
+                    val moveWithPromotion = board.toPromotionMoveOrNull(moveForPromotionAux, it)
                     if (moveWithPromotion != null) {
                         val result = play(menuHandlers, chess.gameChess, moveWithPromotion)
                         if (result != null) chess = chess.copy(gameChess = result)
@@ -135,10 +134,10 @@ private fun squareSelected(selected: Square, board: Board, square: Square, chess
     else {
         // will never retun null because we already check if the selected square was null
         val move = board.toMoveOrNull(selected, square) ?: return Success(chess.copy(selected = null))
+        if (board.needsPromotion(move))
+            return PromotionNecessary
         // makes a move
         val gameChess = play(menuHandlers, chess.gameChess, move)
-        if (board.isPromotionPossible(move))
-            return PromotionNecessary
         if (gameChess != null) {
             return Success(Chess(gameChess = gameChess))
         }

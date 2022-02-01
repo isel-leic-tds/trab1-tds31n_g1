@@ -217,10 +217,11 @@ class Board {
         // checks if the given Square is valid
         val result = isValidSquare(move, curPlayer)
         if (result is Error) return result
-        val newBoardArray = makeMove(move)
-        var newBoard = if (newBoardArray != null) Board(this, newBoardArray) else return InvalidMove(move.toString())
+        var newBoard = makeMove(move)
+        if (newBoard == null)
+            return InvalidMove(move.toString())
         if (move.type is Promotion)
-            newBoard = makePromotion(move, Board(this, newBoardArray)) ?: newBoard
+            newBoard = makePromotion(newBoard, move.newSquare, move.type.newPiece) ?: newBoard
         return Success(newBoard)
     }
 
@@ -402,13 +403,13 @@ class Board {
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
      */
-    private fun makeMove(move: Move): Array<Array<Board.Piece?>>? {
+    private fun makeMove(move: Move): Board? {
         if (!isValidMove(move)) return null
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-        return newBoardArr
+        return Board(this, newBoardArr)
     }
         /*if(doCastling(move,piece,newBoardArr)) return checkAndCheckmate(move,newBoardArr,piece)
         if(canEnPassant(move,piece,newBoardArr)) {
@@ -535,13 +536,44 @@ class Board {
         return piece.player === player
     }
 
-    fun isPromotionPossible(move: Move) = isPromotionPossible(move, boardArr)
-    fun getMoveForPromotion(move: Move, pieceType: PieceType) = getMoveForPromotion(move, pieceType, boardArr)
+    /**
+     * Checks if it is possible to make a promotion with given [move].
+     */
+    fun needsPromotion(move: Move): Boolean {
+        if (!isValidMove(move)) return false
+        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
+        if (piece != null && piece.type is Pawn) {
+            if (piece.player === Player.WHITE && move.newSquare.row === Row.EIGHT
+                || piece.player === Player.BLACK && move.newSquare.row === Row.ONE
+            )
+                return true
+        }
+        return false
+    }
 
-    private fun makePromotion(move: Move, board: Board): Board? {
-        val boardArrAfterPromotion = makePromotion(move, board.boardArr)
-        return if (boardArrAfterPromotion != null) Board(this, boardArrAfterPromotion)
+    private fun isPromotionPossible(board: Board, square: Square): Boolean {
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece != null && piece.type is Pawn) {
+            if (piece.player === Player.WHITE && square.row === Row.EIGHT
+                || piece.player === Player.BLACK && square.row === Row.ONE
+            )
+                return true
+        }
+        return false
+    }
+
+    fun toPromotionMoveOrNull(move: Move, pieceType: PieceType): Move? {
+        return if (needsPromotion(move))
+            move.copy(type = Promotion(pieceType))
         else null
+    }
+
+    private fun makePromotion(board: Board, square: Square, newPiece: PieceType): Board? {
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece == null || !isPromotionPossible(board, square)) return null
+        val newBoardArr = boardArr.clone()
+        newBoardArr[square.row.ordinal][square.column.ordinal] = Piece(newPiece, piece.player)
+        return Board(this, newBoardArr)
     }
 
 }
