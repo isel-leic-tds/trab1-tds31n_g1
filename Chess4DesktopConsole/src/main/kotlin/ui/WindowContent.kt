@@ -8,8 +8,6 @@ import androidx.compose.ui.window.FrameWindowScope
 import chess.model.Square
 import kotlinx.coroutines.launch
 import model.Board.Board
-import model.Board.Move
-import model.Board.PieceType
 import model.GameChess
 import model.StatusGame
 import mongoDb.MongoDriver
@@ -25,7 +23,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
     var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
     var startGame by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
     var openPromotion by remember { mutableStateOf(false) }
-    var moveForPromotion by remember { mutableStateOf<Move?>(null) }
+    var squareForPromotion by remember { mutableStateOf<Quare?>(null) }
     DesktopMaterialTheme {
         ChessMenuBar(
             onOpen = {
@@ -47,34 +45,33 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
         )
         MainView(chess) { square ->
             val result = onSquarePressed(chess, square, menuHandlers)
-            if (result is Success) {
-                chess = result.chess
-                scope.launch {
-                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
-                    chess = chess.copy(gameChess = gameChess)
-                }
-            }
-            else if (result is PromotionNecessary) {
-                val board = chess.gameChess.status.board
-                if (board != null) {
-                    val move = board.toMoveOrNull(chess.selected!!, square)
-                    if (board.isPromotionPossible(move!!)) {
-                        moveForPromotion = move
-                        openPromotion = true
+            if (result.chess !== chess) {
+                if (result.promNeeded) {
+                    val board = chess.gameChess.status.board
+                    if (board != null) {
+                        if (board.isPromotionPossible(square)) {
+                            squareForPromotion = square
+                            openPromotion = true
+                        }
+                    }
+                    scope.launch {
+                        val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                        chess = chess.copy(gameChess = gameChess)
                     }
                 }
+                else chess = result.chess
             }
         }
     }
     if (openPromotion) {
-        val moveForPromotionAux = moveForPromotion
+        val squareForPromotionAux = squareForPromotion
         DialogPromotionPiece(
             onOk = {
                 val board = chess.gameChess.status.board
-                if (board != null && moveForPromotionAux != null) {
-                    val moveWithPromotion = board.getMoveForPromotion(moveForPromotionAux, it)
-                    if (moveWithPromotion != null) {
-                        val result = play(menuHandlers, chess.gameChess, moveWithPromotion)
+                if (board != null && squareForPromotionAux != null) {
+                    val movePromotion = board.getMoveForPromotion(squareForPromotionAux, it)
+                    if (movePromotion != null) {
+                        val result = play(menuHandlers, chess.gameChess, movePromotion)
                         if (result != null) chess = chess.copy(gameChess = result)
                     }
                 }
@@ -93,9 +90,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
 fun createGame(driver: MongoDriver) =
     GameChess(FileDb(), null, null, StatusGame(null,listOf(),null, null))
 
-abstract class Result()
-object PromotionNecessary: Result()
-class Success(val chess: Chess): Result()
+class Result(val chess: Chess, val promNeeded: Boolean = false)
 
 /**
  * Tries to make a move if two pieces were selected or selects one.
@@ -103,7 +98,7 @@ class Success(val chess: Chess): Result()
 private fun onSquarePressed(chess: Chess, square: Square, menuHandlers: Map<Option, Command>): Result {
     val selected = chess.selected
     // checks if its player turn
-    if (!chess.gameChess.isPlayerTurn()) return Success(chess)
+    if (!chess.gameChess.isPlayerTurn()) return Result(chess)
     val board = chess.gameChess.status.board
     if (board != null) {
         // if the player didn't yet choose a square marks a piece
@@ -112,36 +107,36 @@ private fun onSquarePressed(chess: Chess, square: Square, menuHandlers: Map<Opti
         else
             squareSelected(selected, board, square, chess, menuHandlers)
     }
-    return Success(chess)
+    return Result(chess)
 }
 
 private fun noSquareSelected(board: Board, square: Square, chess: Chess): Result {
     val result = board.isFromPlayer(square, chess.gameChess.player!!)
     // if there's no piece in that square or contains another player's piece
     if (result == null || !result)
-        return Success(chess)
-    return Success(chess.copy(selected = square))
+        return Result(chess)
+    return Result(chess.copy(selected = square))
 }
 
 private fun squareSelected(selected: Square, board: Board, square: Square, chess: Chess, menuHandlers: Map<Option, Command>): Result {
     // unmarcs selected piece
     if (selected === square)
-        return Success(chess.copy(selected = null))
+        return Result(chess.copy(selected = null))
     // if the player presses one of its own pieces
     val result = board.isFromPlayer(square, chess.gameChess.player!!)
     if (result == true)
-        return Success(chess.copy(selected = square))
+        return Result(chess.copy(selected = square))
     // tries to make a move
     else {
         // will never retun null because we already check if the selected square was null
-        val move = board.toMoveOrNull(selected, square) ?: return Success(chess.copy(selected = null))
+        val move = board.toMoveOrNull(selected, square) ?: return Result(chess.copy(selected = null))
         // makes a move
         val gameChess = play(menuHandlers, chess.gameChess, move)
-        if (board.isPromotionPossible(move))
-            return PromotionNecessary
         if (gameChess != null) {
-            return Success(Chess(gameChess = gameChess))
+            if (board.isPromotionPossible(move))
+                return Result(Chess(gameChess = gameChess), true)
+            return Result(Chess(gameChess = gameChess))
         }
-        return Success(chess)
     }
+    return Result(chess)
 }

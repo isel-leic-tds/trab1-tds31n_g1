@@ -1,6 +1,6 @@
 package Commands
 
-import model.Board.Move
+import model.Board.MovePos
 import model.GameChess
 import model.Player
 import java.lang.IllegalStateException
@@ -91,7 +91,7 @@ fun buildMenuHandlers() = mapOf(
     Option.PLAY to Command(
         action = { gameChess: GameChess, move: Any ->
             if (gameChess.gameId != null) {
-                if (move !is Move)
+                if (move !is MovePos)
                     MissingContent(gameChess, "Move needs to be a Move object")
                 else {
                     val commandResult = makeMove(gameChess.status, move, gameChess.player!!)

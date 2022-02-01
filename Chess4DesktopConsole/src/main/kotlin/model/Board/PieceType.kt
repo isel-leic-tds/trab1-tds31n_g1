@@ -131,16 +131,16 @@ private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pie
  * Ver se a jogada é possível
  */
 private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSquare:Square, piece: PieceType,allAvailablePositions:MutableList<Square>):Boolean {
-    val move = Move(piece,curSquare,newSquare) //Criar um novo move
-    val player = board[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player //Jogador atual
+    val movePos = MovePos(piece,curSquare,newSquare) //Criar um novo move
+    val player = board[movePos.curSquare.row.ordinal][movePos.curSquare.column.ordinal]!!.player //Jogador atual
 
     //Verificar se o novo Square está vazio
-    if(board[move.newSquare.row.ordinal][move.newSquare.column.ordinal] == null) {
+    if(board[movePos.newSquare.row.ordinal][movePos.newSquare.column.ordinal] == null) {
         allAvailablePositions.add(newSquare)
         return true
     }
     //Verificar se o Square tem uma peça inimiga
-    if(board[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player != player) {
+    if(board[movePos.newSquare.row.ordinal][movePos.newSquare.column.ordinal]!!.player != player) {
         allAvailablePositions.add(newSquare)
         //Para na peça inimiga
         return false
@@ -148,32 +148,32 @@ private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSq
     return false
 }
 
-fun PieceType.getAllMoves(move: Move, board: Array<Array<Board.Piece?>>): List<Square> {
+fun PieceType.getAllMoves(movePos: MovePos, board: Array<Array<Board.Piece?>>): List<Square> {
     val allAvailablePositions = mutableListOf<Square>()
     return when(this) {
         //Knights moves are way too different from the other pieces
-        is Knight -> getAllMovesKnight(move, board,allAvailablePositions)
-        else -> getAllMoves(move.curSquare, board,move.piece,allAvailablePositions)
+        is Knight -> getAllMovesKnight(movePos, board,allAvailablePositions)
+        else -> getAllMoves(movePos.curSquare, board,movePos.piece,allAvailablePositions)
     }
 }
 
-fun getAllMovesKnight(move: Move, board: Array<Array<Board.Piece?>>,allAvailablePositions:MutableList<Square>): List<Square> {
-    val player = board[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player //Jogador atual
+fun getAllMovesKnight(movePos: MovePos, board: Array<Array<Board.Piece?>>, allAvailablePositions:MutableList<Square>): List<Square> {
+    val player = board[movePos.curSquare.row.ordinal][movePos.curSquare.column.ordinal]!!.player //Jogador atual
     val offsetRow = intArrayOf(2, 1, -1, -2, -2, -1, 1, 2) //Array com os offsets das posições possíveis do cavalo
     val offsetColumn = intArrayOf(1, 2, 2, 1, -1, -2, -2, -1)
 
     for (i in 0..7) { // Percorrer os arrays de offsets
         //Verificar se o Square está dentro do board
-        if(move.curSquare.row.ordinal + offsetRow[i] in 0..7 && move.curSquare.column.ordinal + offsetColumn[i] in 0..7 ) {
-            val row = move.curSquare.row.ordinal + offsetRow[i] // Nova linha
-            val col = move.curSquare.column.ordinal + offsetColumn[i] //Nova coluna
+        if(movePos.curSquare.row.ordinal + offsetRow[i] in 0..7 && movePos.curSquare.column.ordinal + offsetColumn[i] in 0..7 ) {
+            val row = movePos.curSquare.row.ordinal + offsetRow[i] // Nova linha
+            val col = movePos.curSquare.column.ordinal + offsetColumn[i] //Nova coluna
             val square = Square(col.toColumn(),row.toRow()) //É criado o novo square para onde se vai verificar se a peça pode ir
             //Se esse sitio tiver uma peça é necessário ver a que jogador pertence
-            if (board[move.curSquare.row.ordinal + offsetRow[i]][move.curSquare.column.ordinal + offsetColumn[i]] !== null) {
-                if (player === Player.WHITE && board[move.curSquare.row.ordinal + offsetRow[i]][move.curSquare.column.ordinal + offsetColumn[i]]!!.player === Player.BLACK)
+            if (board[movePos.curSquare.row.ordinal + offsetRow[i]][movePos.curSquare.column.ordinal + offsetColumn[i]] !== null) {
+                if (player === Player.WHITE && board[movePos.curSquare.row.ordinal + offsetRow[i]][movePos.curSquare.column.ordinal + offsetColumn[i]]!!.player === Player.BLACK)
                     allAvailablePositions.add(square)
 
-                if (player === Player.BLACK && board[move.curSquare.row.ordinal+offsetRow[i]][move.curSquare.column.ordinal+ offsetColumn[i]]!!.player === Player.WHITE)
+                if (player === Player.BLACK && board[movePos.curSquare.row.ordinal+offsetRow[i]][movePos.curSquare.column.ordinal+ offsetColumn[i]]!!.player === Player.WHITE)
                     allAvailablePositions.add(square)
             }
             else //Se o sitio estiver a null é possivel mover o cavalo para aí

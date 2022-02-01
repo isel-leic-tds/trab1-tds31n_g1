@@ -4,14 +4,14 @@ import Commands.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import model.Board.Move
+import model.Board.MovePos
 import model.GameChess
 
-fun play(menuHandlers: Map<Option, Command>, gameChess: GameChess, move: Move): GameChess? {
+fun play(menuHandlers: Map<Option, Command>, gameChess: GameChess, movePos: MovePos): GameChess? {
     val command = Option.PLAY
     LineCommand(command, null)
     val cmd: Command? = menuHandlers[command]
-    val result =  cmd!!.action(gameChess, move)
+    val result =  cmd!!.action(gameChess, movePos)
     if (result is Success)
         return result.gameChess
     return null
