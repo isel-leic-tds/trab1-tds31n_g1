@@ -40,7 +40,8 @@ class Capture(): MoveType()
 //class Promotion(val newPiece: PieceType): MoveType()
 
 abstract class Move()
-data class MovePos(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = Regular()): Move {
+class MovePromotion(val square: Square, val pieceType: PieceType) : Move()
+data class MovePos(val piece: PieceType, val curSquare: Square, val newSquare: Square, val type: MoveType = Regular()): Move() {
     override fun toString(): String {
         if (this.type is Promotion)
             return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit + '=' + this.type.newPiece.toStr()
@@ -541,13 +542,41 @@ class Board {
         return piece.player === player
     }
 
-    fun isPromotionPossible(square: Square) = isPromotionPossible(move, boardArr)
-    fun getMoveForPromotion(square: Square, pieceType: PieceType) = getMoveForPromotion(square, pieceType, boardArr)
 
-    private fun makePromotion(movePromotion: MovePromotion): Board? {
-        val boardArrAfterPromotion = makePromotion(movePromotion, boardArr)
-        return if (boardArrAfterPromotion != null) Board(this, boardArrAfterPromotion)
+    /**
+     * Chescks if its possible to make a promotion on given [square]
+     */
+    fun isPromotionPossible(square: Square): Boolean {
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece != null && piece.type is Pawn) {
+            if (piece.player === Player.WHITE && square.row === Row.EIGHT
+                || piece.player === Player.BLACK && square.row === Row.ONE
+            )
+                return true
+        }
+        return false
+    }
+
+    /**
+     * First, checks if it is possible to make a promotion on give[square] and if so, returns a MovePromotion object.
+     */
+    fun getMoveForPromotion(square: Square, pieceType: PieceType): MovePromotion? {
+        return if (isPromotionPossible(square))
+            MovePromotion(square, pieceType)
         else null
+    }
+
+    /**
+     * First, checks if it is possible to make a promotion with given [movePromotion] and if so, makes a promotion.
+     */
+    fun makePromotion(movePromotion: MovePromotion): Board? {
+        if (!isPromotionPossible(movePromotion.square)) return null
+        // makes promotion
+        val piece = boardArr[movePromotion.square.row.ordinal][movePromotion.square.column.ordinal]!!
+        val newBoardArr = boardArr.clone()
+        newBoardArr[movePromotion.square.row.ordinal][movePromotion.square.column.ordinal] =
+            Board.Piece(movePromotion.pieceType, piece.player)
+        return Board(this, newBoardArr)
     }
 
 }
