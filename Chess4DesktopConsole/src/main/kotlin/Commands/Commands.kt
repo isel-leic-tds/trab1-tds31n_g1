@@ -90,7 +90,7 @@ fun saveMove(chessDb: ChessDb, gameId: String, move: String): CommandResult {
  */
 fun makeMove(statusGame: StatusGame, move: Move, player: Player): CommandResult {
     if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
-    val result = statusGame.board!!.makeMove(move, statusGame.currentPlayer)
+    val result = statusGame.board!!.makeMove(move)
     if (result is model.Board.Error)
         return BoardError(result)
     if (result is model.Board.Success)

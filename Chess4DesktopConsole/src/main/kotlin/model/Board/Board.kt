@@ -49,6 +49,7 @@ data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Squa
     }
 }
 
+@Suppress("NAME_SHADOWING")
 class Board {
     /**
      * Used to bound a piece to a player in the [boardArr]
@@ -202,6 +203,9 @@ class Board {
         val newPos = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]
         if (newPos?.player != null)
             return move.copy(type = Capture())
+        if (canCastle(move))
+            return move.copy(type = Castling())
+        if (canEnPassant())
     }
 
     data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false) //Apenas usado na função makeMoveWithoutCheck()
@@ -243,19 +247,39 @@ class Board {
         return Aux(checkResult.content as Board,checkResult.check, checkResult.checkmate)
     }
 
+    /*************************************************CASTLE******************************************************************/
 
-    private fun canCastle(move: Move,piece: Piece):Int {
-        //Antes ainda ver se é a primeira jogada tanto do rei como da torre
-        var counter = 0
+    /**
+     * Checks if it is possible to make a castling move.
+     */
+    private fun canCastle(move: Move): Boolean {
+        // cheks move piece
+        if (move.piece !is King) return false
+        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
+        // checks piece in the boardArray
+        if (piece == null || piece.type !is King || (piece as King).hasMoved) return false
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        if(piece.type is King) {
-            if (diffCol == 2) { //ShortPath
-                counter = 1
-            } else if (diffCol == -2) { //LongPath
-                counter = 2
-            }
+        if (diffCol == 2) {
+            val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
+            if (piece != null && piece.type is Rook && !piece.type.hasMoved)
+                return true
+        } else if (diffCol == -2) {
+            val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
+            if (piece != null && piece.type is Rook && !piece.type.hasMoved)
+                return true
         }
-        return counter
+        return false
+    }
+
+    enum class CastlingDirection { LEFT, RIGHT }
+    /**
+     * Checks wich is direction the direction to make a castling move.
+     * @return the direction or null if its not possible to castle.
+     */
+    private fun getcastleDirection(move: Move): CastlingDirection? {
+        if (!canCastle(move)) return null
+        val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+        return if (diffCol == 2) CastlingDirection.RIGHT else CastlingDirection.LEFT
     }
 
     private fun doCastling(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>): Boolean{
@@ -287,6 +311,8 @@ class Board {
         }
         return false
     }
+
+    /************************************************************************************************************************/
 
     private fun canEnPassant(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>):Boolean {
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
@@ -421,7 +447,7 @@ class Board {
      * Checks if the given [move] is valid and if so, makes the [move].
      * @returns the new Board if the [move] was valid or null.
      */
-    private fun makeMove(move: Move): Board? {
+    private fun makeMoveInternal(move: Move): Board? {
         if (!isValidMove(move)) return null
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
