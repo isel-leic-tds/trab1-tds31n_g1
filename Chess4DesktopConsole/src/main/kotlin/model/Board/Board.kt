@@ -205,7 +205,8 @@ class Board {
             return move.copy(type = Capture())
         if (canCastle(move))
             return move.copy(type = Castling())
-        if (canEnPassant())
+        if (canEnPassant(move))
+            return move.copy(type = EnPassant())
     }
 
     data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false) //Apenas usado na função makeMoveWithoutCheck()
@@ -271,15 +272,15 @@ class Board {
         return false
     }
 
-    enum class CastlingDirection { LEFT, RIGHT }
+    enum class Direction { LEFT, RIGHT }
     /**
      * Checks wich is direction the direction to make a castling move.
      * @return the direction or null if its not possible to castle.
      */
-    private fun getcastleDirection(move: Move): CastlingDirection? {
+    private fun getcastleDirection(move: Move): Direction? {
         if (!canCastle(move)) return null
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        return if (diffCol == 2) CastlingDirection.RIGHT else CastlingDirection.LEFT
+        return if (diffCol == 2) Direction.RIGHT else Direction.LEFT
     }
 
     private fun doCastling(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>): Boolean{
@@ -314,28 +315,55 @@ class Board {
 
     /************************************************************************************************************************/
 
-    private fun canEnPassant(move:Move,piece:Piece,newBoardArr:Array<Array<Piece?>>):Boolean {
+    /**********************************************EN_PASSANT*******************************************************************/
+
+    /**
+     * Checks if it is possible to make enPassant with given [move].
+     */
+    private fun canEnPassant(move: Move): Boolean {
+        // if given move is not valid (for some reason)
+        if (isValidSquare(move) is Error) return false
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        val playerPiece = piece.player
-        if (diffCol == -1) {//Left
-            val advPawn = newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1]
-            if (advPawn != null && playerPiece != advPawn.player) {
+        // playerPiece will never be null because we called isValidSquare()
+        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
+        if (diffCol == -1) { //Left
+            val advPawn = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1]
+            if (advPawn != null && piece.player != advPawn.player)
                 if ((piece.type is Pawn) && (advPawn.type is Pawn) && (advPawn.type.twoSteps)) {
-                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = null
                     return true
-                }
             }
         } else if (diffCol == 1) { //Right
-            val advPawn = newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1]
-            if (advPawn != null && playerPiece != advPawn.player) {
+            val advPawn = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1]
+            if (advPawn != null && piece.player != advPawn.player)
                 if ((piece.type is Pawn) && (advPawn.type is Pawn) && (advPawn.type.twoSteps)) {
-                    newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1] = null
                     return true
-                }
             }
         }
         return false
     }
+
+    /**
+     * @return direction in wich it's possible to make enPassant with given [move].
+     */
+    private fun getEnPassantDirection(move: Move): Direction? {
+        if (!canEnPassant(move)) return null
+        val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+        return if (diffCol == -1) Direction.LEFT else Direction.LEFT
+    }
+
+    private fun makeEnPassant(move: Move): Board? {
+        val direction = getEnPassantDirection(move) ?: return null
+        if (direction === Direction.LEFT) {
+            // TODO make move
+            newBoardArray[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = null
+        }
+        else {
+            // TODO make move
+            newBoardArray[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1] = null
+        }
+    }
+
+    /**********************************************EN_PASSANT*******************************************************************/
 
     private fun updatePawn(move:Move):Pawn {
         val diffRow = abs(move.newSquare.row.ordinal - move.curSquare.row.ordinal)
@@ -437,7 +465,7 @@ class Board {
     private fun isValidSquare(move: Move): Result {
         // verifies if there's a piece in currentSquare
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return EmptySquare()
-        // verifies if the piece type of the chooses square is the one in the str command
+        // verifies if the piece type of the choosen square is the one in the move parameter
         if (piece.type.toStr() != move.piece.toStr()) return BadPiece()
         if (piece.player != currentPlayer) return OpponentSquare()
         return ISuccess(true)
