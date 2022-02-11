@@ -34,17 +34,20 @@ private class BadPromotion(): Error("Promotion shouldnt have been made")
 private class MakePromotion(): Error("Promotion should have been made")
 private class MyKingInCheck(): Error("Current move puts your King in check")
 
-class MoveType(val capture: Boolean = false, val special: SpecialMove?)
+class MoveType(val special: SpecialMove?, val capture: Boolean = false)
 abstract class SpecialMove()
 class Promotion(val newPiece: PieceType): SpecialMove()
 class Castling(): SpecialMove()
 class EnPassant(): SpecialMove()
 
-data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val moveType: MoveType) {
+data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val moveType: MoveType? = null) {
     override fun toString(): String {
-        if (this.moveType is Promotion)
-            return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit + '=' + this.moveType.newPiece.toStr()
-        return piece.toStr() + curSquare.column.letter + curSquare.row.digit + newSquare.column.letter + newSquare.row.digit
+        var str = piece.toStr() + curSquare.column.letter + curSquare.row.digit
+        if (moveType != null && moveType.capture) str += str+'x'
+        str += newSquare.column.letter + "" + newSquare.row.digit
+        if (moveType != null && moveType.special is Promotion)
+            str += '=' + this.moveType.special.newPiece.toStr()
+        return str
     }
 }
 
@@ -115,6 +118,7 @@ class Board {
         blackKingPosition = board.blackKingPosition
         this.boardArr = boardArr
         finished = endOfGame
+        currentPlayer = board.currentPlayer
     }
 
     /**
@@ -183,11 +187,7 @@ class Board {
         //isValidSquare() // TODO -> maybe its no necessary
         // checks move type and also if the move is valid
         val move = getMoveWithType(move) ?: return InvalidMove(move.toString())
-        var newBoard = makeMoveInternal(move)
-        if (newBoard == null)
-            return InvalidMove(move.toString())
-        if (move.moveType is Promotion)
-            newBoard = makePromotion(newBoard, move.newSquare, move.moveType.newPiece) ?: newBoard
+        val newBoard = makeMoveInternal(move) ?: return InvalidMove(move.toString())
         return Success(newBoard)
     }
 
@@ -196,20 +196,16 @@ class Board {
      */
     private fun getMoveWithType(move: Move): Move? {
         if (!isValidMove(move)) return null
-        // TODO -> porbably should check move type if its wrong
-        if (move.moveType != null) return move
         val newPos = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]
         val capture = newPos?.player != null
-        if (newPos?.player != null)
-            return move.copy(moveType = MoveType(capture, null))
         /*if (isPromotionPossible(move.newSquare))
             return move.copy(moveType = MoveType(capture, Promotion))*/
         if (canCastle(move))
-            return move.copy(moveType = MoveType(capture, Castling()))
+            return move.copy(moveType = MoveType(Castling(), capture))
         if (canEnPassant(move))
-            return move.copy(moveType = MoveType(capture, EnPassant()))
+            return move.copy(moveType = MoveType(EnPassant(), capture))
         // special move not possible with given [move].
-        return move.copy(moveType = MoveType(capture, null))
+        return move.copy(moveType = MoveType(null, capture))
     }
 
     data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false) //Apenas usado na função makeMoveWithoutCheck()
@@ -378,37 +374,6 @@ class Board {
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
     private class ISuccess(val content: Any, val check:Boolean = false, val checkmate: Boolean = false,val draw: Boolean = false): Result()
-    /**
-     * Transforms a given [str] in a Move dataType to facilitate the operation in the makeMove().
-     * Also checks if the [str] is incomplete and tries to reconstruct the complete [str].
-     * @returns Result witch can be an Error or a valid Move
-     */
-    private fun toMoveOrNull(str: String, curPlayer: Player): Result {
-        val cmd = str.trim()
-        val pieceType = getPieceType(cmd[0])
-        var currSquare: Square? = null
-        val newSquare: Square?
-        // omitting currentSquare
-        if (str.length == 3) {
-            newSquare = cmd.substring(1, 3).toSquareOrNull()
-            if (newSquare == null) return BadMove()
-            val result = getOmittedCurrentSquare(newSquare, curPlayer)
-            if (result is Error) return result
-            if (result is ISuccess)
-                currSquare = result.content as Square
-        }
-        else {
-            currSquare = cmd.substring(1, 3).toSquareOrNull()
-            newSquare = cmd.substring(3, 5).toSquareOrNull()
-        }
-        val result = getMoveType(str)
-        if (result is ISuccess) {
-            val specialMove = result.content as SpecialMove
-            if (currSquare == null || newSquare == null || pieceType == null) return BadMove()
-            return ISuccess(Move(pieceType, currSquare, newSquare, specialMove))
-        }
-        return result // returns the error messaage
-    }
 
     /**
      * Given two squares, [pos1] and [pos2], returns a Move objetc.
@@ -458,6 +423,7 @@ class Board {
      * based on the curSquare and the newSquare, not checking the move type.
      */
     private fun makeRegularMove(move: Move, board: Board = this): Board? {
+        val boardArr = board.boardArr
         if (!isValidMove(move)) return null
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
@@ -474,13 +440,13 @@ class Board {
     private fun makeMoveInternal(move: Move): Board? {
         if (!isValidMove(move)) return null
         val move = getMoveWithType(move) ?: return null
-        val specialMove = move.moveType.special
+        val specialMove = move.moveType?.special
         val newBoard =
             if (specialMove == null)
                 makeRegularMove(move)
             else {
                 when (specialMove) {
-                    is Promotion -> makePromotion(move.newSquare, specialMove.newPiece)
+                    is Promotion -> makePromotion(move.newSquare, specialMove.newPiece, makeRegularMove(move)?:return null)
                     is Castling -> makeCastling(move)
                     else -> makeEnPassant(move)
                 }
@@ -583,7 +549,6 @@ class Board {
         }
     }
 
-
     /**
      * Checks if given square has a piece from [player], other player or hasnt a piece at all.
      */
@@ -610,12 +575,18 @@ class Board {
         return false
     }
 
+    /**
+     * Given a [move], returns a new Move for promotion.
+     */
     fun toPromotionMoveOrNull(move: Move, pieceType: PieceType): Move? {
         return if (needsPromotion(move))
-            move.copy(moveType = Promotion(pieceType))
+            move.copy(moveType = MoveType(Promotion(pieceType)))
         else null
     }
 
+    /**
+     * Checks if promotion is possible in given square.
+     */
     private fun isPromotionPossible(square: Square): Boolean {
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece != null && piece.type is Pawn) {
@@ -627,7 +598,12 @@ class Board {
         return false
     }
 
-    private fun makePromotion(square: Square, newPiece: PieceType): Board? {
+    /**
+     * Makes promotion if possible.
+     * @return a new Board after promotion.
+     */
+    private fun makePromotion(square: Square, newPiece: PieceType, board: Board = this): Board? {
+        val boardArr = board.boardArr
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece == null || !isPromotionPossible(square)) return null
         val newBoardArr = boardArr.clone()
