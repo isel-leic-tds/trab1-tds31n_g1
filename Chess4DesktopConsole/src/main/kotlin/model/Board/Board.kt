@@ -43,8 +43,8 @@ class EnPassant(): SpecialMove()
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val moveType: MoveType? = null) {
     override fun toString(): String {
         var str = piece.toStr() + curSquare.column.letter + curSquare.row.digit
-        if (moveType != null && moveType.capture) str += str+'x'
-        str += newSquare.column.letter + "" + newSquare.row.digit
+        if (moveType != null && moveType.capture) str += 'x'
+        str += "${newSquare.column.letter}${newSquare.row.digit}"
         if (moveType != null && moveType.special is Promotion)
             str += '=' + this.moveType.special.newPiece.toStr()
         return str
@@ -192,6 +192,33 @@ class Board {
     }
 
     /**
+     * Given two squares, [pos1] and [pos2], returns a Move objetc.
+     * Also, tries to find the move type.
+     */
+    fun toMoveOrNull(pos1: Square, pos2: Square): Move? {
+        val piece = boardArr[pos1.row.ordinal][pos1.column.ordinal] ?: return null
+        val pieceType = piece.type
+        val move = Move(pieceType, pos1, pos2)
+        return getMoveWithType(move)
+    }
+
+    /**
+     * Given [move], converts it to a Move if is valid.
+     */
+    fun toMoveOrNull(move: String): Move? {
+        val cmd = move.trim()
+        val pieceType = getPieceType(cmd[0]) ?: return null
+        val currSquare = cmd.substring(1, 3).toSquareOrNull() ?: return null
+        val capture = move[3] == 'x'
+        // tries to assert second square
+        val n1 = if (capture) 4 else 3
+        val n2 = if (capture) 6 else 5
+        val newSquare = cmd.substring(n1,n2).toSquareOrNull() ?: return null
+        val move = Move(pieceType, currSquare, newSquare)
+        return getMoveWithType(move)
+    }
+
+    /**
      * Checks if given [move] has a type and if not, returns a new move with correct type.
      */
     private fun getMoveWithType(move: Move): Move? {
@@ -211,25 +238,26 @@ class Board {
     data class Aux(val board: Board, val check: Boolean = false, val checkmate: Boolean = false) //Apenas usado na função makeMoveWithoutCheck()
     /**
      * Used to retrieve the current state of the game hold in the database
-     * Makes the move given in the [move] without checking if the move is possible.
+     * Makes the move given in the [str] without checking if the move is possible.
      */
-    fun makeMoveWithoutCheck(move: String): Aux { //Usado para dar restore e Join ao jogo
-        val currSquare = move.substring(1, 3).toSquareOrNull()
-        val newSquare = move.substring(3, 5).toSquareOrNull()
-        val move1 = Move(getPieceType(move[0])!!,currSquare!!,newSquare!!)
+    fun makeMoveWithoutCheck(str: String): Aux {
+        val move = toMoveOrNull(str)!!
+        val newBoard = makeMoveInternal(move)!!
+        return Aux(newBoard)
+        /*
         // tests promotion
         val player = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!.player
-        val piece = if (move.length > 5 && move[5] == '=') Piece(getPieceType(move[6])!!,player) else boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!
+        val piece = if (str.length > 5 && str[5] == '=') Piece(getPieceType(str[6])!!,player) else boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
-        if (makeCastling(move1, piece, newBoardArr))  {
-            val result = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
+        if (makeCastling(move, piece, newBoardArr))  {
+            val result = checkAndCheckmate(move,newBoardArr,piece) as ISuccess
             return Aux(result.content as Board)
         }
 
-        if(canEnPassant(move1,piece,newBoardArr)) {
+        if(canEnPassant(move,piece,newBoardArr)) {
             newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
             newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
-            val result = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
+            val result = checkAndCheckmate(move,newBoardArr,piece) as ISuccess
             return Aux(result.content as Board)
         }
 
@@ -237,14 +265,15 @@ class Board {
         newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
 
         if(piece.type is Pawn) {
-            newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = Piece(updatePawn(move1),piece.player)
+            newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = Piece(updatePawn(move),piece.player)
         }
 
-        updateKingAndRook(move1,piece,newBoardArr)
+        updateKingAndRook(move,piece,newBoardArr)
 
-        val checkResult = checkAndCheckmate(move1,newBoardArr,piece) as ISuccess
+        val checkResult = checkAndCheckmate(move,newBoardArr,piece) as ISuccess
 
         return Aux(checkResult.content as Board,checkResult.check, checkResult.checkmate)
+         */
     }
 
     /*************************************************CASTLE******************************************************************/
@@ -374,15 +403,6 @@ class Board {
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
     private class ISuccess(val content: Any, val check:Boolean = false, val checkmate: Boolean = false,val draw: Boolean = false): Result()
-
-    /**
-     * Given two squares, [pos1] and [pos2], returns a Move objetc.
-     */
-    fun toMoveOrNull(pos1: Square, pos2: Square): Move? {
-        val piece = boardArr[pos1.row.ordinal][pos1.column.ordinal] ?: return null
-        val pieceType = piece.type
-        return Move(pieceType, pos1, pos2)
-    }
 
     private fun getOmittedCurrentSquare(newSquare: Square, curPlayer: Player): Result {
         var counter = 0
