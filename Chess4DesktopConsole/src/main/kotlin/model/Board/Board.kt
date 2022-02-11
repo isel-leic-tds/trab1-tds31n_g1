@@ -180,11 +180,10 @@ class Board {
      */
     fun makeMove(move: Move): Result {
         if (finished) return Finished()
-        // checks if the given Square is valid
-        val result = isValidSquare(move)
-        if (result is Error) return result
-        val move = getMoveWithType(move) // TODO maybe its not necessary
-        var newBoard = makeMove(move)
+        //isValidSquare() // TODO -> maybe its no necessary
+        // checks move type and also if the move is valid
+        val move = getMoveWithType(move) ?: return InvalidMove(move.toString())
+        var newBoard = makeMoveInternal(move)
         if (newBoard == null)
             return InvalidMove(move.toString())
         if (move.moveType is Promotion)
