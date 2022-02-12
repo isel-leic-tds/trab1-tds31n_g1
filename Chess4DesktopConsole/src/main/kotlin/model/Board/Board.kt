@@ -336,14 +336,13 @@ class Board {
         val direction = getCastleDirection(move) ?: return null
         val newBoardArr = boardArr.clone()
         if (direction === Direction.RIGHT) { //Short Path
-            val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1] = null
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = towerPiece
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = Piece(Rook(true), currentPlayer)
         } else { //Long Path
-            val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2] = null
-            newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = towerPiece
+            newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = Piece(Rook(true), currentPlayer)
         }
+        // makes the King move and updates him be hasMoved
         return makeMoveWithoutChecking(move, Board(this, newBoardArr))
     }
 
@@ -400,14 +399,7 @@ class Board {
     }
 
     /**********************************************EN_PASSANT*******************************************************************/
-    private fun updatePawn(move:Move): Pawn {
-        val diffRow = abs(move.newSquare.row.ordinal - move.curSquare.row.ordinal)
-        return if (diffRow == 2) {
-            Pawn(twoSteps = true)
-        } else {
-            Pawn(twoSteps = false)
-        }
-    }
+
 
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
@@ -467,10 +459,7 @@ class Board {
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-        if(piece.type is Pawn) {
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(updatePawn(move),piece.player)
-        }
-        return Board(this, newBoardArr)
+        return updatePieces(move, Board(this, newBoardArr))!!
     }
 
     /**
@@ -493,26 +482,7 @@ class Board {
                 }
             }
         return newBoard
-
-        /*if(doCastling(move,piece,newBoardArr)) return checkAndCheckmate(move,newBoardArr,piece)
-        if(canEnPassant(move,piece,newBoardArr)) {
-            newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-            return checkAndCheckmate(move,newBoardArr,piece)
-        }
-        //Ver se é possível mover a peça para esse sitio ou se a peça para onde queremos mover é rei
-        if (!isValidMove(move)) return InvalidMove(move.toString())
-        newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
-        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-
-        if(piece.type is Pawn) {
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(updatePawn(move),piece.player)
-        }
-
-        updateKingAndRook(move,piece,newBoardArr)
-
-        return checkAndCheckmate(move,newBoardArr,piece)
-         */
+        //return checkAndCheckmate(move,newBoardArr,piece)
     }
 
     private fun checkAndCheckmate(move: Move,newBoardArr:Array<Array<Piece?>>,piece:Piece):Result {
@@ -584,12 +554,31 @@ class Board {
         return false
     }
 
-    private fun updateKingAndRook(move:Move,piece: Piece,newBoardArr: Array<Array<Piece?>>) {
-        if(piece.type is King) {
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true),piece.player)
+    /**
+     * Updates the peaces in the board that need to be updated.
+     */
+    private fun updatePieces(move:Move, board: Board = this): Board? {
+        val boardArr = board.boardArr
+        val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] ?: return null
+        val newBoardArr = boardArr.clone()
+        if(piece.type is King && move.piece is King) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true), currentPlayer)
         }
-        else if(piece.type is Rook) {
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true),piece.player)
+        else if(piece.type is Rook && move.piece is Rook) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true), currentPlayer)
+        }
+        else if(piece.type is Pawn && move.piece is Pawn) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(updatePawn(move), currentPlayer)
+        }
+        return Board(this, newBoardArr)
+    }
+
+    private fun updatePawn(move:Move): Pawn {
+        val diffRow = abs(move.newSquare.row.ordinal - move.curSquare.row.ordinal)
+        return if (diffRow == 2) {
+            Pawn(twoSteps = true)
+        } else {
+            Pawn(twoSteps = false)
         }
     }
 
