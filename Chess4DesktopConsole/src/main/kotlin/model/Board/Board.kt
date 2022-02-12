@@ -36,7 +36,7 @@ private class MyKingInCheck(): Error("Current move puts your King in check")
 
 class MoveType(val special: SpecialMove?, val capture: Boolean = false)
 abstract class SpecialMove()
-class Promotion(val newPiece: PieceType): SpecialMove()
+class Promotion(val newPiece: PieceType?): SpecialMove()
 class Castling(): SpecialMove()
 class EnPassant(): SpecialMove()
 
@@ -45,8 +45,10 @@ data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Squa
         var str = piece.toStr() + curSquare.column.letter + curSquare.row.digit
         if (moveType != null && moveType.capture) str += 'x'
         str += "${newSquare.column.letter}${newSquare.row.digit}"
-        if (moveType != null && moveType.special is Promotion)
-            str += '=' + this.moveType.special.newPiece.toStr()
+        if (moveType != null && moveType.special is Promotion) {
+            val newPiece = moveType.special.newPiece
+                str += '=' + (newPiece?.toStr() ?: "inFault")
+        }
         return str
     }
 }
@@ -214,19 +216,32 @@ class Board {
         val n1 = if (capture) 4 else 3
         val n2 = if (capture) 6 else 5
         val newSquare = cmd.substring(n1,n2).toSquareOrNull() ?: return null
+        // tests promotion
+        if (!capture && move.length == 7 && move[5] == '=')
+            return Move(pieceType, currSquare, newSquare, MoveType(Promotion(getPieceType(move[6]))))
+        else if (capture && move.length == 8 && move[6] == '=')
+            return Move(pieceType, currSquare, newSquare, MoveType(Promotion(getPieceType(move[7]))))
         val move = Move(pieceType, currSquare, newSquare)
         return getMoveWithType(move)
     }
 
     /**
      * Checks if given [move] has a type and if not, returns a new move with correct type.
+     * If the type is Promotion and given [move] is not Promotion, returns a new Move with
+     * Promotion but the new Piece is empty.
+     * @return new Move with special move if it exists. If move is not valid, returns null.
      */
     private fun getMoveWithType(move: Move): Move? {
         if (!isValidMove(move)) return null
         val newPos = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]
         val capture = newPos?.player != null
-        /*if (isPromotionPossible(move.newSquare))
-            return move.copy(moveType = MoveType(capture, Promotion))*/
+        if (needsPromotion(move)) {
+            val special = move.moveType?.special
+            if (special != null && special is Promotion)
+                return move.copy(moveType = MoveType(Promotion(special.newPiece), capture))
+            // new piece for promotion is null
+            return move.copy(moveType = MoveType(Promotion(null), capture))
+        }
         if (canCastle(move))
             return move.copy(moveType = MoveType(Castling(), capture))
         if (canEnPassant(move))
@@ -622,7 +637,8 @@ class Board {
      * Makes promotion if possible.
      * @return a new Board after promotion.
      */
-    private fun makePromotion(square: Square, newPiece: PieceType, board: Board = this): Board? {
+    private fun makePromotion(square: Square, newPiece: PieceType?, board: Board = this): Board? {
+        if (newPiece == null) return board
         val boardArr = board.boardArr
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece == null || !isPromotionPossible(square)) return null
