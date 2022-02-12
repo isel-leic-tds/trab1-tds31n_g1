@@ -259,36 +259,6 @@ class Board {
         val move = toMoveOrNull(str)!!
         val newBoard = makeOneMove(move)!!
         return Aux(newBoard)
-        /*
-        // tests promotion
-        val player = boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!.player
-        val piece = if (str.length > 5 && str[5] == '=') Piece(getPieceType(str[6])!!,player) else boardArr[currSquare.row.ordinal][currSquare.column.ordinal]!!
-        val newBoardArr = boardArr.clone()
-        if (makeCastling(move, piece, newBoardArr))  {
-            val result = checkAndCheckmate(move,newBoardArr,piece) as ISuccess
-            return Aux(result.content as Board)
-        }
-
-        if(canEnPassant(move,piece,newBoardArr)) {
-            newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
-            newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
-            val result = checkAndCheckmate(move,newBoardArr,piece) as ISuccess
-            return Aux(result.content as Board)
-        }
-
-        newBoardArr[currSquare.row.ordinal][currSquare.column.ordinal] = null
-        newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = piece
-
-        if(piece.type is Pawn) {
-            newBoardArr[newSquare.row.ordinal][newSquare.column.ordinal] = Piece(updatePawn(move),piece.player)
-        }
-
-        updateKingAndRook(move,piece,newBoardArr)
-
-        val checkResult = checkAndCheckmate(move,newBoardArr,piece) as ISuccess
-
-        return Aux(checkResult.content as Board,checkResult.check, checkResult.checkmate)
-         */
     }
 
     /*************************************************CASTLE******************************************************************/
@@ -346,8 +316,6 @@ class Board {
         return makeMoveWithoutChecking(move, Board(this, newBoardArr))
     }
 
-    /************************************************************************************************************************/
-
     /**********************************************EN_PASSANT*******************************************************************/
 
     /**
@@ -398,34 +366,10 @@ class Board {
         return makeMoveWithoutChecking(move, Board(this, newBoardArr))
     }
 
-    /**********************************************EN_PASSANT*******************************************************************/
-
-
     /**
      * Stands for internal success and should be used to report that the private functions of the Board class had sucess.
      */
     private class ISuccess(val content: Any, val check:Boolean = false, val checkmate: Boolean = false,val draw: Boolean = false): Result()
-
-    private fun getOmittedCurrentSquare(newSquare: Square, curPlayer: Player): Result {
-        var counter = 0
-        var currentSquare: Square? = null
-        // tries to find a valid corespondency
-        Square.values.forEach { square ->
-            val piece = boardArr[square.row.ordinal][square.column.ordinal]
-            if (piece != null && piece.player == curPlayer) {
-                val possibleSquares = piece.type.getAllMoves(Move(piece.type,square,newSquare),boardArr)
-                if (possibleSquares.any{it.row == newSquare.row && it.column == newSquare.column}) {
-                    currentSquare = square
-                    ++counter
-                }
-            }
-        }
-        // there's ambiguity
-        if (counter > 1) return Ambiguity()
-        // no correspondicy found
-        if (counter == 0) return InvalidMove("")
-        return ISuccess(currentSquare!!)
-    }
 
     /**
      * Checks if there's actually a Piece in the given Square
@@ -476,7 +420,7 @@ class Board {
                 makeRegularMove(move)
             else {
                 when (specialMove) {
-                    is Promotion -> makePromotion(move.newSquare, specialMove.newPiece, makeRegularMove(move)?:return null)
+                    is Promotion -> makePromotion(move, makeRegularMove(move)?:return null)
                     is Castling -> makeCastling(move)
                     else -> makeEnPassant(move)
                 }
@@ -618,30 +562,15 @@ class Board {
     }
 
     /**
-     * Checks if promotion is possible in given square.
-     */
-    private fun isPromotionPossible(square: Square): Boolean {
-        val piece = boardArr[square.row.ordinal][square.column.ordinal]
-        if (piece != null && piece.type is Pawn) {
-            if (piece.player === Player.WHITE && square.row === Row.EIGHT
-                || piece.player === Player.BLACK && square.row === Row.ONE
-            )
-                return true
-        }
-        return false
-    }
-
-    /**
      * Makes promotion if possible.
      * @return a new Board after promotion.
      */
-    private fun makePromotion(square: Square, newPiece: PieceType?, board: Board = this): Board? {
-        if (newPiece == null) return board
+    private fun makePromotion(move: Move, board: Board = this): Board? {
+        if (move.moveType == null || move.moveType.special !is Promotion || move.moveType.special.newPiece == null) return board
         val boardArr = board.boardArr
-        val piece = boardArr[square.row.ordinal][square.column.ordinal]
-        if (piece == null || !isPromotionPossible(square)) return null
+        if (!needsPromotion(move)) return null
         val newBoardArr = boardArr.clone()
-        newBoardArr[square.row.ordinal][square.column.ordinal] = Piece(newPiece, piece.player)
+        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(move.piece, currentPlayer)
         return Board(this, newBoardArr)
     }
 
