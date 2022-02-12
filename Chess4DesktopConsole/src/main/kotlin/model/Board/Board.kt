@@ -189,7 +189,7 @@ class Board {
         //isValidSquare() // TODO -> maybe its no necessary
         // checks move type and also if the move is valid
         val move = getMoveWithType(move) ?: return InvalidMove(move.toString())
-        val newBoard = makeMoveInternal(move) ?: return InvalidMove(move.toString())
+        val newBoard = makeOneMove(move) ?: return InvalidMove(move.toString())
         return Success(newBoard)
     }
 
@@ -257,7 +257,7 @@ class Board {
      */
     fun makeMoveWithoutCheck(str: String): Aux {
         val move = toMoveOrNull(str)!!
-        val newBoard = makeMoveInternal(move)!!
+        val newBoard = makeOneMove(move)!!
         return Aux(newBoard)
         /*
         // tests promotion
@@ -297,11 +297,9 @@ class Board {
      * Checks if it is possible to make a castling move.
      */
     private fun canCastle(move: Move): Boolean {
-        // cheks move piece
-        if (move.piece !is King) return false
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
         // checks piece in the boardArray
-        if (piece == null || piece.type !is King || (piece as King).hasMoved) return false
+        if (piece == null || piece.type !is King || piece.type.hasMoved) return false
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
         if (diffCol == 2) {
             val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
@@ -323,7 +321,11 @@ class Board {
     private fun getCastleDirection(move: Move): Direction? {
         if (!canCastle(move)) return null
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        return if (diffCol == 2) Direction.RIGHT else Direction.LEFT
+        if (diffCol == 2)
+            return Direction.RIGHT
+        else if (diffCol == -2)
+            return Direction.LEFT
+        return null
     }
 
     /**
@@ -333,13 +335,13 @@ class Board {
     private fun makeCastling(move:Move): Board? {
         val direction = getCastleDirection(move) ?: return null
         val newBoardArr = boardArr.clone()
-        if (direction === Direction.LEFT) { //Short Path
+        if (direction === Direction.RIGHT) { //Short Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal + 1] = null
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1] = null
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = towerPiece
         } else { //Long Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 2] = null
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2] = null
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = towerPiece
         }
         return makeMoveWithoutChecking(move, Board(this, newBoardArr))
@@ -455,6 +457,10 @@ class Board {
         return makeMoveWithoutChecking(move, board)
     }
 
+    /**
+     * Maves [move] without checking if its valid
+     * Warning!!! Use with caution.
+     */
     private fun makeMoveWithoutChecking(move: Move, board: Board = this): Board {
         val boardArr = board.boardArr
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
@@ -472,7 +478,7 @@ class Board {
      * Also, tries to find the move type so it can make the correct move.
      * @returns the new Board if the [move] was valid or null.
      */
-    private fun makeMoveInternal(move: Move): Board? {
+    private fun makeOneMove(move: Move): Board? {
         //if (!isValidMove(move)) return null // TODO -> maybe its not necessary
         val move = getMoveWithType(move) ?: return null
         val specialMove = move.moveType?.special
@@ -564,8 +570,8 @@ class Board {
     /**
      * @return if the given [move] is valid.
      */
-    // TODO -> should receibe a Board
-    private fun isValidMove(move: Move): Boolean {
+    private fun isValidMove(move: Move, board: Board = this): Boolean {
+        val boardArr = board.boardArr
         if((move.newSquare.row == blackKingPosition.row && move.newSquare.column == blackKingPosition.column)
             || (move.newSquare.row == whiteKingPosition.row && move.newSquare.column == whiteKingPosition.column)) return false
         if(move.newSquare == whiteKingPosition) return false
