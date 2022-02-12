@@ -330,6 +330,7 @@ class Board {
      * Tries to make a castling move if possible.
      * @return new Board after making castle move or null if not possible.
      */
+    // TODO -> its not eraising pawn
     private fun makeCastling(move:Move): Board? {
         val direction = getCastleDirection(move) ?: return null
         val newBoardArr = boardArr.clone()
@@ -393,7 +394,6 @@ class Board {
     private fun makeEnPassant(move: Move): Board? {
         val direction = getEnPassantDirection(move) ?: return null
         val newBoardArr = boardArr.clone()
-        val piece = newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
         if (direction === Direction.LEFT)
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = null
         else
@@ -404,8 +404,7 @@ class Board {
     }
 
     /**********************************************EN_PASSANT*******************************************************************/
-
-    private fun updatePawn(move:Move):Pawn {
+    private fun updatePawn(move:Move): Pawn {
         val diffRow = abs(move.newSquare.row.ordinal - move.curSquare.row.ordinal)
         return if (diffRow == 2) {
             Pawn(twoSteps = true)
@@ -464,6 +463,9 @@ class Board {
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+        if(piece.type is Pawn) {
+            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(updatePawn(move),piece.player)
+        }
         return Board(this, newBoardArr)
     }
 
@@ -572,6 +574,8 @@ class Board {
         if (pos.any {
                 it.row == move.newSquare.row && it.column == move.newSquare.column
             }) return true
+        if (canCastle(move) || canEnPassant(move))
+            return true
         return false
     }
 
