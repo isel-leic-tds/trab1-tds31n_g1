@@ -330,23 +330,19 @@ class Board {
      * Tries to make a castling move if possible.
      * @return new Board after making castle move or null if not possible.
      */
-    // TODO -> its not eraising pawn
     private fun makeCastling(move:Move): Board? {
         val direction = getCastleDirection(move) ?: return null
         val newBoardArr = boardArr.clone()
-        return if (direction === Direction.LEFT) { //Short Path
+        if (direction === Direction.LEFT) { //Short Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal + 1] = null
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = towerPiece
-            val newBoard = Board(this, newBoardArr)
-            makeRegularMove(move, newBoard)
         } else { //Long Path
             val towerPiece = newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 2] = null
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = towerPiece
-            val newBoard = Board(this, newBoardArr)
-            makeRegularMove(move, newBoard)
         }
+        return makeMoveWithoutChecking(move, Board(this, newBoardArr))
     }
 
     /************************************************************************************************************************/
@@ -384,7 +380,7 @@ class Board {
     private fun getEnPassantDirection(move: Move): Direction? {
         if (!canEnPassant(move)) return null
         val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        return if (diffCol == -1) Direction.LEFT else Direction.LEFT
+        return if (diffCol == -1) Direction.LEFT else Direction.RIGHT
     }
 
     /**
@@ -398,9 +394,7 @@ class Board {
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = null
         else
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1] = null
-        // temporary board!
-        val newBoard = Board(this, newBoardArr)
-        return makeRegularMove(move, newBoard)
+        return makeMoveWithoutChecking(move, Board(this, newBoardArr))
     }
 
     /**********************************************EN_PASSANT*******************************************************************/
@@ -453,12 +447,16 @@ class Board {
     }
 
     /**
-     * Makes a regular move. In other words, only changes the piece position on the board,
+     * Makes a regular move if is valid, excluding special moves. In other words, only changes the piece position on the board,
      * based on the curSquare and the newSquare, not checking the move type.
      */
     private fun makeRegularMove(move: Move, board: Board = this): Board? {
-        val boardArr = board.boardArr
         if (!isValidMove(move)) return null
+        return makeMoveWithoutChecking(move, board)
+    }
+
+    private fun makeMoveWithoutChecking(move: Move, board: Board = this): Board {
+        val boardArr = board.boardArr
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
         val newBoardArr = boardArr.clone()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
@@ -475,7 +473,7 @@ class Board {
      * @returns the new Board if the [move] was valid or null.
      */
     private fun makeMoveInternal(move: Move): Board? {
-        if (!isValidMove(move)) return null
+        //if (!isValidMove(move)) return null // TODO -> maybe its not necessary
         val move = getMoveWithType(move) ?: return null
         val specialMove = move.moveType?.special
         val newBoard =
@@ -566,6 +564,7 @@ class Board {
     /**
      * @return if the given [move] is valid.
      */
+    // TODO -> should receibe a Board
     private fun isValidMove(move: Move): Boolean {
         if((move.newSquare.row == blackKingPosition.row && move.newSquare.column == blackKingPosition.column)
             || (move.newSquare.row == whiteKingPosition.row && move.newSquare.column == whiteKingPosition.column)) return false
