@@ -420,7 +420,7 @@ class Board {
                 makeRegularMove(move)
             else {
                 when (specialMove) {
-                    is Promotion -> makePromotion(move, makeRegularMove(move)?:return null)
+                    is Promotion -> makePromotion(move.newSquare, specialMove.newPiece, makeRegularMove(move)?:return null)
                     is Castling -> makeCastling(move)
                     else -> makeEnPassant(move)
                 }
@@ -429,56 +429,53 @@ class Board {
         //return checkAndCheckmate(move,newBoardArr,piece)
     }
 
-    private fun checkAndCheckmate(move: Move,newBoardArr:Array<Array<Piece?>>,piece:Piece):Result {
-        // update king position
-        val whiteKingPosition = if(piece.type is King && piece.player === Player.WHITE ) move.newSquare else this.whiteKingPosition
-        val blackKingPosition = if(piece.type is King && piece.player === Player.BLACK ) move.newSquare else this.blackKingPosition
-
-        if(isMyKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Problema com as posições dos reis que ainda nao foram atualizadas nesta altura
-            newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = piece
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = null
+    private fun checkAndCheckmate(move: Move,piece:Piece, board: Board = this): Result {
+        val boardArr = board.boardArr
+        if(isMyKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition)) { //Problema com as posições dos reis que ainda nao foram atualizadas nesta altura
+            boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = piece
+            boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = null
             return MyKingInCheck()
         }
 
-        val checkSquares = isAdversaryKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition).size
-        val piecesThatCanEat = piecesToEatCheckPiece(move, newBoardArr)
+        val checkSquares = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition).size
+        val piecesThatCanEat = piecesToEatCheckPiece(move, boardArr)
         if(checkSquares > 0) {
             if(checkSquares == 1) {
-                val square = isAdversaryKingInCheck(move, newBoardArr, whiteKingPosition, blackKingPosition)
-                if (canAnyPieceProtectKing(square, move, newBoardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
-                    if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos e ver se continua em check
+                val square = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition)
+                if (canAnyPieceProtectKing(square, move, boardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
+                    if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos e ver se continua em check
                         //Se nao tiver chequemate
-                        return ISuccess(Board(this, newBoardArr), checkmate = true)
+                        return ISuccess(Board(this, boardArr), checkmate = true)
                     }
-                    else if(kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
+                    else if(kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
                         //Verificar se ao fazer esses moves ao rei nao continua em check
-                        if(isKingStillInCheck(move,piece,newBoardArr,whiteKingPosition, blackKingPosition)) {
-                            return ISuccess(Board(this, newBoardArr), checkmate = true)
+                        if(isKingStillInCheck(move,piece,boardArr,whiteKingPosition, blackKingPosition)) {
+                            return ISuccess(Board(this, boardArr), checkmate = true)
                         }
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr), check = true)
+                    return ISuccess(Board(this, boardArr), check = true)
                 }
                 else {//Se alguma peça conseguir proteger o rei
-                    if(canSomePieceEatPieceDoingCheck(move,piece,piecesThatCanEat,newBoardArr,whiteKingPosition,blackKingPosition) == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
-                        if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) { // Nao tem movimentos validos
+                    if(canSomePieceEatPieceDoingCheck(move,piece,piecesThatCanEat,boardArr,whiteKingPosition,blackKingPosition) == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
+                        if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { // Nao tem movimentos validos
                             //É logo chequemate e retorna-se o board
-                            return ISuccess(Board(this, newBoardArr), checkmate = true)
+                            return ISuccess(Board(this, boardArr), checkmate = true)
                         }
                     }
                     // is in check
-                    return ISuccess(Board(this, newBoardArr), check = true)
+                    return ISuccess(Board(this, boardArr), check = true)
                 }
             }
             else {
-                if(!kingHasValidMoves(move, newBoardArr, whiteKingPosition, blackKingPosition)) {
-                    return ISuccess(Board(this, newBoardArr), checkmate = true)
+                if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
+                    return ISuccess(Board(this, boardArr), checkmate = true)
                 }
                 // is in check
-                return ISuccess(Board(this, newBoardArr), check = true)
+                return ISuccess(Board(this, boardArr), check = true)
             }
         }
-        return ISuccess(Board(this, newBoardArr))
+        return ISuccess(Board(this, boardArr))
     }
 
     /**
@@ -505,15 +502,12 @@ class Board {
         val boardArr = board.boardArr
         val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] ?: return null
         val newBoardArr = boardArr.clone()
-        if(piece.type is King && move.piece is King) {
+        if(piece.type is King && move.piece is King)
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true), currentPlayer)
-        }
-        else if(piece.type is Rook && move.piece is Rook) {
+        else if(piece.type is Rook && move.piece is Rook)
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(Rook(true), currentPlayer)
-        }
-        else if(piece.type is Pawn && move.piece is Pawn) {
+        else if(piece.type is Pawn && move.piece is Pawn)
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(updatePawn(move), currentPlayer)
-        }
         return Board(this, newBoardArr)
     }
 
@@ -562,15 +556,30 @@ class Board {
     }
 
     /**
+     * Checks if promotion is possible in given square.
+     */
+    private fun isPromotionPossible(square: Square): Boolean {
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece != null && piece.type is Pawn) {
+            if (piece.player === Player.WHITE && square.row === Row.EIGHT
+                || piece.player === Player.BLACK && square.row === Row.ONE
+            )
+                return true
+        }
+        return false
+    }
+
+    /**
      * Makes promotion if possible.
      * @return a new Board after promotion.
      */
-    private fun makePromotion(move: Move, board: Board = this): Board? {
-        if (move.moveType == null || move.moveType.special !is Promotion || move.moveType.special.newPiece == null) return board
+    private fun makePromotion(square: Square, newPiece: PieceType?, board: Board = this): Board? {
+        if (newPiece == null) return board
         val boardArr = board.boardArr
-        if (!needsPromotion(move)) return null
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece == null || !isPromotionPossible(square)) return null
         val newBoardArr = boardArr.clone()
-        newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(move.piece, currentPlayer)
+        newBoardArr[square.row.ordinal][square.column.ordinal] = Piece(newPiece, piece.player)
         return Board(this, newBoardArr)
     }
 
