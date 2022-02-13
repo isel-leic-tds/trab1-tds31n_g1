@@ -4,6 +4,55 @@ import chess.model.Square
 import model.Player
 import java.util.HashMap
 
+enum class State {CHECK, CHECKMATE, NORMAL}
+
+/**
+ * Checks the current [board] state.
+ */
+fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Square): State {
+    val boardArr = board.boardArr
+    if(isMyKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition))
+        return true
+    val checkSquares = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition).size
+    val piecesThatCanEat = piecesToEatCheckPiece(move, boardArr)
+    if(checkSquares > 0) {
+        if(checkSquares == 1) {
+            val square = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition)
+            if (canAnyPieceProtectKing(square, move, boardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
+                if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos e ver se continua em check
+                    //Se nao tiver chequemate
+                    return State.CHECKMATE
+                }
+                else if(kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
+                    //Verificar se ao fazer esses moves ao rei nao continua em check
+                    if(isKingStillInCheck(move,piece,boardArr,whiteKingPosition, blackKingPosition)) {
+                        return State.CHECKMATE
+                    }
+                }
+                return State.CHECK
+            }
+            else {//Se alguma peça conseguir proteger o rei
+                if(canSomePieceEatPieceDoingCheck(move,piece,piecesThatCanEat,boardArr,whiteKingPosition,blackKingPosition) == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
+                    if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { // Nao tem movimentos validos
+                        //É logo chequemate e retorna-se o board
+                        return State.CHECKMATE
+                    }
+                }
+                // is in check
+                return State.CHECK
+            }
+        }
+        else {
+            if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
+                return State.CHECKMATE
+            }
+            // is in check
+            return State.CHECK
+        }
+    }
+    return State.NORMAL
+}
+
  fun piecesToEatCheckPiece(move: Move, boardArr: Array<Array<Board.Piece?>>):MutableList<Square> {
     val piecesThatCanEat = mutableListOf<Square>()
     Square.values.forEach { square ->
@@ -19,7 +68,7 @@ import java.util.HashMap
     return piecesThatCanEat
 }
 
- fun isMyKingInCheck(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):Boolean {
+ fun isMyKingInCheck(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square): Boolean {
     val currentPlayerColor = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
     Square.values.forEach { square ->
         val piece = boardArr[square.row.ordinal][square.column.ordinal]

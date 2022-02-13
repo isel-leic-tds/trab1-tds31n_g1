@@ -412,6 +412,8 @@ class Board {
      * @returns the new Board if the [move] was valid or null.
      */
     private fun makeOneMove(move: Move): Board? {
+        val gameState1 = getBoardState(this, whiteKingPosition, blackKingPosition)
+        if (gameState1 === State.CHECKMATE) return null
         //if (!isValidMove(move)) return null // TODO -> maybe its not necessary
         val move = getMoveWithType(move) ?: return null
         val specialMove = move.moveType?.special
@@ -425,57 +427,9 @@ class Board {
                     else -> makeEnPassant(move)
                 }
             }
+        val gameState2 = getBoardState(this, whiteKingPosition, blackKingPosition)
+        if (gameState2 === State.CHECK) return null
         return newBoard
-        //return checkAndCheckmate(move,newBoardArr,piece)
-    }
-
-    private fun checkAndCheckmate(move: Move,piece:Piece, board: Board = this): Result {
-        val boardArr = board.boardArr
-        if(isMyKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition)) { //Problema com as posições dos reis que ainda nao foram atualizadas nesta altura
-            boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = piece
-            boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = null
-            return MyKingInCheck()
-        }
-
-        val checkSquares = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition).size
-        val piecesThatCanEat = piecesToEatCheckPiece(move, boardArr)
-        if(checkSquares > 0) {
-            if(checkSquares == 1) {
-                val square = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition)
-                if (canAnyPieceProtectKing(square, move, boardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
-                    if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos e ver se continua em check
-                        //Se nao tiver chequemate
-                        return ISuccess(Board(this, boardArr), checkmate = true)
-                    }
-                    else if(kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
-                        //Verificar se ao fazer esses moves ao rei nao continua em check
-                        if(isKingStillInCheck(move,piece,boardArr,whiteKingPosition, blackKingPosition)) {
-                            return ISuccess(Board(this, boardArr), checkmate = true)
-                        }
-                    }
-                    // is in check
-                    return ISuccess(Board(this, boardArr), check = true)
-                }
-                else {//Se alguma peça conseguir proteger o rei
-                    if(canSomePieceEatPieceDoingCheck(move,piece,piecesThatCanEat,boardArr,whiteKingPosition,blackKingPosition) == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
-                        if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { // Nao tem movimentos validos
-                            //É logo chequemate e retorna-se o board
-                            return ISuccess(Board(this, boardArr), checkmate = true)
-                        }
-                    }
-                    // is in check
-                    return ISuccess(Board(this, boardArr), check = true)
-                }
-            }
-            else {
-                if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
-                    return ISuccess(Board(this, boardArr), checkmate = true)
-                }
-                // is in check
-                return ISuccess(Board(this, boardArr), check = true)
-            }
-        }
-        return ISuccess(Board(this, boardArr))
     }
 
     /**
