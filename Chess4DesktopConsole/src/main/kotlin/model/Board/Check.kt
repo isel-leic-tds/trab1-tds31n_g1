@@ -1,7 +1,6 @@
 package model.Board
 
 import chess.model.Square
-import model.Player
 
 /**
  * Checks if the current board is in checkmate
@@ -43,14 +42,17 @@ fun isKingInCheck(boardArr: Array<Array<Board.Piece?>>, kingSquare: Square): Boo
  * @return true if it is possible to move him out of danger or false otherwise.
  */
 fun tryToMoveKing(kingSquare: Square, boardArr: Array<Array<Board.Piece?>>): Boolean {
-    val piece = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
-    if (piece == null || piece.type !is King) return false
-    val allKingMoves = piece.type.getAllMoves(Move(piece.type, kingSquare, kingSquare), boardArr)
+    val king = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
+    if (king == null || king.type !is King) return false
+    val allKingMoves = king.type.getAllMoves(Move(king.type, kingSquare, kingSquare), boardArr)
     allKingMoves.forEach { possibleSquare ->
-        val newBoardArr = boardArr.clone()
-        newBoardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = null
-        newBoardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = piece
-        if (!isKingInCheck(newBoardArr, possibleSquare)) return true
+        val pieceAux = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
+        boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = null
+        boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = king
+        val check = isKingInCheck(boardArr, possibleSquare)
+        boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = king
+        boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = pieceAux
+        if (!check) return true
     }
     return false
 }
@@ -68,10 +70,13 @@ fun isPieceThatProtectKing(kingSquare: Square, boardArr: Array<Array<Board.Piece
         if (piece != null && piece.player === kingPlayer && square !== kingSquare) {
             val possibleMoves = piece.type.getAllMoves(Move(piece.type, kingSquare, kingSquare), boardArr)
             possibleMoves.forEach { possibleSquare ->
-                val newBoardArr = boardArr.clone()
-                newBoardArr[square.row.ordinal][square.column.ordinal] = null
-                newBoardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = piece
-                if (!isKingInCheck(newBoardArr, possibleSquare)) return true
+                val pieceAux = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
+                boardArr[square.row.ordinal][square.column.ordinal] = null
+                boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = piece
+                val check = isKingInCheck(boardArr, possibleSquare)
+                boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = king
+                boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = pieceAux
+                if (!check) return true
             }
         }
     }

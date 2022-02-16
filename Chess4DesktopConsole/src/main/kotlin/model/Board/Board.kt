@@ -412,7 +412,7 @@ class Board {
      * @returns the new Board if the [move] was valid or null.
      */
     private fun makeOneMove(move: Move): Board? {
-        val checkMate = isInCheckmate(boardArr, whiteKingPosition, blackKingPosition)
+        if (isInCheckmate(boardArr, whiteKingPosition, blackKingPosition)) return null
         //if (!isValidMove(move)) return null // TODO -> maybe its not necessary
         val move = getMoveWithType(move) ?: return null
         val specialMove = move.moveType?.special
@@ -426,11 +426,11 @@ class Board {
                     else -> makeEnPassant(move)
                 }
             }
-        if (isKingInCheck()) return null
+        if (newBoard != null && isKingInCheck(newBoard)) return null
         return newBoard
     }
 
-    private fun isKingInCheck() = isKingInCheck(boardArr, if (currentPlayer===Player.WHITE) whiteKingPosition else blackKingPosition)
+    private fun isKingInCheck(board: Board = this) = isKingInCheck(board.boardArr, if (currentPlayer===Player.WHITE) whiteKingPosition else blackKingPosition)
 
     /**
      * @return if the given [move] is valid.
