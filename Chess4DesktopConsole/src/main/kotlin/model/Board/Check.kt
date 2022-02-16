@@ -4,56 +4,83 @@ import chess.model.Square
 import model.Player
 import java.util.HashMap
 
-enum class State {CHECK, CHECKMATE, NORMAL}
+abstract class State
+object NormalState: State()
+class Check(val player: Player): State()
+class Checkmate(val player: Player): State()
 
 /**
  * Checks the current [board] state.
  */
-fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Square): State {
-    val boardArr = board.boardArr
-    if(isMyKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition))
-        return true
-    val checkSquares = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition).size
-    val piecesThatCanEat = piecesToEatCheckPiece(move, boardArr)
+fun isInCheckMate(boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square, currentPlayer: Player): Player? {
+    val player = isKingInCheck(boardArr, whiteKingPosition, blackKingPosition) ?: return null
+    val result = tryToMoveKing(if (player===Player.WHITE)whiteKingPosition else blackKingPosition, boardArr)
+
+    //--------------------------------------------------------------------------------------------------------------
+
+    if(isMyKingInCheck(boardArr, whiteKingPosition, blackKingPosition, currentPlayer))
+        return Check(currentPlayer)
+    val checkSquares = isAdversaryKingInCheck(boardArr, whiteKingPosition, blackKingPosition, currentPlayer).size
+    // King is in check
     if(checkSquares > 0) {
+        // if there's only one enemy piece threatening the King
         if(checkSquares == 1) {
-            val square = isAdversaryKingInCheck(move, boardArr, whiteKingPosition, blackKingPosition)
-            if (canAnyPieceProtectKing(square, move, boardArr, whiteKingPosition, blackKingPosition).isEmpty()) { //Se nenhuma peça conseguir proteger o rei
-                if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { //Ver depois se o rei tem movimentos validos e ver se continua em check
-                    //Se nao tiver chequemate
-                    return State.CHECKMATE
-                }
-                else if(kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
+            val square = isAdversaryKingInCheck(boardArr, whiteKingPosition, blackKingPosition, currentPlayer)
+            // If there's no piece that can protect the King
+            if (getSquaresThatProtectKing(square, boardArr, whiteKingPosition, blackKingPosition, currentPlayer).isEmpty()) {
+                // If the King can't move
+                if(!kingHasValidMoves(boardArr, whiteKingPosition, blackKingPosition, currentPlayer))
+                    return Checkmate(currentPlayer.other())
+                else {
                     //Verificar se ao fazer esses moves ao rei nao continua em check
-                    if(isKingStillInCheck(move,piece,boardArr,whiteKingPosition, blackKingPosition)) {
-                        return State.CHECKMATE
+                    if(isKingStillInCheck(boardArr,whiteKingPosition, blackKingPosition, currentPlayer)) {
+                        return Checkmate(currentPlayer.other())
                     }
                 }
-                return State.CHECK
+                return Check(currentPlayer.other())
             }
-            else {//Se alguma peça conseguir proteger o rei
+            // Is some piece is able to protect the King
+            else {
+                val piecesThatCanEat = piecesToEatCheckPiece(move, boardArr)
                 if(canSomePieceEatPieceDoingCheck(move,piece,piecesThatCanEat,boardArr,whiteKingPosition,blackKingPosition) == piecesThatCanEat.size) { // Se o contador for igual ao número de peças que podem comer a peça que esta a pôr em check o rei
-                    if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) { // Nao tem movimentos validos
+                    if(!kingHasValidMoves(boardArr, whiteKingPosition, blackKingPosition, currentPlayer)) { // Nao tem movimentos validos
                         //É logo chequemate e retorna-se o board
-                        return State.CHECKMATE
+                        return Checkmate(currentPlayer.other())
                     }
                 }
                 // is in check
-                return State.CHECK
+                return Check(currentPlayer.other())
             }
         }
+        // if king has more than one piece to threat him
         else {
-            if(!kingHasValidMoves(move, boardArr, whiteKingPosition, blackKingPosition)) {
-                return State.CHECKMATE
+            //  if the King can't move
+            if(!kingHasValidMoves(boardArr, whiteKingPosition, blackKingPosition, currentPlayer)) {
+                return Checkmate(currentPlayer.other())
             }
             // is in check
-            return State.CHECK
+            return Check(currentPlayer.other())
         }
     }
-    return State.NORMAL
+    return NormalState
 }
 
- fun piecesToEatCheckPiece(move: Move, boardArr: Array<Array<Board.Piece?>>):MutableList<Square> {
+/**
+ * Tries to move King out of danger.
+ * @return true if it is possible to move him out of danger or false otherwise.
+ */
+fun tryToMoveKing(king: Square, boardArr: Array<Array<Board.Piece?>>): Boolean {
+    val piece = boardArr[king.row.ordinal][king.column.ordinal]
+    if (piece == null || piece.type !is King) return false
+    val kingPlayer = piece.player
+    val allKingMoves = piece.type.getAllMoves(Move(piece.type, king, king), boardArr)
+    allKingMoves.forEach {
+        if (kingPlayer === Player.WHITE)
+            isKingInCheck(boardArr, king)
+    }
+}
+
+fun piecesToEatCheckPiece(move: Move, boardArr: Array<Array<Board.Piece?>>):MutableList<Square> {
     val piecesThatCanEat = mutableListOf<Square>()
     Square.values.forEach { square ->
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
@@ -68,52 +95,66 @@ fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Sq
     return piecesThatCanEat
 }
 
- fun isMyKingInCheck(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square): Boolean {
-    val currentPlayerColor = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
+/**
+ * Checks if one of the Players has its King in check.
+ * @return the player that has its King in check or null neather King is in check.
+ */
+fun isKingInCheck(boardArr: Array<Array<Board.Piece?>>, kingSquare: Square): Boolean {
+    val piece = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
+    if (piece == null || piece.type !is King) return false
     Square.values.forEach { square ->
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece != null) {
-            val allMoves = piece.type.getAllMoves(Move(piece.type,square,square),boardArr)
-            if (currentPlayerColor == Player.WHITE) {
-                allMoves.forEach {
-                    if(it.row == whiteKingPosition.row && it.column == whiteKingPosition.column) {
-                        return true
-                    }
-                }
+            val allMoves = piece.type.getAllMoves(Move(piece.type,square,square), boardArr)
+            allMoves.forEach {
+                // if it can eat Black King
+                if(it.row == kingSquare.row && it.column == kingSquare.column)
+                    return true
             }
+        }
+    }
+    return false
+}
+
+fun isMyKingInCheck(boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square, currentPlayer: Player): Boolean {
+    Square.values.forEach { square ->
+        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+        if (piece != null) {
+            val allMoves = piece.type.getAllMoves(Move(piece.type,square,square), boardArr)
+            if (currentPlayer == Player.WHITE)
+                allMoves.forEach {
+                    if(it.row == whiteKingPosition.row && it.column == whiteKingPosition.column)
+                        return true
+                }
             else
                 allMoves.forEach {
-                    if(it.row == blackKingPosition.row && it.column == blackKingPosition.column) {
+                    if (it.row == blackKingPosition.row && it.column == blackKingPosition.column)
                         return true
-                    }
                 }
         }
     }
     return false
 }
 
- fun isAdversaryKingInCheck(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square): HashMap<Square, PieceType> {
+ fun isAdversaryKingInCheck(boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square, currentPlayer: Player): HashMap<Square, PieceType> {
     val ret : HashMap<Square, PieceType> = HashMap<Square, PieceType> ()
     //Obter a cor do player que está a por em check
-    val currentPlayerColor = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
     //Iterar sobre todos os moves dessa peça para ver se me estou a mover para um sitio em que o rei está em check
     var piece: Board.Piece?
     Square.values.forEach { square ->
         piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece != null) {
-            val allMoves = piece!!.type.getAllMoves(Move(piece!!.type,square,square),boardArr)
-            if (currentPlayerColor == Player.WHITE) {
+            val allMoves = piece!!.type.getAllMoves(Move(piece!!.type,square,square), boardArr)
+            if (currentPlayer == Player.WHITE) {
                 allMoves.forEach {
-                    if(it.row == blackKingPosition.row && it.column == blackKingPosition.column) {
+                    if(it.row == blackKingPosition.row && it.column == blackKingPosition.column)
                         ret[square] = piece!!.type
-                    }
                 }
             }
             else {
                 allMoves.forEach {
-                    if (it.row == whiteKingPosition.row && it.column == whiteKingPosition.column) {
+                    if (it.row == whiteKingPosition.row && it.column == whiteKingPosition.column)
                         ret[square] = piece!!.type
-                    }
                 }
             }
         }
@@ -121,14 +162,14 @@ fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Sq
     return ret
 }
 
- fun canAnyPieceProtectKing(squareCheck: HashMap<Square, PieceType>, move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):MutableList<Square> {
+ fun getSquaresThatProtectKing(squareCheck: HashMap<Square, PieceType>, boardArr: Array<Array<Board.Piece?>>,
+                               whiteKingPosition: Square, blackKingPosition: Square, currentPlayer: Player):MutableList<Square> {
     val piecesToProtect = mutableListOf<Square>()
     val checkSquare = squareCheck.keys.first()
     val checkPieceType = squareCheck.values.first()
-    val player =  boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player
     var piece: Board.Piece?
     val checkPieceAllMoves = checkPieceType.getAllMoves(Move(checkPieceType, checkSquare, checkSquare), boardArr)
-    val list: MutableList<Square> = if(player == Player.WHITE) {
+    val list: MutableList<Square> = if(currentPlayer == Player.WHITE) {
         getPath(blackKingPosition, checkSquare, checkPieceAllMoves, boardArr)
     } else getPath(whiteKingPosition, checkSquare, checkPieceAllMoves, boardArr)
 
@@ -138,7 +179,7 @@ fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Sq
             val currPlayer = piece!!.player
             val squareMove = Move(piece!!.type, square, square)
             val allMoves = piece!!.type.getAllMoves(squareMove, boardArr)
-            if (player != currPlayer) {
+            if (currPlayer != currPlayer) {
                 allMoves.forEach { square1 ->
                     //Trocar pelo caminho da peça a por em check até ao rei
                    list.forEach {
@@ -146,7 +187,7 @@ fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Sq
                             piecesToProtect.add(square1)
                    }
                 }
-            } else if (player != currPlayer)
+            } else if (currPlayer != currPlayer)
                 allMoves.forEach { square1 ->
                     list.forEach {
                         if(it.row == square1.row && it.column == square1.column)
@@ -197,17 +238,15 @@ fun getBoardState(board: Board, whiteKingPosition: Square, blackKingPosition: Sq
     return list
 }
 
-fun kingHasValidMoves(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):Boolean {
+fun kingHasValidMoves(boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square, currentPlayer: Player):Boolean {
     val whiteKing = boardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]!!.type
     val blackKing = boardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]!!.type
     val whiteKingMoves = whiteKing.getAllMoves(Move(whiteKing, whiteKingPosition, whiteKingPosition), boardArr)
     val blackKingMoves = blackKing.getAllMoves(Move(blackKing, blackKingPosition, blackKingPosition), boardArr)
 
-    val player = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player //Current player
-
     var count1 = 0
     var count2 = 0
-    if (player == Player.WHITE) {
+    if (currentPlayer == Player.WHITE) {
         blackKingMoves.forEach {square1 ->
             Square.values.forEach { square2 ->
                 val piece = boardArr[square2.row.ordinal][square2.column.ordinal]
@@ -222,7 +261,7 @@ fun kingHasValidMoves(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKin
             count2++
         }
     }
-    if (player == Player.BLACK) {
+    if (currentPlayer == Player.BLACK) {
         whiteKingMoves.forEach {square1 ->
             Square.values.forEach { square2 ->
                 val piece = boardArr[square2.row.ordinal][square2.column.ordinal]
@@ -241,39 +280,37 @@ fun kingHasValidMoves(move: Move, boardArr: Array<Array<Board.Piece?>>, whiteKin
     return true
 }
 
-fun isKingStillInCheck(move: Move,piece: Board.Piece,newBoardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square):Boolean {
-    //Verificar se ao fazer esses moves ao rei nao continua em check
+/**
+ * Makes all possible moves with a King to check if is still in check.
+ */
+fun isKingStillInCheck(newBoardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Square, blackKingPosition: Square, currentPlayer: Player): Boolean {
     var count1 = 0
-    if(piece.player == Player.BLACK) {
+    if(currentPlayer == Player.BLACK) {
         val kingPiece = newBoardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal]
         val allMoves = kingPiece!!.type.getAllMoves(Move(kingPiece.type, whiteKingPosition, whiteKingPosition), newBoardArr)
         allMoves.forEach { square1 ->
             newBoardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal] = null
             newBoardArr[square1.row.ordinal][square1.column.ordinal] = kingPiece
             val auxKingPos = Square(square1.column, square1.row)
-            if(isMyKingInCheck(move,newBoardArr,auxKingPos,auxKingPos)) {
+            if(isMyKingInCheck(newBoardArr, auxKingPos, auxKingPos, currentPlayer))
                 count1++ //Checkmate
-            }
             newBoardArr[square1.row.ordinal][square1.column.ordinal] = null
             newBoardArr[whiteKingPosition.row.ordinal][whiteKingPosition.column.ordinal] = kingPiece
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
         }
         if(count1 == allMoves.size) return true
         return false
     }
     else {
         val kingPiece = newBoardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal]
-        val allMoves = kingPiece!!.type.getAllMoves(Move(piece.type, blackKingPosition, blackKingPosition), newBoardArr)
+        val allMoves = kingPiece!!.type.getAllMoves(Move(kingPiece.type, blackKingPosition, blackKingPosition), newBoardArr)
         allMoves.forEach { square1 ->
             newBoardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal] = null
             newBoardArr[square1.row.ordinal][square1.column.ordinal] = kingPiece
             val auxKingPos = Square(square1.column, square1.row)
-            if(isMyKingInCheck(move,newBoardArr,auxKingPos,auxKingPos)) {
+            if(isMyKingInCheck(newBoardArr, auxKingPos, auxKingPos, currentPlayer))
                 count1++ //Checkmate
-            }
             newBoardArr[square1.row.ordinal][square1.column.ordinal] = null
             newBoardArr[blackKingPosition.row.ordinal][blackKingPosition.column.ordinal] = kingPiece
-            newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
         }
         if(count1 == allMoves.size) return true
         return false
