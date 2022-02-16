@@ -46,13 +46,10 @@ fun tryToMoveKing(kingSquare: Square, boardArr: Array<Array<Board.Piece?>>): Boo
     if (king == null || king.type !is King) return false
     val allKingMoves = king.type.getAllMoves(Move(king.type, kingSquare, kingSquare), boardArr)
     allKingMoves.forEach { possibleSquare ->
-        val pieceAux = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
-        boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = null
-        boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = king
-        val check = isKingInCheck(boardArr, possibleSquare)
-        boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = king
-        boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = pieceAux
-        if (!check) return true
+        val newBoard = boardArr.copy()
+        newBoard[kingSquare.row.ordinal][kingSquare.column.ordinal] = null
+        newBoard[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = king
+        if (!isKingInCheck(boardArr, possibleSquare)) return true
     }
     return false
 }
@@ -70,13 +67,10 @@ fun isPieceThatProtectKing(kingSquare: Square, boardArr: Array<Array<Board.Piece
         if (piece != null && piece.player === kingPlayer && square !== kingSquare) {
             val possibleMoves = piece.type.getAllMoves(Move(piece.type, kingSquare, kingSquare), boardArr)
             possibleMoves.forEach { possibleSquare ->
-                val pieceAux = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
-                boardArr[square.row.ordinal][square.column.ordinal] = null
-                boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = piece
-                val check = isKingInCheck(boardArr, possibleSquare)
-                boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal] = king
-                boardArr[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = pieceAux
-                if (!check) return true
+                val newBoard = boardArr.copy()
+                newBoard[square.row.ordinal][square.column.ordinal] = null
+                newBoard[possibleSquare.row.ordinal][possibleSquare.column.ordinal] = piece
+                if (!isKingInCheck(boardArr, possibleSquare)) return true
             }
         }
     }

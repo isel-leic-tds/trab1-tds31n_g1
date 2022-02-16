@@ -304,7 +304,7 @@ class Board {
      */
     private fun makeCastling(move:Move): Board? {
         val direction = getCastleDirection(move) ?: return null
-        val newBoardArr = boardArr.clone()
+        val newBoardArr = boardArr.copy()
         if (direction === Direction.RIGHT) { //Short Path
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1] = null
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal - 1] = Piece(Rook(true), currentPlayer)
@@ -358,7 +358,7 @@ class Board {
      */
     private fun makeEnPassant(move: Move): Board? {
         val direction = getEnPassantDirection(move) ?: return null
-        val newBoardArr = boardArr.clone()
+        val newBoardArr = boardArr.copyOf()
         if (direction === Direction.LEFT)
             newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1] = null
         else
@@ -400,7 +400,7 @@ class Board {
     private fun makeMoveWithoutChecking(move: Move, board: Board = this): Board {
         val boardArr = board.boardArr
         val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
-        val newBoardArr = boardArr.clone()
+        val newBoardArr = boardArr.copy()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
         return updatePieces(move, Board(this, newBoardArr))!!
@@ -430,7 +430,8 @@ class Board {
         return newBoard
     }
 
-    private fun isKingInCheck(board: Board = this) = isKingInCheck(board.boardArr, if (currentPlayer===Player.WHITE) whiteKingPosition else blackKingPosition)
+    private fun isKingInCheck(board: Board = this) =
+        isKingInCheck(board.boardArr, if (currentPlayer===Player.WHITE) board.whiteKingPosition else board.blackKingPosition)
 
     /**
      * @return if the given [move] is valid.
@@ -455,7 +456,7 @@ class Board {
     private fun updatePieces(move:Move, board: Board = this): Board? {
         val boardArr = board.boardArr
         val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] ?: return null
-        val newBoardArr = boardArr.clone()
+        val newBoardArr = boardArr.copy()
         if(piece.type is King && move.piece is King)
             newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Piece(King(true), currentPlayer)
         else if(piece.type is Rook && move.piece is Rook)
@@ -512,8 +513,8 @@ class Board {
     /**
      * Checks if promotion is possible in given square.
      */
-    private fun isPromotionPossible(square: Square): Boolean {
-        val piece = boardArr[square.row.ordinal][square.column.ordinal]
+    private fun isPromotionPossible(square: Square, board: Board = this): Boolean {
+        val piece = board.boardArr[square.row.ordinal][square.column.ordinal]
         if (piece != null && piece.type is Pawn) {
             if (piece.player === Player.WHITE && square.row === Row.EIGHT
                 || piece.player === Player.BLACK && square.row === Row.ONE
@@ -531,8 +532,8 @@ class Board {
         if (newPiece == null) return board
         val boardArr = board.boardArr
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
-        if (piece == null || !isPromotionPossible(square)) return null
-        val newBoardArr = boardArr.clone()
+        if (piece == null || !isPromotionPossible(square, board)) return null
+        val newBoardArr = boardArr.copy()
         newBoardArr[square.row.ordinal][square.column.ordinal] = Piece(newPiece, piece.player)
         return Board(this, newBoardArr)
     }
@@ -559,5 +560,6 @@ class Board {
         return str
     }
     /*******************************************************************************************************************************/
-
 }
+
+fun Array<Array<Board.Piece?>>.copy() = Array(size) { get(it).clone() }

@@ -138,9 +138,8 @@ private fun squareSelected(selected: Square, board: Board, square: Square, chess
             return PromotionNecessary
         // makes a move
         val gameChess = play(menuHandlers, chess.gameChess, move)
-        if (gameChess != null) {
-            return Success(Chess(gameChess = gameChess))
-        }
+        if (gameChess != null)
+            return Success(Chess(gameChess = gameChess, selected = null))
         return Success(chess)
     }
 }
