@@ -21,7 +21,7 @@ fun DialogGameName( onOk: (String)->Unit, onCancel: ()->Unit ) = Dialog(
     title = "Game name",
     state = DialogState(width = Dp.Unspecified, height = Dp.Unspecified)
 ) {
-    var name by remember { mutableStateOf("abc") }
+    var name by remember { mutableStateOf("") }
     Column {
         Text("Enter the name of game")
         Row {
