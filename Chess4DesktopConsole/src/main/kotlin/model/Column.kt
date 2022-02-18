@@ -7,6 +7,15 @@ enum class Column(val letter: Char) {
             Column.values()[it]
         }
     }
+
+    /**
+     * @return the next Column or null if there are no more.
+     */
+    fun nextColumn() = if (this.ordinal == values().size) null else values[this.ordinal+1]
+    /**
+     * @return the previous Column or null if it's already the first one.
+     */
+    fun previousColumn() = if (this.ordinal == 0) null else values[this.ordinal-1]
 }
 
 fun Char.toColumnOrNull(): Column? {

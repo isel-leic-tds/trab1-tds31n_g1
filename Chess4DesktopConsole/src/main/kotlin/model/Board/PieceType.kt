@@ -2,10 +2,7 @@ package model.Board
 
 import chess.model.*
 import model.Player
-
-/**
- * Cada peça vai receber uma tentativa de jogada, ou seja, com as coordenadas da jogada e o tabuleiro com as outras peças e DIZER se essa jogada foi valida
- */
+/*
 sealed class PieceType
 class Pawn(val twoSteps:Boolean = false): PieceType()
 class Knight: PieceType()
@@ -15,9 +12,9 @@ class Queen: PieceType()
 class King(val hasMoved:Boolean = false): PieceType()
 
 /**
- * Get all squares possible to move to, from one piece
+ * Get all possible squares to move to, from one piece
  */
-private fun getAllMoves(curSquare:Square, board: Array<Array<Board.Piece?>>, pieceType: PieceType,allAvailablePositions:MutableList<Square>): List<Square> {
+private fun getAllMoves(curSquare: Square, board: Array<Array<Board.Piece?>>, pieceType: PieceType, allAvailablePositions: MutableList<Square>): List<Square> {
     val player = board[curSquare.row.ordinal][curSquare.column.ordinal]!!.player //Current player
     var newRow = curSquare.row.ordinal //Nova Row do Square
     var newCol = curSquare.column.ordinal //Nova Collum do Square
@@ -204,3 +201,5 @@ fun getPieceType(type: Char) =
         'K' -> King()
         else -> null
     }
+
+ */

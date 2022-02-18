@@ -38,7 +38,7 @@ class MoveType(val special: SpecialMove?, val capture: Boolean = false)
 abstract class SpecialMove()
 class Promotion(val newPiece: PieceType?): SpecialMove()
 class Castling(): SpecialMove()
-class EnPassant(): SpecialMove()
+class EnPassant(): SpecialMove() // TODO -> should also be a capture
 
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val moveType: MoveType? = null) {
     override fun toString(): String {
@@ -62,7 +62,7 @@ class Board {
 
     private val LINES = 8
     private val COLS = 8
-    private val boardArr: Array<Array<Piece?>>
+    internal val boardArr: Array<Array<Piece?>>
     operator fun get(square: Square) = boardArr[square.row.ordinal][square.column.ordinal]
     private val finished: Boolean
 

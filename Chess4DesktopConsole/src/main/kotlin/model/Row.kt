@@ -7,6 +7,14 @@ enum class Row(val digit: Char) {
             Row.values()[it]
         }
     }
+    /**
+     * @return the next Column or null if there are no more.
+     */
+    fun nextRow() = if (this.ordinal == Column.values().size) null else Column.values[this.ordinal+1]
+    /**
+     * @return the previous Row or null if it's already the first one.
+     */
+    fun previousRow() = if (this.ordinal == 0) null else values[this.ordinal-1]
 }
 
 fun Char.toRowOrNull(): Row? {

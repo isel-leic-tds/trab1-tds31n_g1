@@ -15,6 +15,23 @@ class Square(val column: Column, val row: Row) {
         }
     }
     override fun toString() = "" + this.column.letter + this.row.digit
+
+    fun incColumn(): Square? {
+        val nextColumn = this.column.nextColumn() ?: return null
+        return Square(nextColumn, this.row)
+    }
+    fun decColumn(): Square? {
+        val prevColumn = this.column.previousColumn() ?: return null
+        return Square(prevColumn, this.row)
+    }
+    fun incRow(): Square? {
+        val nextRow = this.row.nextRow() ?: return null
+        return Square(nextRow, this.row)
+    }
+    fun decRow(): Square? {
+        val prevRow = this.row.previousRow() ?: return null
+        return Square(prevRow, this.row)
+    }
 }
 
 fun String.toSquareOrNull(): Square? {
