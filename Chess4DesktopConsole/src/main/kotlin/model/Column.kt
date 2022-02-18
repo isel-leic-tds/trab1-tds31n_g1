@@ -6,6 +6,7 @@ enum class Column(val letter: Char) {
         val values = Array<Column>(Column.values().size) { it ->
             Column.values()[it]
         }
+        operator fun invoke(n: Int) = values[n-1]
     }
 
     /**

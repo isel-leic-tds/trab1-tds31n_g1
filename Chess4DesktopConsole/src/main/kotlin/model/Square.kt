@@ -13,8 +13,16 @@ class Square(val column: Column, val row: Row) {
             if (it >= Column.values().size-1 && it % Column.values.size == Column.values.size-1) ++lineCount
             square
         }
+        operator fun invoke(col: Int, row: Int) = Square(Column(col), Row(row))
     }
     override fun toString() = "" + this.column.letter + this.row.digit
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is Square) return false
+        if (this.column === other.column && this.row === other.row)
+            return true
+        return false
+    }
 
     fun incColumn(): Square? {
         val nextColumn = this.column.nextColumn() ?: return null
@@ -26,11 +34,11 @@ class Square(val column: Column, val row: Row) {
     }
     fun incRow(): Square? {
         val nextRow = this.row.nextRow() ?: return null
-        return Square(nextRow, this.row)
+        return Square(this.column, nextRow)
     }
     fun decRow(): Square? {
         val prevRow = this.row.previousRow() ?: return null
-        return Square(prevRow, this.row)
+        return Square(this.column, prevRow)
     }
 }
 

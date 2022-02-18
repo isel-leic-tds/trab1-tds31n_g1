@@ -6,15 +6,16 @@ enum class Row(val digit: Char) {
         val values = Array<Row>(Column.values().size) { it ->
             Row.values()[it]
         }
+        operator fun invoke(n: Int) = values[values.size-n]
     }
     /**
      * @return the next Column or null if there are no more.
      */
-    fun nextRow() = if (this.ordinal == Column.values().size) null else Column.values[this.ordinal+1]
+    fun nextRow() = if (this.ordinal == Column.values().size) null else values[this.ordinal-1]
     /**
      * @return the previous Row or null if it's already the first one.
      */
-    fun previousRow() = if (this.ordinal == 0) null else values[this.ordinal-1]
+    fun previousRow() = if (this.ordinal == 0) null else values[this.ordinal+1]
 }
 
 fun Char.toRowOrNull(): Row? {

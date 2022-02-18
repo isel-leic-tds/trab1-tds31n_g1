@@ -1,185 +1,8 @@
 package model.Board
 
-import chess.model.*
+import chess.model.Square
 import model.Player
-/*
-sealed class PieceType
-class Pawn(val twoSteps:Boolean = false): PieceType()
-class Knight: PieceType()
-class Bishop: PieceType()
-class Rook(val hasMoved:Boolean = false): PieceType()
-class Queen: PieceType()
-class King(val hasMoved:Boolean = false): PieceType()
-
-/**
- * Get all possible squares to move to, from one piece
- */
-private fun getAllMoves(curSquare: Square, board: Array<Array<Board.Piece?>>, pieceType: PieceType, allAvailablePositions: MutableList<Square>): List<Square> {
-    val player = board[curSquare.row.ordinal][curSquare.column.ordinal]!!.player //Current player
-    var newRow = curSquare.row.ordinal //Nova Row do Square
-    var newCol = curSquare.column.ordinal //Nova Collum do Square
-    if(pieceType !is Bishop) { //Se for Bishop não é possivel mover para cima ou para baixo
-        //Move Up
-        newRow = curSquare.row.ordinal - 1
-        if(newRow in 0..7) { //Verificar se a linha está out Of Bounds
-            if (!(player === Player.BLACK && pieceType is Pawn)) { //Verificar se a peça não é preta e não é Pawn
-                if (!(board[newRow][newCol] != null && pieceType is Pawn)) { //Verificar se o sítio para onde se vai está vazio
-                    //Verificar se é possivel mover a peça para o novo Square, quando não for o while acaba
-                    while (newRow >= Row.EIGHT.ordinal) {
-                        if (board[newRow][newCol] != null && pieceType is Pawn) break //Impedir o peão de comer uma peça à sua frente
-                        //Verificar se é possível realizar o movimento
-                        if(!tryToMove(curSquare, board, Square(curSquare.column.ordinal.toColumn(), newRow.toRow()), pieceType,allAvailablePositions)) break
-                        //King e Pawn só podem andar uma posição por isso este caso especial
-                        if (pieceType is King || (pieceType is Pawn && newRow != Row.THREE.ordinal && board[newRow][newCol] == null)) break
-                        newRow--
-                    }
-                }
-            }
-        }
-        //Move Down
-        newRow = curSquare.row.ordinal + 1
-        if(newRow in 0..7) { //Verificar se a linha está out Of Bounds
-            if (!(player === Player.WHITE && pieceType is Pawn)) { //Verificar se a peça não é branca e não é Pawn
-                if (!(board[newRow][newCol] != null && pieceType is Pawn)) { //Verificar se o sítio para onde se vai está vazio
-                    //Verificar se é possivel mover a peça para o novo Square, quando não for o while acaba
-                    while (newRow <= Row.ONE.ordinal) {
-                        if (board[newRow][newCol] != null && pieceType is Pawn) break //Impedir o peão de comer uma peça à sua frente
-                        //Verificar se é possível realizar o movimento
-                        if(!tryToMove(curSquare, board, Square(curSquare.column.ordinal.toColumn(), newRow.toRow()), pieceType,allAvailablePositions)) break
-                        //King e Pawn só podem andar uma posição por isso este caso especial
-                        if (pieceType is King || (pieceType is Pawn && newRow != Row.SIX.ordinal && board[newRow][newCol] == null)) break
-                        newRow++
-                    }
-                }
-            }
-        }
-    }
-    //Mover para a direita e para a esquerda
-    newCol = curSquare.column.ordinal + 1
-    if(!(pieceType is Bishop || pieceType is Pawn)) { //O Bishop e o Pawn não se podem mover para os lados
-        while(newCol <= Column.H.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), curSquare.row.ordinal.toRow()), pieceType,allAvailablePositions)) {
-            if(pieceType is King) break //O king só se pode mover uma posição novamente
-            newCol++
-        }
-        newCol = curSquare.column.ordinal - 1
-        while(newCol >= Column.A.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), curSquare.row.ordinal.toRow()), pieceType,allAvailablePositions)) {
-            if(pieceType is King) break //O king só se pode mover uma posição novamente
-            newCol--
-        }
-    }
-    //Mover nas diagonais para cima
-    if(pieceType !is Rook && !(player===Player.BLACK && pieceType is Pawn)) { //O rook e o Pawn preto não se podem mover nas diagonais para cima
-        newRow = curSquare.row.ordinal - 1
-        newCol = curSquare.column.ordinal + 1
-        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
-            //Verificar se para onde o Pawn se está a mover está uma peça inimiga
-            if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
-                while (newRow >= Row.EIGHT.ordinal && newCol <= Column.H.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType,allAvailablePositions)) {
-                    if (pieceType is King) break //O king só se pode mover uma posição novamente
-                    newRow--
-                    newCol++
-                }
-            }
-        }
-        newRow = curSquare.row.ordinal - 1
-        newCol = curSquare.column.ordinal - 1
-        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
-            //Verificar se para onde o Pawn se está a mover está uma peça inimiga
-            if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
-                while (newRow >= Row.EIGHT.ordinal && newCol >= Column.A.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType,allAvailablePositions)) {
-                    if (pieceType is King) break //O king só se pode mover uma posição novamente
-                    newRow--
-                    newCol--
-                }
-            }
-        }
-    }
-    //Mover nas diagonais para baixo
-    if(pieceType !is Rook && !(player===Player.WHITE && pieceType is Pawn)) { //O rook e o Pawn branco não se podem mover nas diagonais para cima
-        newRow = curSquare.row.ordinal + 1
-        newCol = curSquare.column.ordinal + 1
-        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
-            //Verificar se para onde o Pawn se está a mover está uma peça inimiga
-            if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
-                while (newRow <= Row.ONE.ordinal && newCol <= Column.H.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType,allAvailablePositions)) {
-                    if (pieceType is King) break //O king só se pode mover uma posição novamente
-                    newRow++
-                    newCol++
-                }
-            }
-        }
-        newRow = curSquare.row.ordinal + 1
-        newCol = curSquare.column.ordinal - 1
-        if(newCol in 0..7 && newRow in 0..7) { //Check if Col is not out of bounds from the board
-            //Verificar se para onde o Pawn se está a mover está uma peça inimiga
-            if (!(pieceType is Pawn && (board[newRow][newCol] == null || player === board[newRow][newCol]!!.player))) {
-                while (newRow <= Row.ONE.ordinal && newCol >= Column.A.ordinal && tryToMove(curSquare, board, Square(newCol.toColumn(), newRow.toRow()), pieceType,allAvailablePositions)) {
-                    if (pieceType is King) break //O king só se pode mover uma posição novamente
-                    newRow++
-                    newCol--
-                }
-            }
-        }
-    }
-    return allAvailablePositions //Retornar todas as posições para onde a peça se pode mover
-}
-
-/**
- * Ver se a jogada é possível
- */
-private fun tryToMove(curSquare:Square, board: Array<Array<Board.Piece?>>, newSquare:Square, piece: PieceType,allAvailablePositions:MutableList<Square>):Boolean {
-    val move = Move(piece,curSquare,newSquare) //Criar um novo move
-    val player = board[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player //Jogador atual
-
-    //Verificar se o novo Square está vazio
-    if(board[move.newSquare.row.ordinal][move.newSquare.column.ordinal] == null) {
-        allAvailablePositions.add(newSquare)
-        return true
-    }
-    //Verificar se o Square tem uma peça inimiga
-    if(board[move.newSquare.row.ordinal][move.newSquare.column.ordinal]!!.player != player) {
-        allAvailablePositions.add(newSquare)
-        //Para na peça inimiga
-        return false
-    }
-    return false
-}
-
-fun PieceType.getAllMoves(move: Move, board: Array<Array<Board.Piece?>>): List<Square> {
-    val allAvailablePositions = mutableListOf<Square>()
-    return when(this) {
-        //Knights moves are way too different from the other pieces
-        is Knight -> getAllMovesKnight(move, board,allAvailablePositions)
-        else -> getAllMoves(move.curSquare, board,move.piece,allAvailablePositions)
-    }
-}
-
-fun getAllMovesKnight(move: Move, board: Array<Array<Board.Piece?>>,allAvailablePositions:MutableList<Square>): List<Square> {
-    val player = board[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!.player //Jogador atual
-    val offsetRow = intArrayOf(2, 1, -1, -2, -2, -1, 1, 2) //Array com os offsets das posições possíveis do cavalo
-    val offsetColumn = intArrayOf(1, 2, 2, 1, -1, -2, -2, -1)
-
-    for (i in 0..7) { // Percorrer os arrays de offsets
-        //Verificar se o Square está dentro do board
-        if(move.curSquare.row.ordinal + offsetRow[i] in 0..7 && move.curSquare.column.ordinal + offsetColumn[i] in 0..7 ) {
-            val row = move.curSquare.row.ordinal + offsetRow[i] // Nova linha
-            val col = move.curSquare.column.ordinal + offsetColumn[i] //Nova coluna
-            val square = Square(col.toColumn(),row.toRow()) //É criado o novo square para onde se vai verificar se a peça pode ir
-            //Se esse sitio tiver uma peça é necessário ver a que jogador pertence
-            if (board[move.curSquare.row.ordinal + offsetRow[i]][move.curSquare.column.ordinal + offsetColumn[i]] !== null) {
-                if (player === Player.WHITE && board[move.curSquare.row.ordinal + offsetRow[i]][move.curSquare.column.ordinal + offsetColumn[i]]!!.player === Player.BLACK)
-                    allAvailablePositions.add(square)
-
-                if (player === Player.BLACK && board[move.curSquare.row.ordinal+offsetRow[i]][move.curSquare.column.ordinal+ offsetColumn[i]]!!.player === Player.WHITE)
-                    allAvailablePositions.add(square)
-            }
-            else //Se o sitio estiver a null é possivel mover o cavalo para aí
-                allAvailablePositions.add(square)
-
-        }
-    }
-    return allAvailablePositions
-}
+import kotlin.math.abs
 
 fun PieceType.toStr() =
     when(this) {
@@ -202,4 +25,93 @@ fun getPieceType(type: Char) =
         else -> null
     }
 
+sealed class PieceType
+class Pawn(val twoSteps:Boolean = false): PieceType()
+class Knight: PieceType()
+class Bishop: PieceType()
+class Rook(val hasMoved:Boolean = false): PieceType()
+class Queen: PieceType()
+class King(val hasMoved:Boolean = false): PieceType()
+
+fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
+    val piece = table[move.curSquare.row.ordinal][move.newSquare.column.ordinal]
+    if (piece == null || piece.type.toStr() != move.piece.toStr()) return false
+    return when (piece.type) {
+        is Pawn -> tryMovePawn(move.curSquare, move.newSquare, table)
+        is Bishop -> tryMoveBishop(move.curSquare, move.newSquare, table)
+        is Rook -> return false
+        is Knight -> return false
+        is Queen -> return false
+        is King -> return false
+    }
+}
+
+/**
+ * Tries to move Bishop from [curSquare] to [newSquare].
+ * @return false if there is no Bishop in [curSquare] or the Bishop cannot be moved to [newSquare]. Othewise, returns true.
  */
+private fun tryMoveBishop(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    val piece = table[curSquare.row.ordinal][newSquare.column.ordinal]
+    if (piece == null || piece.type !is Bishop) return false
+    val player = piece.player
+    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
+    if (abs(rowDif) != abs(colDif)) return false
+    repeat(abs(rowDif)) { i ->
+        // moving front-left
+        if (hasFriendlyPiece(player, Square(curSquare.column.ordinal+colDif, curSquare.row.ordinal+rowDif), table))
+            return false
+    }
+    return true
+}
+
+/**
+ * Tries to move Pawn from [curSquare] to [newSquare].
+ * @return false if there is no Pawn in [curSquare] or the Pawn cannot be moved to [newSquare]. Othewise, returns true.
+ */
+private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    val piece = table[curSquare.row.ordinal][newSquare.column.ordinal]
+    if (piece == null || piece.type !is Pawn) return false
+    val player = piece.player
+    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
+    // cannot move more than two steps vertically
+    if (abs(rowDif) > 2) return false
+    if (colDif == 0) {
+        // doesnt move
+        if (rowDif == 0) return false
+        // moving foward
+        if (rowDif < 0 && player === Player.WHITE || rowDif > 0 && player === Player.BLACK) {
+            // cheks front Square
+            if (hasPiece(curSquare.moveUp(player)!!, table)) return false
+            // cheks second front Square
+            if (rowDif == 2 && hasPiece(curSquare.moveUp(player)!!.moveUp(player)!!, table)) return false
+            return true
+        }
+    }
+    // trying to eat
+    if (abs(colDif) == 1 && abs(rowDif) == 1) {
+        val squareFrontLeft = curSquare.moveUp(player)!!.moveLeft(player)!!
+        val squareFrontRight = curSquare.moveUp(player)!!.moveRight(player)!!
+        if (newSquare == squareFrontLeft && hasEnemyPiece(player, squareFrontLeft, table)
+                || newSquare == squareFrontRight && hasEnemyPiece(player, squareFrontRight, table)
+        ) return true
+    }
+    return false
+
+}
+
+private fun getRowDiff(curSquare: Square, newSquare: Square) = newSquare.row.ordinal - curSquare.row.ordinal
+private fun getColDiff(curSquare: Square, newSquare: Square) = newSquare.column.ordinal - curSquare.column.ordinal
+private fun getSquareDiff(curSquare: Square, newSquare: Square) =
+    newSquare.row.ordinal - curSquare.row.ordinal to newSquare.column.ordinal - curSquare.column.ordinal
+
+private fun hasEnemyPiece(player: Player, square: Square, table: Array<Array<Board.Piece?>>) =
+    table[square.row.ordinal][square.column.ordinal]?.player !== player
+private fun hasFriendlyPiece(player: Player, square: Square, table: Array<Array<Board.Piece?>>) =
+    table[square.row.ordinal][square.column.ordinal]?.player === player
+private fun hasPiece(square: Square, table: Array<Array<Board.Piece?>>) =
+    table[square.row.ordinal][square.column.ordinal]?.player !== null
+
+private fun Square.moveUp(player: Player): Square? = if (player === Player.WHITE) this.incRow() else this.decRow()
+private fun Square.moveDown(player: Player): Square? = if (player === Player.WHITE) this.decRow() else this.incRow()
+private fun Square.moveLeft(player: Player): Square? = if (player === Player.WHITE) this.decColumn() else this.incColumn()
+private fun Square.moveRight(player: Player): Square? = if (player === Player.WHITE) this.incColumn() else this.decColumn()

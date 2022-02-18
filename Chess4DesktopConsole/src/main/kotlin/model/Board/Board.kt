@@ -41,6 +41,14 @@ class Castling(): SpecialMove()
 class EnPassant(): SpecialMove() // TODO -> should also be a capture
 
 data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Square, val moveType: MoveType? = null) {
+    companion object {
+        /**
+         * @return a List with all possible Move's for a given [pieceType]
+         */
+        fun getAllMoves(pieceType: PieceType) =
+            Square.values.map { curSquare -> Square.values.map { newSquare -> Move(pieceType, curSquare, newSquare) } }.flatMap { it.toList() }
+    }
+
     override fun toString(): String {
         var str = piece.toStr() + curSquare.column.letter + curSquare.row.digit
         if (moveType != null && moveType.capture) str += 'x'
@@ -437,16 +445,11 @@ class Board {
      * @return if the given [move] is valid.
      */
     private fun isValidMove(move: Move, board: Board = this): Boolean {
-        val boardArr = board.boardArr
         if((move.newSquare.row == blackKingPosition.row && move.newSquare.column == blackKingPosition.column)
             || (move.newSquare.row == whiteKingPosition.row && move.newSquare.column == whiteKingPosition.column)) return false
         if(move.newSquare == whiteKingPosition) return false
-        val pos = move.piece.getAllMoves(move, boardArr)
-        if (pos.any {
-                it.row == move.newSquare.row && it.column == move.newSquare.column
-            }) return true
-        if (canCastle(move) || canEnPassant(move))
-            return true
+        if (tryToMove(move, board.boardArr)) return true
+        if (canCastle(move) || canEnPassant(move)) return true
         return false
     }
 
