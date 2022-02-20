@@ -50,9 +50,20 @@ fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
 fun tryMoveKnight(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
     val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
     val player = moveStats.player
-    val (rowDif, colDif) = moveStats.diff
     if (moveStats.pieceType !is Knight) return false
-    return false
+    val possibleSquares = listOfNotNull(
+        curSquare.moveUp(player)?.moveUp(player)?.moveLeft(player),
+        curSquare.moveLeft(player)?.moveLeft(player)?.moveDown(player),
+        curSquare.moveLeft(player)?.moveLeft(player)?.moveUp(player),
+        curSquare.moveRight(player)?.moveRight(player)?.moveUp(player),
+        curSquare.moveLeft(player)?.moveLeft(player)?.moveDown(player),
+        curSquare.moveRight(player)?.moveRight(player)?.moveDown(player),
+        curSquare.moveDown(player)?.moveDown(player)?.moveLeft(player),
+        curSquare.moveDown(player)?.moveDown(player)?.moveRight(player),
+    ).map{ square -> // checks if any of the squares matches the newSquare and if is suiteble to be moved to
+        newSquare == square && (hasPiece(square, table) && hasEnemyPiece(player, square, table) || !hasPiece(square, table))
+    }.filter { it } // filters the square that match
+    return possibleSquares.isNotEmpty()
 }
 
 fun tryMoveRook(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
@@ -61,7 +72,7 @@ fun tryMoveRook(curSquare: Square, newSquare: Square, table: Array<Array<Board.P
     val (rowDif, colDif) = moveStats.diff
     if (moveStats.pieceType !is Rook || rowDif != 0 && colDif != 0) return false
     var n = 0
-    // number of squares to iterate in follwing loop
+    // number of squares to iterate in following loop
     val times = if (rowDif == 0) abs(colDif)-1 else abs(rowDif)-1
     repeat(times) { i -> // TODO -> i is not being incremented
         val nextSquare = Square(curSquare.column.ordinal+ if (colDif==0) 0 else if (colDif<0) -n-1 else n+1,

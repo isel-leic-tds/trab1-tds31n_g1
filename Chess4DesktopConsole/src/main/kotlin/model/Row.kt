@@ -12,7 +12,7 @@ enum class Row(val digit: Char) {
     /**
      * @return the next Column or null if there are no more.
      */
-    fun nextRow() = if (this.ordinal == Column.values().size) null else values[this.ordinal+1]
+    fun nextRow() = if (this.ordinal == Column.values().size-1) null else values[this.ordinal+1]
     /**
      * @return the previous Row or null if it's already the first one.
      */
