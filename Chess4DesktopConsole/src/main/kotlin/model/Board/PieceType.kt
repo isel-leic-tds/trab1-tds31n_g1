@@ -40,11 +40,30 @@ fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
     return when (piece.type) {
         is Pawn -> tryMovePawn(move.curSquare, move.newSquare, table)
         is Bishop -> tryMoveBishop(move.curSquare, move.newSquare, table)
-        is Rook -> return false
+        is Rook -> tryMoveRook(move.curSquare, move.newSquare, table)
         is Knight -> return false
         is Queen -> return false
         is King -> return false
     }
+}
+
+fun tryMoveRook(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    val piece = table[curSquare.row.ordinal][curSquare.column.ordinal]
+    if (piece == null || piece.type !is Rook) return false
+    val player = piece.player
+    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
+    if (rowDif != 0 && colDif != 0) return false
+    var n = 0
+    repeat(abs(rowDif)) { i -> // TODO -> i is not being incremented
+        val nextSquare = Square(curSquare.column.ordinal+ if (colDif==0) 0 else if (colDif<0) n+1 else -n-1,
+            curSquare.row.ordinal+ if (rowDif==0) 0 else if (rowDif<0) n+1 else -n-1)
+        // moving front-left
+        if (hasPiece(nextSquare, table) && (hasFriendlyPiece(player, nextSquare, table)
+                    || hasEnemyPiece(player, nextSquare, table) && nextSquare != newSquare)
+        ) return false
+        ++n
+    }
+    return true
 }
 
 // TODO -> fix
@@ -103,7 +122,7 @@ private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array
     }
     // trying to eat
     if (abs(colDif) == 1 && abs(rowDif) == 1) {
-        val squareFrontLeft = curSquare.moveUp(player)?.moveLeft(player)
+       val squareFrontLeft = curSquare.moveUp(player)?.moveLeft(player)
         val squareFrontRight = curSquare.moveUp(player)?.moveRight(player)
         if (newSquare == squareFrontLeft && hasPiece(squareFrontLeft, table) && hasEnemyPiece(player, squareFrontLeft, table)
                 || newSquare == squareFrontRight && hasPiece(squareFrontRight, table) && hasEnemyPiece(player, squareFrontRight, table)
@@ -130,7 +149,7 @@ private fun hasFriendlyPiece(player: Player, square: Square, table: Array<Array<
 private fun hasPiece(square: Square, table: Array<Array<Board.Piece?>>) =
     table[square.row.ordinal][square.column.ordinal]?.player !== null
 
-private fun Square.moveUp(player: Player): Square? = if (player === Player.WHITE) this.incRow() else this.decRow()
-private fun Square.moveDown(player: Player): Square? = if (player === Player.WHITE) this.decRow() else this.incRow()
-private fun Square.moveLeft(player: Player): Square? = if (player === Player.WHITE) this.decColumn() else this.incColumn()
-private fun Square.moveRight(player: Player): Square? = if (player === Player.WHITE) this.incColumn() else this.decColumn()
+private fun Square.moveUp(player: Player) = if (player === Player.WHITE) this.decRow() else this.incRow()
+private fun Square.moveDown(player: Player) = if (player === Player.WHITE) this.incRow() else this.decRow()
+private fun Square.moveLeft(player: Player) = if (player === Player.WHITE) this.decColumn() else this.incColumn()
+private fun Square.moveRight(player: Player) = if (player === Player.WHITE) this.incColumn() else this.decColumn()

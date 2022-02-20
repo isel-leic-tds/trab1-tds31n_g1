@@ -12,7 +12,7 @@ enum class Column(val letter: Char) {
     /**
      * @return the next Column or null if there are no more.
      */
-    fun nextColumn() = if (this.ordinal == values().size) null else values[this.ordinal+1]
+    fun nextColumn() = if (this.ordinal == values().size-1) null else values[this.ordinal+1]
     /**
      * @return the previous Column or null if it's already the first one.
      */
