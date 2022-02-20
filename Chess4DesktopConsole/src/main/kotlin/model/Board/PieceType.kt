@@ -41,53 +41,60 @@ fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
         is Pawn -> tryMovePawn(move.curSquare, move.newSquare, table)
         is Bishop -> tryMoveBishop(move.curSquare, move.newSquare, table)
         is Rook -> tryMoveRook(move.curSquare, move.newSquare, table)
-        is Knight -> return false
+        is Knight -> tryMoveKnight(move.curSquare, move.newSquare, table)
         is Queen -> return false
         is King -> return false
     }
 }
 
+fun tryMoveKnight(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
+    val player = moveStats.player
+    val (rowDif, colDif) = moveStats.diff
+    if (moveStats.pieceType !is Knight) return false
+    return false
+}
+
 fun tryMoveRook(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
-    val piece = table[curSquare.row.ordinal][curSquare.column.ordinal]
-    if (piece == null || piece.type !is Rook) return false
-    val player = piece.player
-    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
-    if (rowDif != 0 && colDif != 0) return false
+    val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
+    val player = moveStats.player
+    val (rowDif, colDif) = moveStats.diff
+    if (moveStats.pieceType !is Rook || rowDif != 0 && colDif != 0) return false
     var n = 0
-    repeat(abs(rowDif)) { i -> // TODO -> i is not being incremented
-        val nextSquare = Square(curSquare.column.ordinal+ if (colDif==0) 0 else if (colDif<0) n+1 else -n-1,
-            curSquare.row.ordinal+ if (rowDif==0) 0 else if (rowDif<0) n+1 else -n-1)
-        // moving front-left
-        if (hasPiece(nextSquare, table) && (hasFriendlyPiece(player, nextSquare, table)
-                    || hasEnemyPiece(player, nextSquare, table) && nextSquare != newSquare)
-        ) return false
+    // number of squares to iterate in follwing loop
+    val times = if (rowDif == 0) abs(colDif)-1 else abs(rowDif)-1
+    repeat(times) { i -> // TODO -> i is not being incremented
+        val nextSquare = Square(curSquare.column.ordinal+ if (colDif==0) 0 else if (colDif<0) -n-1 else n+1,
+            curSquare.row.ordinal+ if (rowDif==0) 0 else if (rowDif<0) -n-1 else n+1) ?: return false
+        if (hasPiece(nextSquare, table) && nextSquare != newSquare)
+            return false
         ++n
     }
+    if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
+        return false
     return true
 }
 
-// TODO -> fix
 /**
  * Tries to move Bishop from [curSquare] to [newSquare].
  * @return false if there is no Bishop in [curSquare] or the Bishop cannot be moved to [newSquare]. Othewise, returns true.
  */
 private fun tryMoveBishop(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
-    val piece = table[curSquare.row.ordinal][curSquare.column.ordinal]
-    if (piece == null || piece.type !is Bishop) return false
-    val player = piece.player
-    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
-    if (abs(rowDif) != abs(colDif)) return false
+    val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
+    val player = moveStats.player
+    val (rowDif, colDif) = moveStats.diff
+    if (moveStats.pieceType !is Bishop || abs(rowDif) != abs(colDif)) return false
     // hold the direction to iterate in the Board
     var n = 0
-    repeat(abs(rowDif)) { i -> // TODO -> i is not being incremented
+    repeat(abs(rowDif)-1) { i -> // TODO -> i is not being incremented
         val nextSquare = Square(curSquare.column.ordinal+ if (colDif>0) n+1 else -n-1,
-            curSquare.row.ordinal+ if (rowDif>0) n+1 else -n-1)
-        // moving front-left
-        if (hasPiece(nextSquare, table) && (hasFriendlyPiece(player, nextSquare, table)
-            || hasEnemyPiece(player, nextSquare, table) && nextSquare != newSquare)
-        ) return false
+            curSquare.row.ordinal+ if (rowDif>0) n+1 else -n-1) ?: return false
+        if (hasPiece(nextSquare, table) && nextSquare != newSquare)
+            return false
         ++n
     }
+    if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
+        return false
     return true
 }
 
@@ -96,12 +103,11 @@ private fun tryMoveBishop(curSquare: Square, newSquare: Square, table: Array<Arr
  * @return false if there is no Pawn in [curSquare] or the Pawn cannot be moved to [newSquare]. Othewise, returns true.
  */
 private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
-    val piece = table[curSquare.row.ordinal][curSquare.column.ordinal]
-    if (piece == null || piece.type !is Pawn) return false
-    val player = piece.player
-    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
+    val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
+    val player = moveStats.player
+    val (rowDif, colDif) = moveStats.diff
     // cannot move more than two steps vertically
-    if (abs(rowDif) > 2) return false
+    if (moveStats.pieceType !is Pawn || abs(rowDif) > 2) return false
     if (colDif == 0) {
         // doesnt move
         if (rowDif == 0) return false
@@ -153,3 +159,16 @@ private fun Square.moveUp(player: Player) = if (player === Player.WHITE) this.de
 private fun Square.moveDown(player: Player) = if (player === Player.WHITE) this.incRow() else this.decRow()
 private fun Square.moveLeft(player: Player) = if (player === Player.WHITE) this.decColumn() else this.incColumn()
 private fun Square.moveRight(player: Player) = if (player === Player.WHITE) this.incColumn() else this.decColumn()
+
+private data class MoveStats(val pieceType: PieceType, val player: Player, val diff: Pair<Int, Int>)
+
+/**
+ * @return MoveStats object that contains the player and a Pair contaning the rowDif and colDif.
+ * @return null if theres no piece in [curSquare]
+ */
+private fun getMoveStats(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): MoveStats? {
+    val piece = table[curSquare.row.ordinal][curSquare.column.ordinal] ?: return null
+    val player = piece.player
+    val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
+    return MoveStats(piece.type, player, Pair(rowDif, colDif))
+}

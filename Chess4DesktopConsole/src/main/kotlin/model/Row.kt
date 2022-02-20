@@ -7,7 +7,7 @@ enum class Row(val digit: Char) {
             Row.values()[it]
         }
         // TODO -> fix here
-        operator fun invoke(n: Int) = values[n]
+        operator fun invoke(n: Int) = if (n in values.indices) values[n] else null
     }
     /**
      * @return the next Column or null if there are no more.
@@ -27,7 +27,3 @@ fun Char.toRowOrNull(): Row? {
 }
 
 fun Int.toRow() = Row.values()[this]
-
-fun main() {
-
-}

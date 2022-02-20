@@ -13,7 +13,11 @@ class Square(val column: Column, val row: Row) {
             if (it >= Column.values().size-1 && it % Column.values.size == Column.values.size-1) ++lineCount
             square
         }
-        operator fun invoke(col: Int, row: Int) = Square(Column(col), Row(row))
+        operator fun invoke(col: Int, row: Int): Square? {
+            val col = Column(col) ?: return null
+            val row = Row(row) ?: return null
+            return Square(col, row)
+        }
     }
     override fun toString() = "" + this.column.letter + this.row.digit
 
