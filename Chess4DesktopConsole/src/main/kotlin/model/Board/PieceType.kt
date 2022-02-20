@@ -42,9 +42,17 @@ fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
         is Bishop -> tryMoveBishop(move.curSquare, move.newSquare, table)
         is Rook -> tryMoveRook(move.curSquare, move.newSquare, table)
         is Knight -> tryMoveKnight(move.curSquare, move.newSquare, table)
-        is Queen -> return false
+        is Queen -> tryMoveQueen(move.curSquare, move.newSquare, table)
         is King -> return false
     }
+}
+
+fun tryMoveQueen(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
+    val player = moveStats.player
+    val (rowDif, colDif) = moveStats.diff
+    if (checkDiagonals(rowDif, curSquare, colDif, table, newSquare, player)) return true
+    return checkHorizontalsVerticals(rowDif, colDif, curSquare, table, newSquare, player)
 }
 
 fun tryMoveKnight(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
@@ -53,6 +61,7 @@ fun tryMoveKnight(curSquare: Square, newSquare: Square, table: Array<Array<Board
     if (moveStats.pieceType !is Knight) return false
     val possibleSquares = listOfNotNull(
         curSquare.moveUp(player)?.moveUp(player)?.moveLeft(player),
+        curSquare.moveUp(player)?.moveUp(player)?.moveRight(player),
         curSquare.moveLeft(player)?.moveLeft(player)?.moveDown(player),
         curSquare.moveLeft(player)?.moveLeft(player)?.moveUp(player),
         curSquare.moveRight(player)?.moveRight(player)?.moveUp(player),
@@ -70,20 +79,8 @@ fun tryMoveRook(curSquare: Square, newSquare: Square, table: Array<Array<Board.P
     val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
     val player = moveStats.player
     val (rowDif, colDif) = moveStats.diff
-    if (moveStats.pieceType !is Rook || rowDif != 0 && colDif != 0) return false
-    var n = 0
-    // number of squares to iterate in following loop
-    val times = if (rowDif == 0) abs(colDif)-1 else abs(rowDif)-1
-    repeat(times) { i -> // TODO -> i is not being incremented
-        val nextSquare = Square(curSquare.column.ordinal+ if (colDif==0) 0 else if (colDif<0) -n-1 else n+1,
-            curSquare.row.ordinal+ if (rowDif==0) 0 else if (rowDif<0) -n-1 else n+1) ?: return false
-        if (hasPiece(nextSquare, table) && nextSquare != newSquare)
-            return false
-        ++n
-    }
-    if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
-        return false
-    return true
+    if (moveStats.pieceType !is Rook) return false
+    return checkHorizontalsVerticals(rowDif, colDif, curSquare, table, newSquare, player)
 }
 
 /**
@@ -94,19 +91,8 @@ private fun tryMoveBishop(curSquare: Square, newSquare: Square, table: Array<Arr
     val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
     val player = moveStats.player
     val (rowDif, colDif) = moveStats.diff
-    if (moveStats.pieceType !is Bishop || abs(rowDif) != abs(colDif)) return false
-    // hold the direction to iterate in the Board
-    var n = 0
-    repeat(abs(rowDif)-1) { i -> // TODO -> i is not being incremented
-        val nextSquare = Square(curSquare.column.ordinal+ if (colDif>0) n+1 else -n-1,
-            curSquare.row.ordinal+ if (rowDif>0) n+1 else -n-1) ?: return false
-        if (hasPiece(nextSquare, table) && nextSquare != newSquare)
-            return false
-        ++n
-    }
-    if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
-        return false
-    return true
+    if (moveStats.pieceType !is Bishop) return false
+    return checkDiagonals(rowDif, curSquare, colDif, table, newSquare, player)
 }
 
 /**
@@ -159,18 +145,18 @@ private fun hasEnemyPiece(player: Player, square: Square, table: Array<Array<Boa
     require( hasPiece(square, table) )
     return table[square.row.ordinal][square.column.ordinal]?.player !== player
 }
+
 private fun hasFriendlyPiece(player: Player, square: Square, table: Array<Array<Board.Piece?>>): Boolean {
     require( hasPiece(square, table) )
     return table[square.row.ordinal][square.column.ordinal]?.player === player
 }
 private fun hasPiece(square: Square, table: Array<Array<Board.Piece?>>) =
     table[square.row.ordinal][square.column.ordinal]?.player !== null
-
 private fun Square.moveUp(player: Player) = if (player === Player.WHITE) this.decRow() else this.incRow()
+
 private fun Square.moveDown(player: Player) = if (player === Player.WHITE) this.incRow() else this.decRow()
 private fun Square.moveLeft(player: Player) = if (player === Player.WHITE) this.decColumn() else this.incColumn()
 private fun Square.moveRight(player: Player) = if (player === Player.WHITE) this.incColumn() else this.decColumn()
-
 private data class MoveStats(val pieceType: PieceType, val player: Player, val diff: Pair<Int, Int>)
 
 /**
@@ -182,4 +168,63 @@ private fun getMoveStats(curSquare: Square, newSquare: Square, table: Array<Arra
     val player = piece.player
     val (rowDif, colDif) = getSquareDiff(curSquare, newSquare)
     return MoveStats(piece.type, player, Pair(rowDif, colDif))
+}
+
+/**
+ * Checks if diagonal squares given by [rowDif] and [colDif] have some piece.
+ * @return false if there are no diagonal squares to check.
+ */
+private fun checkDiagonals(
+    rowDif: Int,
+    curSquare: Square,
+    colDif: Int,
+    table: Array<Array<Board.Piece?>>,
+    newSquare: Square,
+    player: Player
+): Boolean {
+    if (abs(rowDif) != abs(colDif) || rowDif == 0) return false
+    // hold the direction to iterate in the Board
+    var n = 0
+    repeat(abs(rowDif) - 1) { i -> // TODO -> i is not being incremented
+        val nextSquare = Square(
+            curSquare.column.ordinal + if (colDif > 0) n + 1 else -n - 1,
+            curSquare.row.ordinal + if (rowDif > 0) n + 1 else -n - 1
+        ) ?: return false
+        if (hasPiece(nextSquare, table) && nextSquare != newSquare)
+            return false
+        ++n
+    }
+    if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
+        return false
+    return true
+}
+
+/**
+ * Checks if horizontal or vertical squares given by [rowDif] and [colDif] have some piece.
+ * @return false if there are no horizontal or vertical squares to check.
+ */
+private fun checkHorizontalsVerticals(
+    rowDif: Int,
+    colDif: Int,
+    curSquare: Square,
+    table: Array<Array<Board.Piece?>>,
+    newSquare: Square,
+    player: Player
+): Boolean {
+    if (rowDif != 0 && colDif != 0 || rowDif == 0 && colDif == 0) return false
+    var n = 0
+    // number of squares to iterate in following loop
+    val times = if (rowDif == 0) abs(colDif) - 1 else abs(rowDif) - 1
+    repeat(times) { i -> // TODO -> i is not being incremented
+        val nextSquare = Square(
+            curSquare.column.ordinal + if (colDif == 0) 0 else if (colDif < 0) -n - 1 else n + 1,
+            curSquare.row.ordinal + if (rowDif == 0) 0 else if (rowDif < 0) -n - 1 else n + 1
+        ) ?: return false
+        if (hasPiece(nextSquare, table) && nextSquare != newSquare)
+            return false
+        ++n
+    }
+    if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
+        return false
+    return true
 }
