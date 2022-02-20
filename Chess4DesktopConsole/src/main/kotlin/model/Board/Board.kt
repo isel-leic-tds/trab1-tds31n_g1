@@ -275,20 +275,7 @@ class Board {
      * Checks if it is possible to make a castling move.
      */
     private fun canCastle(move: Move): Boolean {
-        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
-        // checks piece in the boardArray
-        if (piece == null || piece.type !is King || piece.type.hasMoved) return false
-        val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        if (diffCol == 2) {
-            val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
-            if (piece != null && piece.type is Rook && !piece.type.hasMoved)
-                return true
-        } else if (diffCol == -2) {
-            val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
-            if (piece != null && piece.type is Rook && !piece.type.hasMoved)
-                return true
-        }
-        return false
+        return canCastle(move, boardArr)
     }
 
     enum class Direction { LEFT, RIGHT }
@@ -332,23 +319,7 @@ class Board {
     private fun canEnPassant(move: Move): Boolean {
         // if given move is not valid (for some reason)
         if (isValidSquare(move) is Error) return false
-        val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-        // playerPiece will never be null because we called isValidSquare()
-        val piece = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal]!!
-        if (diffCol == -1) { //Left
-            val advPawn = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1]
-            if (advPawn != null && piece.player != advPawn.player)
-                if ((piece.type is Pawn) && (advPawn.type is Pawn) && (advPawn.type.twoSteps)) {
-                    return true
-            }
-        } else if (diffCol == 1) { //Right
-            val advPawn = boardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1]
-            if (advPawn != null && piece.player != advPawn.player)
-                if ((piece.type is Pawn) && (advPawn.type is Pawn) && (advPawn.type.twoSteps)) {
-                    return true
-            }
-        }
-        return false
+        return canEnPassant(move, boardArr)
     }
 
     /**

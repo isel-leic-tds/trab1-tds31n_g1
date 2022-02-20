@@ -37,6 +37,8 @@ class King(val hasMoved:Boolean = false): PieceType()
 fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
     val piece = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
     if (piece == null || piece.type.toStr() != move.piece.toStr()) return false
+    if (canEnPassant(move, table)) return true
+    if (canCastle(move, table)) return true
     return when (piece.type) {
         is Pawn -> tryMovePawn(move.curSquare, move.newSquare, table)
         is Bishop -> tryMoveBishop(move.curSquare, move.newSquare, table)
@@ -149,6 +151,49 @@ private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array
     return false
 
 }
+
+/**
+ * Checks if it is possible to make enPassant with given parameters.
+ */
+fun canEnPassant(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
+    val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+    // playerPiece will never be null because we called isValidSquare()
+    val piece = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return false
+    if (piece.type !is Pawn) return false
+    if (diffCol == -1) { //Left
+        val advPawn = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1]
+        if (advPawn != null && piece.player != advPawn.player)
+            if (advPawn.type is Pawn && advPawn.type.twoSteps)
+                return true
+    } else if (diffCol == 1) { //Right
+        val advPawn = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal + 1]
+        if (advPawn != null && piece.player != advPawn.player)
+            if (advPawn.type is Pawn && advPawn.type.twoSteps)
+                return true
+    }
+    return false
+}
+
+/**
+ * Checks if it is possible to make a castling move.
+ */
+fun canCastle(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
+    val piece = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
+    // checks piece in the boardArray
+    if (piece == null || piece.type !is King || piece.type.hasMoved) return false
+    val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+    if (diffCol == 2) {
+        val piece = table[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
+        if (piece != null && piece.type is Rook && !piece.type.hasMoved)
+            return true
+    } else if (diffCol == -2) {
+        val piece = table[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
+        if (piece != null && piece.type is Rook && !piece.type.hasMoved)
+            return true
+    }
+    return false
+}
+
 
 private fun getSquareDiff(curSquare: Square, newSquare: Square) =
     newSquare.row.ordinal - curSquare.row.ordinal to newSquare.column.ordinal - curSquare.column.ordinal
