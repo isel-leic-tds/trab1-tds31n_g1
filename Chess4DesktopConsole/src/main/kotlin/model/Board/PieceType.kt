@@ -43,8 +43,25 @@ fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
         is Rook -> tryMoveRook(move.curSquare, move.newSquare, table)
         is Knight -> tryMoveKnight(move.curSquare, move.newSquare, table)
         is Queen -> tryMoveQueen(move.curSquare, move.newSquare, table)
-        is King -> return false
+        is King -> tryMoveKing(move.curSquare, move.newSquare, table)
     }
+}
+
+fun tryMoveKing(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    val moveStats = getMoveStats(curSquare, newSquare, table) ?: return false
+    val player = moveStats.player
+    if (moveStats.pieceType !is King) return false
+    val possibleSquares = listOfNotNull(
+        curSquare.moveUp(player),
+        curSquare.moveUp(player)?.moveLeft(player),
+        curSquare.moveUp(player)?.moveRight(player),
+        curSquare.moveLeft(player),
+        curSquare.moveRight(player),
+        curSquare.moveDown(player),
+        curSquare.moveDown(player)?.moveLeft(player),
+        curSquare.moveDown(player)?.moveRight(player)
+    )
+    return checkSquares(possibleSquares, player, newSquare, table)
 }
 
 fun tryMoveQueen(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
@@ -68,11 +85,9 @@ fun tryMoveKnight(curSquare: Square, newSquare: Square, table: Array<Array<Board
         curSquare.moveLeft(player)?.moveLeft(player)?.moveDown(player),
         curSquare.moveRight(player)?.moveRight(player)?.moveDown(player),
         curSquare.moveDown(player)?.moveDown(player)?.moveLeft(player),
-        curSquare.moveDown(player)?.moveDown(player)?.moveRight(player),
-    ).map{ square -> // checks if any of the squares matches the newSquare and if is suiteble to be moved to
-        newSquare == square && (hasPiece(square, table) && hasEnemyPiece(player, square, table) || !hasPiece(square, table))
-    }.filter { it } // filters the square that match
-    return possibleSquares.isNotEmpty()
+        curSquare.moveDown(player)?.moveDown(player)?.moveRight(player)
+    )
+    return checkSquares(possibleSquares, player, newSquare, table)
 }
 
 fun tryMoveRook(curSquare: Square, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
@@ -227,4 +242,10 @@ private fun checkHorizontalsVerticals(
     if (hasPiece(newSquare, table) && hasFriendlyPiece(player, newSquare, table))
         return false
     return true
+}
+
+private fun checkSquares(list: List<Square>, player: Player, newSquare: Square, table: Array<Array<Board.Piece?>>): Boolean {
+    return list.map{ square -> // checks if any of the squares matches the newSquare and if is suiteble to be moved to
+        newSquare == square && (hasPiece(square, table) && hasEnemyPiece(player, square, table) || !hasPiece(square, table))
+    }.filter { it }.isNotEmpty()
 }
