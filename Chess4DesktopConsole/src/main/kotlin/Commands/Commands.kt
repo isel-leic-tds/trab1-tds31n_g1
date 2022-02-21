@@ -37,16 +37,15 @@ fun restoreGame(chessDb: ChessDb, gameId: String?): CommandResult {
     if (moves == null) {
         // inserts one document in the database so the other player can join the game
         postMoves(chessDb,gameId,"")
-        return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE,null))
+        return NewBoard(StatusGame(newBoard,listOf(),null))
     }
-    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null),)
+    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), null),)
     val list = moves.content.trim().split(" ").toList()
-    var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
+    var statusGame = StatusGame(newBoard,list, null)
     list.forEach{ move: String ->
         val result = statusGame.board!!.makeMoveWithoutCheck(move)
         val board = result.board
-        val check = result.check
-        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move,check = check )
+        statusGame = statusGame.copy(board = board, lastMove = move)
     }
     return NewBoard(statusGame)
 }
@@ -60,13 +59,13 @@ fun joinGame(chessDb: ChessDb, gameId: String?): CommandResult {
     if (gameId == null) return InvalidGameId()
     val newBoard = Board()
     val moves = DataBase.getMoves(chessDb,gameId) ?: return GameDoesNotExist()
-    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), Player.WHITE, null))
+    if (moves.content == "") return NewBoard(StatusGame(newBoard,listOf(), null))
     val list = moves.content.trim().split(" ").toList()
-    var statusGame = StatusGame(newBoard,list,Player.WHITE, null)
+    var statusGame = StatusGame(newBoard,list, null)
     list.forEach{ move: String -> val result = statusGame.board!!.makeMoveWithoutCheck(move)
         val board = result.board
         val check = result.check
-        statusGame = statusGame.copy(board = board, currentPlayer = statusGame.currentPlayer!!.other(), lastMove = move,check = check )
+        statusGame = statusGame.copy(board = board, lastMove = move)
     }
     return NewBoard(statusGame)
 }
@@ -89,12 +88,13 @@ fun saveMove(chessDb: ChessDb, gameId: String, move: String): CommandResult {
  * Return the new Status Game if the make move went well of null.
  */
 fun makeMove(statusGame: StatusGame, move: Move, player: Player): CommandResult {
-    if (statusGame.currentPlayer != player) return WaitForOtherPlayer()
+    statusGame.board ?: return GameDoesNotExist()
+    if (statusGame.board.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move)
     if (result is model.Board.Error)
         return BoardError(result)
     if (result is model.Board.Success)
-        return NewBoard(StatusGame(result.board, statusGame.moves + move.toString(), player.other(), move.toString(), result.check, result.checkmate))
+        return NewBoard(StatusGame(result.board, statusGame.moves + move.toString(), move.toString()))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
     throw IllegalStateException()
 }

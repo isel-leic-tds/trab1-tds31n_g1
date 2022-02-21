@@ -40,7 +40,8 @@ fun joinGame(menuHandlers: Map<Option, Command>, gameChess: GameChess, gameName:
 }
 
 suspend fun refreshGame(menuHandlers: Map<Option, Command>, gameChess: GameChess): GameChess {
-    if (gameChess.status.currentPlayer === gameChess.player) return gameChess
+    gameChess.status.board ?: return gameChess
+    if (gameChess.status.board.currentPlayer === gameChess.player) return gameChess
     return withContext(Dispatchers.IO) {
         val gameName = "gameTest"
         val command = Option.REFRESH

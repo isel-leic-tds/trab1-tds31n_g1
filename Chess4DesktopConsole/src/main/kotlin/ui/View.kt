@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import chess.model.Square
 import model.Board.*
+import model.GameChess
 import model.Player
+import model.StatusGame
 import kotlin.math.sqrt
 
 val PLAY_SIDE = 40.dp
@@ -40,8 +42,8 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
                 Column {
                     BoardView(chess, onClick)
                     LogView(chess)
-                    CheckView(chess.gameChess.status.check)
-                    CheckmateView(chess.gameChess.status.checkmate)
+                    CheckView(chess.gameChess)
+                    CheckmateView(chess.gameChess.status.board)
                     DrawView(chess.gameChess.status.draw)
                 }
                 MoveView(chess)
@@ -51,8 +53,10 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
 }
 
 @Composable
-fun CheckView(check: Boolean) {
-    if (check) {
+fun CheckView(gameChess: GameChess) {
+    gameChess.status.board?:return
+    if (gameChess.player === gameChess.status.board.currentPlayer && gameChess.status.board.check
+        && !gameChess.status.board.checkmate) {
         Text(
             text = "CHECK",
             color = Color.Red,
@@ -64,8 +68,9 @@ fun CheckView(check: Boolean) {
 }
 
 @Composable
-fun CheckmateView(check: Boolean) {
-    if (check) {
+fun CheckmateView(board: Board?) {
+    board?:return
+    if (board.checkmate) {
         Text(
             text = "CHECKMATE",
             color = Color.Red,
@@ -133,7 +138,7 @@ fun NumbersView() {
 }
 
 @Composable
-fun PlayView(square: Square, board: Board?, selected: Boolean, check: Boolean, onClick: () -> Unit) {
+fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
     paintSquare(square, onClick)
     var m = Modifier.size(PLAY_SIDE)
         .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
@@ -192,7 +197,7 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         Square.values.forEach { square ->
-            PlayView(square, chess.gameChess.status.board, chess.selected === square, chess.gameChess.status.check) { onClick(square) }
+            PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
         }
     }
 }
@@ -206,12 +211,12 @@ fun LogView(chess: Chess) {
     ) {
         val mod = Modifier.padding(5.dp)
         val gameId = chess.gameChess.gameId
-        val currentPlayer = chess.gameChess.status.currentPlayer
+        val currentPlayer = chess.gameChess.status.board?.currentPlayer
         if (gameId != null)
             Column {
                 Row {
                     Text("Game: $gameId", fontWeight = FontWeight.Bold, modifier = mod)
-                    Text(" | Turn: $currentPlayer", fontWeight = FontWeight.Bold, modifier = mod)
+                    Text(" | Turn: ${currentPlayer ?: "     "}", fontWeight = FontWeight.Bold, modifier = mod)
                 }
                 // TODO will display all error messages
                 Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod)

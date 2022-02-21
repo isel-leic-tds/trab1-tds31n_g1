@@ -12,10 +12,7 @@ enum class Player {
 data class StatusGame(
     val board: Board?,
     val moves: List<String>,
-    val currentPlayer: Player?,
     val lastMove: String?,
-    val check: Boolean = false,
-    val checkmate: Boolean = false,
     val draw: Boolean = false
 ) {
     override fun toString(): String {
@@ -25,6 +22,8 @@ data class StatusGame(
 
 data class GameChess(val chessDb: ChessDb, val gameId: String?, val player: Player?, val status: StatusGame) {
     fun isBoardNull() = status.board == null
-    fun isPlayerTurn() = player === status.currentPlayer
-
+    fun isPlayerTurn(): Boolean {
+        status.board ?: return false
+        return player === status.board.currentPlayer
+    }
 }

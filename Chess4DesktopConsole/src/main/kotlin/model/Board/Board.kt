@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 abstract class Result
 
-data class Success(val board: Board, val check: Boolean = false, val checkmate: Boolean = false): Result() {
+data class Success(val board: Board, val check: Boolean = false): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -45,8 +45,8 @@ data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Squa
         /**
          * @return a List with all possible Move's for a given [pieceType]
          */
-        fun getAllMoves(pieceType: PieceType) =
-            Square.values.map { curSquare -> Square.values.map { newSquare -> Move(pieceType, curSquare, newSquare) } }.flatMap { it.toList() }
+        fun getAllMoves(square: Square, pieceType: PieceType) =
+            Square.values.map { newSquare -> Move(pieceType, square, newSquare) }
     }
 
     override fun toString(): String {
@@ -72,7 +72,8 @@ class Board {
     private val COLS = 8
     internal val boardArr: Array<Array<Piece?>>
     operator fun get(square: Square) = boardArr[square.row.ordinal][square.column.ordinal]
-    private val finished: Boolean
+    val checkmate: Boolean
+    val check: Boolean
 
     /**
      * Saves the position of the king throughout the game (It is going to be used for check and checkmate)
@@ -86,13 +87,14 @@ class Board {
      * To iniciate the Game
      */
     constructor() {
-        finished = false
         boardArr = Array(LINES) { Array(COLS) { null } }
         // updates the white and black King positions
         init()
         whiteKingPosition = Square(Column.E,Row.ONE)
         blackKingPosition = Square(Column.E,Row.EIGHT)
         currentPlayer = Player.WHITE
+        check = false
+        checkmate = false
     }
 
     /**
@@ -100,7 +102,6 @@ class Board {
      */
     private constructor(board: Board, boardArr: Array<Array<Piece?>>) { //Sempre que este construtor é chamado foi realizada uma jogada com sucesso
         this.boardArr = boardArr
-        finished = board.finished
         var whiteKingPosition: Square? = null
         var blackKingPosition: Square? = null
         Square.values.forEach {square -> //Dar update da posição do rei
@@ -118,17 +119,8 @@ class Board {
         this.whiteKingPosition = whiteKingPosition!!
         this.blackKingPosition = blackKingPosition!!
         currentPlayer = board.currentPlayer.other()
-    }
-
-    /**
-     * To change the [endOfGame] state
-     */
-    private constructor(board: Board, boardArr: Array<Array<Piece?>>, endOfGame: Boolean) { //TODO: Não está a ser usado
-        whiteKingPosition = board.whiteKingPosition
-        blackKingPosition = board.blackKingPosition
-        this.boardArr = boardArr
-        finished = endOfGame
-        currentPlayer = board.currentPlayer
+        check = isKingInCheck(boardArr, if (currentPlayer === Player.WHITE) whiteKingPosition!! else blackKingPosition!!)
+        this.checkmate = if (board.checkmate) true else isInCheckmate(boardArr, this.whiteKingPosition, this.blackKingPosition)
     }
 
     /**
@@ -193,7 +185,7 @@ class Board {
      * @return Result
      */
     fun makeMove(move: Move): Result {
-        if (finished) return Finished()
+        if (checkmate) return Finished()
         //isValidSquare() // TODO -> maybe its no necessary
         // checks move type and also if the move is valid
         val move = getMoveWithType(move) ?: return InvalidMove(move.toString())

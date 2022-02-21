@@ -90,7 +90,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
 }
 
 fun createGame(driver: MongoDriver) =
-    GameChess(FileDb(), null, null, StatusGame(null,listOf(),null, null))
+    GameChess(FileDb(), null, null, StatusGame(null,listOf(),null))
 
 abstract class Result()
 object PromotionNecessary: Result()

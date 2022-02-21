@@ -38,13 +38,13 @@ fun isKingInCheck(boardArr: Array<Array<Board.Piece?>>, kingSquare: Square): Boo
 fun tryToMoveKing(kingSquare: Square, boardArr: Array<Array<Board.Piece?>>): Boolean {
     val king = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
     if (king == null || king.type !is King) return false
-    val allMoves = Move.getAllMoves(King())
+    val allMoves = Move.getAllMoves(kingSquare, King())
     val allvalidMoves = allMoves.filter { tryToMove(it, boardArr) }
     allvalidMoves.forEach { move ->
         val newBoard = boardArr.copy()
         newBoard[kingSquare.row.ordinal][kingSquare.column.ordinal] = null
         newBoard[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = king
-        if (!isKingInCheck(boardArr, move.newSquare)) return true
+        if (!isKingInCheck(newBoard, move.newSquare)) return true
     }
     return false
 }
@@ -60,13 +60,13 @@ fun isPieceThatProtectKing(kingSquare: Square, boardArr: Array<Array<Board.Piece
     Square.values.forEach { square ->
         val piece = boardArr[square.row.ordinal][square.column.ordinal]
         if (piece != null && piece.player === kingPlayer && square !== kingSquare) {
-            val allMoves = Move.getAllMoves(piece.type)
-            val allvalidMoves = allMoves.filter { tryToMove(it, boardArr) }
-            allvalidMoves.forEach { move ->
+            val allMoves = Move.getAllMoves(square, piece.type)
+            val allValidMoves = allMoves.filter { tryToMove(it, boardArr) }
+            allValidMoves.forEach { move ->
                 val newBoard = boardArr.copy()
                 newBoard[square.row.ordinal][square.column.ordinal] = null
                 newBoard[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-                if (!isKingInCheck(boardArr, move.newSquare)) return true
+                if (!isKingInCheck(newBoard, kingSquare)) return true
             }
         }
     }

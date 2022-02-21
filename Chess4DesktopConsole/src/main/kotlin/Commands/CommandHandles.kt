@@ -58,7 +58,7 @@ fun buildMenuHandlers() = mapOf(
                 // displays Board
                 println(result.gameChess.status)
                 println("Game "+gameChess.gameId+" opened. Play with white pieces")
-                println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
+                println(result.gameChess.gameId+':'+result.gameChess.status.board?.currentPlayer+'>')
             }
         }
     ),
@@ -83,7 +83,7 @@ fun buildMenuHandlers() = mapOf(
                 // displays Board
                 println(result.gameChess.status)
                 println("Game "+gameChess.gameId+" opened. Play with black pieces")
-                println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
+                println(result.gameChess.gameId+':'+result.gameChess.status.board?.currentPlayer+'>')
             }
         }
     ),
@@ -111,11 +111,11 @@ fun buildMenuHandlers() = mapOf(
             if (result is Success) {
                 // dysplays board
                 println(result.gameChess.status)
-                println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
+                println(result.gameChess.gameId+':'+result.gameChess.status.board?.currentPlayer+'>')
             }
             if (result is Error) {
                 println(result)
-                println(result.gameChess.gameId + ':' + result.gameChess.status.currentPlayer + '>')
+                println(result.gameChess.gameId + ':' + result.gameChess.status.board?.currentPlayer + '>')
             }
         }
     ),
@@ -145,7 +145,7 @@ fun buildMenuHandlers() = mapOf(
             if (result is Success) {
                 // dysplays board
                 println(result.gameChess.status)
-                println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
+                println(result.gameChess.gameId+':'+result.gameChess.status.board?.currentPlayer+'>')
             }
         }
     ),
@@ -161,7 +161,7 @@ fun buildMenuHandlers() = mapOf(
                println(result)
             if (result is Success) {
                 println(result.gameChess.status.moves.toString())
-                println(result.gameChess.gameId+':'+result.gameChess.status.currentPlayer+'>')
+                println(result.gameChess.gameId+':'+result.gameChess.status.board?.currentPlayer+'>')
             }
 
         },
