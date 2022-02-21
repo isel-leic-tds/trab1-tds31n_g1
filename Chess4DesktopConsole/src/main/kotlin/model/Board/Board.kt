@@ -226,6 +226,17 @@ class Board {
     }
 
     /**
+     * @return a list of Square's in wich is possible to move to from [square].
+     * @return an empty List if there are no squares to move to or [square] has no Piece.
+     */
+    fun getPossibleSquaresToMove(square: Square): List<Square> {
+        val piece = boardArr[square.row.ordinal][square.column.ordinal] ?: return emptyList()
+        return Move.getAllMoves(square, piece.type)
+            .filter { move -> tryToMove(move, boardArr) }
+            .map { move -> move.newSquare }
+    }
+
+    /**
      * Checks if given [move] has a type and if not, returns a new move with correct type.
      * If the type is Promotion and given [move] is not Promotion, returns a new Move with
      * Promotion but the new Piece is empty.
@@ -525,6 +536,7 @@ class Board {
         }
         return str
     }
+
     /*******************************************************************************************************************************/
 }
 

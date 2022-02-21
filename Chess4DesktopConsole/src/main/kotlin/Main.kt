@@ -16,7 +16,7 @@ import ui.ChessMenuBar
 import ui.DialogGameName
 import ui.DialogPromotionPiece
 
-data class Chess(val selected: Square? = null, val gameChess: GameChess) {}
+data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
 fun main() = MongoDriver().use { driver ->
     application {

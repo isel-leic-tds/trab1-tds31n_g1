@@ -1,12 +1,11 @@
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.painterResource
@@ -138,17 +137,16 @@ fun NumbersView() {
 }
 
 @Composable
-fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Unit) {
+fun PlayView(square: Square, board: Board?, selected: Boolean, possibleSquare: Boolean, onClick: () -> Unit) {
     paintSquare(square, onClick)
     var m = Modifier.size(PLAY_SIDE)
         .offset((PLAY_SIDE+GRID_WIDTH)*square.column.ordinal, (PLAY_SIDE+GRID_WIDTH)*square.row.ordinal)
-    if (selected) m = m.border(2.dp, Color.Red)
+    if (selected) {
+        m = m.border(2.dp, Color.Red)
+    }
     if (board != null) {
-        //if (!check) m = m.clickable { onClick() }
         val place = board[square]
         if (place != null) {
-            /*if (!check && place.type === Queen())
-                m = m.clickable { onClick() }*/
             val player = place.player
             val img =
                 when (board[square]!!.type) {
@@ -164,6 +162,9 @@ fun PlayView(square: Square, board: Board?, selected: Boolean, onClick: () -> Un
             else
                 Image(painterResource("${img}B.png"), img, m)
         }
+        // draws circle
+        if (possibleSquare)
+            Box(modifier = m.clip(CircleShape).background(Color.Green.copy(alpha = 0.3f)))
     }
 }
 
@@ -196,8 +197,18 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
         .padding(20.dp)
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
-        Square.values.forEach { square ->
-            PlayView(square, chess.gameChess.status.board, chess.selected === square) { onClick(square) }
+        if (chess.gameChess.status.board != null ) {
+            val possibleSquares =
+                if (chess.selected != null) chess.gameChess.status.board.getPossibleSquaresToMove(chess.selected) else emptyList()
+            Square.values.forEach { square ->
+                val test = possibleSquares.any {it == square}
+                PlayView(
+                    square,
+                    chess.gameChess.status.board,
+                    chess.selected === square,
+                    possibleSquares.any {it == square}
+                ) {onClick(square)}
+            }
         }
     }
 }
