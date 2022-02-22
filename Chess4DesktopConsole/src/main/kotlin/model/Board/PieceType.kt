@@ -179,18 +179,30 @@ fun canEnPassant(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
  */
 // TODO -> fix!
 fun canCastle(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
-    val piece = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
-    // checks piece in the boardArray
-    if (piece == null || piece.type !is King || piece.type.hasMoved) return false
-    val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
-    if (diffCol == 2) {
+    val moveStats = getMoveStats(move.curSquare, move.newSquare, table) ?: return false
+    val player = moveStats.player
+    if (moveStats.pieceType !is King || moveStats.pieceType.hasMoved) return false
+    // checks row dif
+    if (moveStats.diff.first != 0) return false
+    if (moveStats.diff.second == 2) { // to right
         val piece = table[move.newSquare.row.ordinal][move.newSquare.column.ordinal+1]
-        if (piece != null && piece.type is Rook && !piece.type.hasMoved)
-            return true
-    } else if (diffCol == -2) {
+        if (piece != null && piece.type is Rook && !piece.type.hasMoved) {
+            val square1 = move.curSquare.moveRight(player) ?: return false
+            val square2 = square1.moveRight(player) ?: return false
+            // checks if there is at least one piece between King and Rook
+            return !listOf(square1, square2).map { table[it.row.ordinal][it.column.ordinal] }
+                .any{it != null}
+        }
+    } else if (moveStats.diff.second == -2) { // to left
         val piece = table[move.newSquare.row.ordinal][move.newSquare.column.ordinal-2]
-        if (piece != null && piece.type is Rook && !piece.type.hasMoved)
-            return true
+        if (piece != null && piece.type is Rook && !piece.type.hasMoved) {
+            val square1 = move.curSquare.moveLeft(player) ?: return false
+            val square2 = square1.moveLeft(player) ?: return false
+            val square3 = square2.moveLeft(player) ?: return false
+            // checks if there is at least one piece between King and Rook
+            return !listOf(square1, square2, square3).map { table[it.row.ordinal][it.column.ordinal] }
+                .any { it != null }
+        }
     }
     return false
 }
