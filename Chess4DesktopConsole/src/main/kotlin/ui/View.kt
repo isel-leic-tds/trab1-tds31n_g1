@@ -3,11 +3,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.VerticalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -19,20 +17,35 @@ import chess.model.Square
 import model.Board.*
 import model.GameChess
 import model.Player
-import model.StatusGame
 import kotlin.math.sqrt
 
+val BOARD_VIEW_PADDING = 30.dp
+val LETTER_VIEW_PADDING_START = 50.dp
+val LETTER_VIEW_PADDING_TOP = 20.dp
+val NUMBER_VIEW_PADDING_START = 20.dp
+val NUMBER_VIEW_PADDING_TOP = 20.dp
 val PLAY_SIDE = 40.dp
 val GRID_WIDTH = 5.dp
 val GAME_DIM = sqrt(Square.values.size.toDouble()).toInt()
-val BOARD_SIDE = PLAY_SIDE * GAME_DIM + GRID_WIDTH *(GAME_DIM -1)
-val MOVES_DIM = 300.dp
+val MOVES_WITH = 300.dp
 val LOG_HEIGHT = 80.dp
+val MOVE_VIEW_BOX_PADDING = 20.dp
+val MOVE_VIEW_ROW_PADDING = 10.dp
+val LOG_VIEW_PADDING = 10.dp
+val CHECK_VIEW = 10.dp
+val CHECKMATE_VIEW = 10.dp
+
+val TOTAL_HEIGHT =
+    BOARD_VIEW_PADDING + LETTER_VIEW_PADDING_START + LETTER_VIEW_PADDING_TOP +
+    NUMBER_VIEW_PADDING_START + NUMBER_VIEW_PADDING_TOP +
+    (PLAY_SIDE + GRID_WIDTH) * GAME_DIM + LOG_HEIGHT + LOG_VIEW_PADDING + CHECK_VIEW +
+    CHECKMATE_VIEW + MOVE_VIEW_BOX_PADDING + MOVE_VIEW_ROW_PADDING
 
 @Composable
 fun MainView(chess: Chess, onClick: (Square)->Unit ) {
     Box(Modifier
         .background(Color(225, 172, 27))
+        .height(TOTAL_HEIGHT)
     ) {
         Column {
             LettersView()
@@ -51,6 +64,7 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
     }
 }
 
+
 @Composable
 fun CheckView(gameChess: GameChess) {
     gameChess.status.board?:return
@@ -61,7 +75,7 @@ fun CheckView(gameChess: GameChess) {
             color = Color.Red,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
+                .size(height = PLAY_SIDE+GRID_WIDTH, width = CHECK_VIEW),
         )
     }
 }
@@ -75,31 +89,29 @@ fun CheckmateView(board: Board?) {
             color = Color.Red,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
+                .size(height = PLAY_SIDE+GRID_WIDTH, width = CHECKMATE_VIEW),
         )
     }
 }
 
 @Composable
 fun DrawView(drawView: Boolean) {
-        if (drawView) {
-        Text(
+    if (drawView) {
+            Text(
             text = "DRAW",
             color = Color.Red,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
-        )
-    }
+        )}
 }
 
 @Composable
 fun LettersView() {
     Box(
         Modifier
-            .padding(start = 50.dp, top = 20.dp)
+            .padding(start = LETTER_VIEW_PADDING_START, top = LETTER_VIEW_PADDING_TOP)
             .size(height = Dp.Unspecified, width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1),)
-        //.background(Color.Red)
     ) {
         Row {
             repeat(8) {
@@ -107,7 +119,6 @@ fun LettersView() {
                     text = "${('a'.code +it).toChar()}",
                     modifier = Modifier
                         .size(height = Dp.Unspecified, width = PLAY_SIDE+GRID_WIDTH),
-                        //.background(Color.White)
                     textAlign = TextAlign.Center
                 )
             }
@@ -119,9 +130,8 @@ fun LettersView() {
 fun NumbersView() {
     Box(
         Modifier
-            .padding(start = 20.dp, top = 20.dp)
+            .padding(start = NUMBER_VIEW_PADDING_START, top = NUMBER_VIEW_PADDING_TOP)
             .size(height = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), width = Dp.Unspecified)
-            //.background(Color.Red)
     ) {
         Column {
             repeat(8) {
@@ -129,7 +139,6 @@ fun NumbersView() {
                     text = "${8 - it}",
                     modifier = Modifier
                         .size(height = PLAY_SIDE+GRID_WIDTH, width = Dp.Unspecified),
-                        //.background(Color.White)
                 )
             }
         }
@@ -194,21 +203,18 @@ private fun paintSquare(square: Square, onClick: () -> Unit) {
 @Composable
 fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
     Box(Modifier
-        .padding(20.dp)
+        .padding(BOARD_VIEW_PADDING)
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
-        if (chess.gameChess.status.board != null ) {
-            val possibleSquares =
-                if (chess.selected != null) chess.gameChess.status.board.getPossibleSquaresToMove(chess.selected) else emptyList()
-            Square.values.forEach { square ->
-                val test = possibleSquares.any {it == square}
-                PlayView(
-                    square,
-                    chess.gameChess.status.board,
-                    chess.selected === square,
-                    possibleSquares.any {it == square}
-                ) {onClick(square)}
-            }
+        val possibleSquares =
+            if (chess.selected != null) chess.gameChess.status.board?.getPossibleSquaresToMove(chess.selected) else emptyList()
+        Square.values.forEach { square ->
+            PlayView(
+                square,
+                chess.gameChess.status.board,
+                chess.selected === square,
+                possibleSquares?.any {it == square} ?: false
+            ) {onClick(square)}
         }
     }
 }
@@ -216,7 +222,7 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
 @Composable
 fun LogView(chess: Chess) {
     Box(Modifier
-        .padding(10.dp)
+        .padding(LOG_VIEW_PADDING)
         .size(width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), height = LOG_HEIGHT)
 
     ) {
@@ -238,8 +244,8 @@ fun LogView(chess: Chess) {
 @Composable
 fun MoveView(chess: Chess) {
     Box(Modifier
-        .padding(20.dp)
-        .size(width = MOVES_DIM, height = Dp.Unspecified)
+        .padding(MOVE_VIEW_BOX_PADDING)
+        .size(width = MOVES_WITH, height = Dp.Unspecified)
         .background(Color.White)
     ) {
         Column {
@@ -247,7 +253,7 @@ fun MoveView(chess: Chess) {
             val size = moves.size
             moves.forEachIndexed { n, move ->
                 if (n % 2 == 0) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(10.dp).fillMaxWidth()) {
+                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(MOVE_VIEW_ROW_PADDING).fillMaxWidth()) {
                         Text(
                             "${n/2+1}. $move",
                             fontFamily = FontFamily.Monospace,

@@ -20,7 +20,7 @@ data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
 fun main() = MongoDriver().use { driver ->
     application {
-        val winState = WindowState(width = Dp.Unspecified, height = Dp.Unspecified)
+        val winState = WindowState(width = Dp.Unspecified, height = TOTAL_HEIGHT)
         Window(
             onCloseRequest = ::exitApplication,
             state = winState,
