@@ -1,7 +1,6 @@
 import Commands.Command
 import Commands.Option
 import Commands.buildMenuHandlers
-import DataBase.FileDb
 import DataBase.MongoDb
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.runtime.*
@@ -11,7 +10,6 @@ import kotlinx.coroutines.launch
 import model.Board.Board
 import model.Board.Move
 import model.GameChess
-import model.Player
 import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
@@ -37,8 +35,13 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
             onOpen = {
                 startGame = {
                     val gameChess = openGame(menuHandlers, chess.gameChess, it)
-                    if (gameChess != null)
+                    if (gameChess != null) {
                         chess = chess.copy(gameChess = gameChess)
+                        scope.launch {
+                            val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                            chess = chess.copy(gameChess = gameChess)
+                        }
+                    }
                     chess
                 }
             },

@@ -1,20 +1,13 @@
-import Commands.Command
-import Commands.buildMenuHandlers
-import DataBase.FileDb
-import androidx.compose.desktop.DesktopMaterialTheme
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
+import androidx.compose.ui.window.application
 import chess.model.Square
-import kotlinx.coroutines.launch
-import model.Board.PieceType
-import model.Board.toStr
 import model.GameChess
-import model.StatusGame
 import mongoDb.MongoDriver
-import ui.ChessMenuBar
-import ui.DialogGameName
-import ui.DialogPromotionPiece
+
+//var variable = "MONGO_CONNECTION=mongodb+srv://miguel:RGJ#rc74JhB3V.f@cluster0.pwqp1.mongodb.net/TDS?retryWrites=true&w=majority"
+//val var2 = "MONGO_DB_NAME=TDS"
 
 data class Chess(val selected: Square? = null, val gameChess: GameChess)
 
