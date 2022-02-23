@@ -6,7 +6,6 @@ enum class Row(val digit: Char) {
         val values = Array<Row>(Column.values().size) { it ->
             Row.values()[it]
         }
-        // TODO -> fix here
         operator fun invoke(n: Int) = if (n in values.indices) values[n] else null
     }
     /**

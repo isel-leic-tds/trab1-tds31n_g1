@@ -186,7 +186,6 @@ class Board {
      */
     fun makeMove(move: Move): Result {
         if (checkmate) return Finished()
-        //isValidSquare() // TODO -> maybe its no necessary
         // checks move type and also if the move is valid
         val move = getMoveWithType(move) ?: return InvalidMove(move.toString())
         val newBoard = makeOneMove(move) ?: return InvalidMove(move.toString())

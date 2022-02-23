@@ -1,3 +1,4 @@
+import Commands.Option
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -42,7 +43,7 @@ val TOTAL_HEIGHT =
     CHECKMATE_VIEW + MOVE_VIEW_BOX_PADDING + MOVE_VIEW_ROW_PADDING
 
 @Composable
-fun MainView(chess: Chess, onClick: (Square)->Unit ) {
+fun MainView(chess: Chess, showTargets: Boolean, onClick: (Square)->Unit) {
     Box(Modifier
         .background(Color(225, 172, 27))
         .height(TOTAL_HEIGHT)
@@ -52,7 +53,7 @@ fun MainView(chess: Chess, onClick: (Square)->Unit ) {
             Row {
                 NumbersView()
                 Column {
-                    BoardView(chess, onClick)
+                    BoardView(chess, onClick, showTargets)
                     LogView(chess)
                     CheckView(chess.gameChess)
                     CheckmateView(chess.gameChess.status.board)
@@ -201,13 +202,13 @@ private fun paintSquare(square: Square, onClick: () -> Unit) {
  * Draws the board.
  */
 @Composable
-fun BoardView(chess: Chess, onClick: (Square)->Unit ) {
+fun BoardView(chess: Chess, onClick: (Square)->Unit, showTargets: Boolean) {
     Box(Modifier
         .padding(BOARD_VIEW_PADDING)
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         val possibleSquares =
-            if (chess.selected != null) chess.gameChess.status.board?.getPossibleSquaresToMove(chess.selected) else emptyList()
+            if (showTargets && chess.selected != null) chess.gameChess.status.board?.getPossibleSquaresToMove(chess.selected) else emptyList()
         Square.values.forEach { square ->
             PlayView(
                 square,

@@ -21,11 +21,16 @@ import ui.DialogPromotionPiece
 fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
     val scope = rememberCoroutineScope()
     val menuHandlers = buildMenuHandlers()
+
     // model
     var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
     var startGame by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
     var openPromotion by remember { mutableStateOf(false) }
     var moveForPromotion by remember { mutableStateOf<Move?>(null) }
+
+    data class Options(val targets: Boolean, val singlePlayer: Boolean)
+    var options by remember { mutableStateOf(Options(targets = true, singlePlayer = false)) }
+
     DesktopMaterialTheme {
         ChessMenuBar(
             onOpen = {
@@ -48,9 +53,11 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
                     }
                     chess
                 }
-            }
+            },
+            onTargets = { options = options.copy(targets = !options.targets) },
+            onSinglePlayer = { options = options.copy(singlePlayer = !options.singlePlayer) },
         )
-        MainView(chess) { square ->
+        MainView(chess, options.targets) { square ->
             val result = onSquarePressed(chess, square, menuHandlers)
             if (result is Success) {
                 chess = result.chess

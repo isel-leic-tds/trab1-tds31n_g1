@@ -177,7 +177,6 @@ fun canEnPassant(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
 /**
  * Checks if it is possible to make a castling move.
  */
-// TODO -> fix!
 fun canCastle(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
     val moveStats = getMoveStats(move.curSquare, move.newSquare, table) ?: return false
     val player = moveStats.player

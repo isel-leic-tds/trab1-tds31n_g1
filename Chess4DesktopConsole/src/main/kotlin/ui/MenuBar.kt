@@ -15,11 +15,14 @@ import androidx.compose.ui.window.*
  * @param onExit Called when the item Game>Exist is selected.
  */
 @Composable
-fun FrameWindowScope.ChessMenuBar(onOpen: ()->Unit, onJoin: ()->Unit ) =  MenuBar {
+fun FrameWindowScope.ChessMenuBar(onOpen: ()->Unit, onJoin: ()->Unit, onTargets: ()->Unit, onSinglePlayer: ()->Unit ) =  MenuBar {
     Menu("Game",'G') {
-        Item("Open", onClick = onOpen /*{TODO open new window to receive name of the game}*/ )
-        Item("Join", onClick = onJoin /*{TODO open new window to receive name of the game}*/ )
-        Item("Options", onClick = {/*TODO */} )
+        Item("Open", onClick = onOpen)
+        Item("Join", onClick = onJoin)
+    }
+    Menu("Options", 'O') {
+        Item("Show Targets", onClick = onTargets)
+        Item("Single Player", onClick = onSinglePlayer)
     }
 }
 
