@@ -50,7 +50,7 @@ suspend fun refreshGame(menuHandlers: Map<Option, Command>, gameChess: GameChess
         var result = cmd!!.action(gameChess, gameName)
         do {
             delay(2000)
-            result = cmd!!.action(gameChess, gameName)
+            result = cmd.action(gameChess, gameName)
         } while (result !is Success || result.gameChess.status.board === gameChess.status.board)
         result.gameChess
     }
