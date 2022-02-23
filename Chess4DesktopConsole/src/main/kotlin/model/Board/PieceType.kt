@@ -139,16 +139,16 @@ private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array
                 player === Player.WHITE && curSquare.row === Row.TWO || player === Player.BLACK && curSquare.row === Row.SEVEN &&
                 !hasPiece(curSquare.moveUp(player)!!.moveUp(player)!!, table)
             )
-                        return true
+                return true
             return false
         }
     }
     // trying to eat
     if (abs(colDif) == 1 && abs(rowDif) == 1) {
-       val squareFrontLeft = curSquare.moveUp(player)?.moveLeft(player)
+        val squareFrontLeft = curSquare.moveUp(player)?.moveLeft(player)
         val squareFrontRight = curSquare.moveUp(player)?.moveRight(player)
         if (newSquare == squareFrontLeft && hasPiece(squareFrontLeft, table) && hasEnemyPiece(player, squareFrontLeft, table)
-                || newSquare == squareFrontRight && hasPiece(squareFrontRight, table) && hasEnemyPiece(player, squareFrontRight, table)
+            || newSquare == squareFrontRight && hasPiece(squareFrontRight, table) && hasEnemyPiece(player, squareFrontRight, table)
         ) return true
     }
     return false
@@ -159,10 +159,15 @@ private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array
  * Checks if it is possible to make enPassant with given parameters.
  */
 fun canEnPassant(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
-    val diffCol = move.newSquare.column.ordinal - move.curSquare.column.ordinal
+    val moveStats = getMoveStats(move.curSquare, move.newSquare, table) ?: return false
+    val diffCol = moveStats.diff.second
+    val diffRow = moveStats.diff.first
+    val player = moveStats.player
     // playerPiece will never be null because we called isValidSquare()
     val piece = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal] ?: return false
     if (piece.type !is Pawn) return false
+    // checks row
+    if (player === Player.WHITE && diffRow != -1 || (player === Player.BLACK && diffRow != 1)) return false
     if (diffCol == -1) { //Left
         val advPawn = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal - 1]
         if (advPawn != null && piece.player != advPawn.player)

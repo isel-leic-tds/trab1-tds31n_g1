@@ -94,7 +94,13 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
                     val moveWithPromotion = board.toPromotionMoveOrNull(moveForPromotionAux, it)
                     if (moveWithPromotion != null) {
                         val result = play(menuHandlers, chess.gameChess, moveWithPromotion)
-                        if (result != null) chess = chess.copy(gameChess = result)
+                        if (result != null) {
+                            chess = chess.copy(gameChess = result)
+                            scope.launch {
+                                val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                                chess = chess.copy(gameChess = gameChess)
+                            }
+                        }
                     }
                 }
                 openPromotion = false

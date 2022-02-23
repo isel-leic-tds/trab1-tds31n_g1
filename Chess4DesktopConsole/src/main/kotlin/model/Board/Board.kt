@@ -7,7 +7,7 @@ import kotlin.math.abs
 
 abstract class Result
 
-data class Success(val board: Board, val check: Boolean = false): Result() {
+data class Success(val board: Board): Result() {
     override fun toString(): String {
         return board.toString()
     }
@@ -55,7 +55,7 @@ data class Move(val piece: PieceType, val curSquare: Square, val newSquare: Squa
         str += "${newSquare.column.letter}${newSquare.row.digit}"
         if (moveType != null && moveType.special is Promotion) {
             val newPiece = moveType.special.newPiece
-                str += '=' + (newPiece?.toStr() ?: "inFault")
+            str += '=' + (newPiece?.toStr() ?: "inFault")
         }
         return str
     }

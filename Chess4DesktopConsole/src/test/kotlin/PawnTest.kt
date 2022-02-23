@@ -6,12 +6,13 @@ import org.junit.Test
 
 class PawnTest {
     @Test
-    fun `Masdasdas`() {
-        var sut = Board().makeMove("Pe2e3",Player.WHITE) as Success
-        sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
-        sut = sut.board.makeMove("Pe3e4",Player.WHITE) as Success
-        sut = sut.board.makeMove("Pd5d4",Player.BLACK) as Success
-        sut = sut.board.makeMove("Pd2d4",Player.WHITE) as Success
+    fun Masdasdas() {
+        var board = Board()
+        var sut = board.makeMove(board.toMoveOrNull("Pe2e3")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pe3e4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd5d4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd2d4")!!) as Success
         assertEquals(
             "rnbqkbnr"+
                     "ppp pppp"+
