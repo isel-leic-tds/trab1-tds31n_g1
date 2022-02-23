@@ -7,17 +7,19 @@ import kotlin.test.assertEquals
 class RookTest {
     @Test
     fun `Move Rook forward and to the side`() {
-        var sut = Board().makeMove("Pa2a4",Player.WHITE) as Success//W
-        sut = sut.board.makeMove("Pa7a5",Player.BLACK) as Success
-        sut = sut.board.makeMove("Ra1a3",Player.WHITE) as Success//W
-        sut = sut.board.makeMove("Pb7b5",Player.BLACK) as Success
+        var board = Board()
+        var sut = board.makeMove(board.toMoveOrNull("Pa2a4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa7a5")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Ra1a3")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pb7b5")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Ra3h3")!!) as Success
         assertEquals(
             "rnbqkbnr"+
                     "  pppppp"+
                     "        "+
                     "pp      "+
                     "P       "+
-                    "R       "+
+                    "       R"+
                     " PPPPPPP"+
                     " NBQKBNR", sut.board.toStringTest() )
     }

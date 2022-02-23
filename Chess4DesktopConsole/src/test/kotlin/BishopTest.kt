@@ -8,15 +8,16 @@ import kotlin.test.assertEquals
 class BishopTest {
     @Test
     fun `Move Bishop all possible ways`() {
-        var sut: Success = Board().makeMove("Pd2d4",Player.WHITE) as Success//W
-            sut = sut.board.makeMove("Pd7d5",Player.BLACK) as Success
-            sut = sut.board.makeMove("Bc1e3",Player.WHITE) as Success//W
-            sut = sut.board.makeMove("Pa7a6",Player.BLACK) as Success
-            sut = sut.board.makeMove("Be3d2",Player.WHITE) as Success//W
-            sut = sut.board.makeMove("Pa6a5",Player.BLACK) as Success
-            sut = sut.board.makeMove("Bd2b4",Player.WHITE) as Success//W
-            sut = sut.board.makeMove("Pa5a4",Player.BLACK) as Success
-            sut = sut.board.makeMove("Bb4c3",Player.WHITE) as Success//W
+        var board = Board()
+        var sut = board.makeMove(board.toMoveOrNull("Pd2d4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Bc1e3")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa7a6")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Be3d2")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa6a5")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Bd2b4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa5a4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Bb4c3")!!) as Success
         assertEquals(
             "rnbqkbnr"+
                     " pp pppp"+

@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 
 class KnightTest {
-    @Test
+    /*@Test
     fun `Moves Knight`() {
         var sut = Board().makeMove("Nb1c3",Player.WHITE) as Success//W
         sut = sut.board.makeMove("Nb8a6",Player.BLACK) as Success
@@ -21,6 +21,6 @@ class KnightTest {
                     "        "+
                     "PPPPPPPP"+
                     "R BQKBNR", sut.board.toStringTest() )
-    }
+    }*/
 }
 

@@ -7,23 +7,21 @@ import kotlin.test.assertEquals
 class QueenTest {
     @Test
     fun `Moves Queen`() {
-        var sut = Board().makeMove("Pe2e4",Player.WHITE) as Success//W
-        sut = sut.board.makeMove("Pb7b6",Player.BLACK) as Success
-        sut = sut.board.makeMove("Qd1e2",Player.WHITE) as Success//W
-        sut = sut.board.makeMove("Pb6b5",Player.BLACK) as Success
-        sut = sut.board.makeMove("Qe2c4",Player.WHITE) as Success//W
-        sut = sut.board.makeMove("Pb5b4",Player.BLACK) as Success
-        sut = sut.board.makeMove("Qc4f7",Player.WHITE) as Success//W
-        sut = sut.board.makeMove("Pb4b3",Player.BLACK) as Success
-        sut = sut.board.makeMove("Qf7f8",Player.WHITE) as Success//W
-
+        var board = Board()
+        var sut = board.makeMove(board.toMoveOrNull("Pe2e4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pb7b6")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Qd1e2")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pb6b5")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Qe2c4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Pb5b4")!!) as Success
+        sut = sut.board.makeMove(sut.board.toMoveOrNull("Qc4f7")!!) as Success
         assertEquals(
-            "rnbqkQnr"+
-                    "p ppp pp"+
+            "rnbqkbnr"+
+                    "p pppQpp"+
                     "        "+
                     "        "+
-                    "    P   "+
-                    " p      "+
+                    " p  P   "+
+                    "        "+
                     "PPPP PPP"+
                     "RNB KBNR", sut.board.toStringTest() )
     }
