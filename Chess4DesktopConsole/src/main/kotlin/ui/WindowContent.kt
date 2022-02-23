@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import model.Board.Board
 import model.Board.Move
 import model.GameChess
+import model.Player
 import model.StatusGame
 import mongoDb.MongoDriver
 import ui.ChessMenuBar
@@ -60,11 +61,14 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
         MainView(chess, options.targets) { square ->
             val result = onSquarePressed(chess, square, menuHandlers)
             if (result is Success) {
+                val previousStatus = chess.gameChess.status
                 chess = result.chess
-                scope.launch {
-                    val gameChess = refreshGame(menuHandlers, chess.gameChess)
-                    chess = chess.copy(gameChess = gameChess)
-                }
+                // if the chess status was updated/changed
+                if (result.chess.gameChess.status !== previousStatus)
+                    scope.launch {
+                        val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                        chess = chess.copy(gameChess = gameChess)
+                    }
             }
             else if (result is PromotionNecessary) {
                 val board = chess.gameChess.status.board

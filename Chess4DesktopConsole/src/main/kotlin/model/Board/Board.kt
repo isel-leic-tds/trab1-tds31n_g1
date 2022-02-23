@@ -377,6 +377,7 @@ class Board {
     /**
      * Maves [move] without checking if its valid
      * Warning!!! Use with caution.
+     * @return a new Board with [move] done.
      */
     private fun makeMoveWithoutChecking(move: Move, board: Board = this): Board {
         val boardArr = board.boardArr
@@ -384,7 +385,7 @@ class Board {
         val newBoardArr = boardArr.copy()
         newBoardArr[move.curSquare.row.ordinal][move.curSquare.column.ordinal] = null
         newBoardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
-        return updatePieces(move, Board(this, newBoardArr))!!
+        return updatePieces(move, newBoardArr)!!
     }
 
     /**
@@ -429,8 +430,7 @@ class Board {
     /**
      * Updates the peaces in the board that need to be updated.
      */
-    private fun updatePieces(move:Move, board: Board = this): Board? {
-        val boardArr = board.boardArr
+    private fun updatePieces(move:Move, boardArr: Array<Array<Piece?>>): Board? {
         val piece = boardArr[move.newSquare.row.ordinal][move.newSquare.column.ordinal] ?: return null
         val newBoardArr = boardArr.copy()
         if(piece.type is King && move.piece is King)

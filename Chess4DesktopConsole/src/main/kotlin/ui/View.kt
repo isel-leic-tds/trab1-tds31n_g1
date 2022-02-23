@@ -33,7 +33,7 @@ val LOG_HEIGHT = 80.dp
 val MOVE_VIEW_BOX_PADDING = 20.dp
 val MOVE_VIEW_ROW_PADDING = 10.dp
 val LOG_VIEW_PADDING = 10.dp
-val CHECK_VIEW = 10.dp
+val CHECK_VIEW = 50.dp
 val CHECKMATE_VIEW = 10.dp
 
 val TOTAL_HEIGHT =
@@ -76,7 +76,7 @@ fun CheckView(gameChess: GameChess) {
             color = Color.Red,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .size(height = PLAY_SIDE+GRID_WIDTH, width = CHECK_VIEW),
+                .size(height = CHECK_VIEW, width = Dp.Unspecified),
         )
     }
 }
@@ -90,7 +90,7 @@ fun CheckmateView(board: Board?) {
             color = Color.Red,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .size(height = PLAY_SIDE+GRID_WIDTH, width = CHECKMATE_VIEW),
+                .size(height = CHECKMATE_VIEW, width = Dp.Unspecified),
         )
     }
 }

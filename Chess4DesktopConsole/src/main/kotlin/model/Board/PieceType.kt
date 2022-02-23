@@ -37,6 +37,9 @@ class King(val hasMoved:Boolean = false): PieceType()
 fun tryToMove(move: Move, table: Array<Array<Board.Piece?>>): Boolean {
     val piece = table[move.curSquare.row.ordinal][move.curSquare.column.ordinal]
     if (piece == null || piece.type.toStr() != move.piece.toStr()) return false
+    // checks if both squares have a piece that has the same player
+    val targetSquare = table[move.newSquare.row.ordinal][move.newSquare.column.ordinal]
+    if (targetSquare != null && piece.player === targetSquare.player) return false
     if (canEnPassant(move, table)) return true
     if (canCastle(move, table)) return true
     return when (piece.type) {

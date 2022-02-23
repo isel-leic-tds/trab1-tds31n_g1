@@ -17,8 +17,8 @@ fun isInCheckmate(boardArr: Array<Array<Board.Piece?>>, whiteKingPosition: Squar
 }
 
 /**
- * Checks if one of the Players has its King in check.
- * @return the player that has its King in check or null neather King is in check.
+ * Checks if one of the players has its King in check.
+ * @return
  */
 fun isKingInCheck(boardArr: Array<Array<Board.Piece?>>, kingSquare: Square): Boolean {
     val king = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
@@ -39,11 +39,12 @@ fun tryToMoveKing(kingSquare: Square, boardArr: Array<Array<Board.Piece?>>): Boo
     val king = boardArr[kingSquare.row.ordinal][kingSquare.column.ordinal]
     if (king == null || king.type !is King) return false
     val allMoves = Move.getAllMoves(kingSquare, King())
-    val allvalidMoves = allMoves.filter { tryToMove(it, boardArr) }
-    allvalidMoves.forEach { move ->
+    val allValidMoves = allMoves.filter { tryToMove(it, boardArr) }
+    allValidMoves.forEach { move ->
         val newBoard = boardArr.copy()
         newBoard[kingSquare.row.ordinal][kingSquare.column.ordinal] = null
-        newBoard[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = king
+        // updates King
+        newBoard[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = Board.Piece(King(true), king.player)
         if (!isKingInCheck(newBoard, move.newSquare)) return true
     }
     return false
@@ -65,7 +66,13 @@ fun isPieceThatProtectKing(kingSquare: Square, boardArr: Array<Array<Board.Piece
             allValidMoves.forEach { move ->
                 val newBoard = boardArr.copy()
                 newBoard[square.row.ordinal][square.column.ordinal] = null
-                newBoard[move.newSquare.row.ordinal][move.newSquare.column.ordinal] = piece
+                newBoard[move.newSquare.row.ordinal][move.newSquare.column.ordinal] =
+                    // updates piece if is Rook or Pawn
+                    when (piece.type) {
+                        is Rook -> Board.Piece(Rook(true), piece.player)
+                        is Pawn -> Board.Piece(Pawn(true), piece.player)
+                        else -> piece
+                    }
                 if (!isKingInCheck(newBoard, kingSquare)) return true
             }
         }
