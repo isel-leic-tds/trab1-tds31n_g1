@@ -136,7 +136,7 @@ private fun tryMovePawn(curSquare: Square, newSquare: Square, table: Array<Array
             // trying to move two squares
             if (
                 abs(rowDif) == 2 &&
-                player === Player.WHITE && curSquare.row === Row.TWO || player === Player.BLACK && curSquare.row === Row.SEVEN &&
+                (player === Player.WHITE && curSquare.row === Row.TWO || player === Player.BLACK && curSquare.row === Row.SEVEN) &&
                 !hasPiece(curSquare.moveUp(player)!!.moveUp(player)!!, table)
             )
                 return true
