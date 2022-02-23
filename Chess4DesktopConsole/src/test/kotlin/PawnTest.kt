@@ -6,7 +6,7 @@ import org.junit.Test
 
 class PawnTest {
     @Test
-    fun Masdasdas() {
+    fun ValidMove() {
         var board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pe2e3")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
@@ -26,7 +26,8 @@ class PawnTest {
 
     @Test
     fun `Makes one step forward with Pawn in Board`() {
-        val sut = Board().makeMove("Pe2e3",Player.WHITE) as Success
+        var board = Board()
+        var sut = board.makeMove(board.toMoveOrNull("Pe2e3")!!) as Success
         assertEquals(
             "rnbqkbnr"+
                     "pppppppp"+
