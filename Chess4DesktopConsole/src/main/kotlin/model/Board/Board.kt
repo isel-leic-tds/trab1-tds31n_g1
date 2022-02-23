@@ -205,6 +205,7 @@ class Board {
 
     /**
      * Given [move], converts it to a Move if is valid.
+     * @return valid Move or null if its invalid
      */
     fun toMoveOrNull(move: String): Move? {
         val cmd = move.trim()

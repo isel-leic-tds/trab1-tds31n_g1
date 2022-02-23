@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 class KnightTest {
     @Test
     fun `Moves Knight`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Nb1c3")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Nb8a6")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Nc3d5")!!) as Success
