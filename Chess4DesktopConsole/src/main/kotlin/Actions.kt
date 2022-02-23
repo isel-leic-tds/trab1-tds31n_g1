@@ -18,7 +18,7 @@ fun play(menuHandlers: Map<Option, Command>, gameChess: GameChess, move: Move): 
 }
 
 fun openGame(menuHandlers: Map<Option, Command>, gameChess: GameChess, gameName: String): GameChess? {
-    val gameName = "test"
+    //val gameName = "test"
     val command = Option.OPEN
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]
@@ -29,7 +29,7 @@ fun openGame(menuHandlers: Map<Option, Command>, gameChess: GameChess, gameName:
 }
 
 fun joinGame(menuHandlers: Map<Option, Command>, gameChess: GameChess, gameName: String): GameChess? {
-    val gameName = "test"
+    //val gameName = "test"
     val command = Option.JOIN
     LineCommand(command,gameName)
     val cmd: Command? = menuHandlers[command]

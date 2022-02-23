@@ -2,6 +2,7 @@ import Commands.Command
 import Commands.Option
 import Commands.buildMenuHandlers
 import DataBase.FileDb
+import DataBase.MongoDb
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.FrameWindowScope
@@ -38,8 +39,13 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
             onJoin = {
                 startGame = {
                     val gameChess = joinGame(menuHandlers, chess.gameChess, it)
-                    if (gameChess != null)
+                    if (gameChess != null) {
                         chess = chess.copy(gameChess = gameChess)
+                        scope.launch {
+                            val gameChess = refreshGame(menuHandlers, chess.gameChess)
+                            chess = chess.copy(gameChess = gameChess)
+                        }
+                    }
                     chess
                 }
             }
@@ -90,7 +96,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
 }
 
 fun createGame(driver: MongoDriver) =
-    GameChess(FileDb(), null, null, StatusGame(null,listOf(),null))
+    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null))
 
 abstract class Result()
 object PromotionNecessary: Result()

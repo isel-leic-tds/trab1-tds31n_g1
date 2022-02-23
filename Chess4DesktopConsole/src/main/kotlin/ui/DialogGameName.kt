@@ -12,7 +12,7 @@ import androidx.compose.ui.window.DialogState
 
 /**
  * Dialog window to read the name of the game entered by the user.
- * @param onOk Function called when OK button is pressed. Its parameter is the edited name.
+ * @param onOk Function called when OK button is pressed and game name is not empty. Its parameter is the edited name.
  * @param onCancel Function called when the user tries to close the window.
  */
 @Composable
@@ -21,12 +21,12 @@ fun DialogGameName( onOk: (String)->Unit, onCancel: ()->Unit ) = Dialog(
     title = "Game name",
     state = DialogState(width = Dp.Unspecified, height = Dp.Unspecified)
 ) {
-    var name by remember { mutableStateOf("abc") }
+    var name by remember { mutableStateOf("") }
     Column {
         Text("Enter the name of game")
         Row {
             TextField(name, onValueChange = { name = it })
-            Button(onClick = { onOk(name) }) {
+            Button(onClick = { if (name.isNotBlank()) onOk(name) }) {
                 Text("OK")
             }
         }
