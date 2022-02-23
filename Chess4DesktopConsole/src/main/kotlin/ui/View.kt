@@ -1,7 +1,4 @@
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
@@ -227,7 +224,6 @@ fun LogView(chess: Chess) {
     Box(Modifier
         .padding(LOG_VIEW_PADDING)
         .size(width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), height = LOG_HEIGHT)
-
     ) {
         val mod = Modifier.padding(5.dp)
         val gameId = chess.gameChess.gameId
@@ -251,7 +247,7 @@ fun MoveView(chess: Chess) {
         .size(width = MOVES_WITH, height = Dp.Unspecified)
         .background(Color.White)
     ) {
-        Column {
+        Column(Modifier.verticalScroll(rememberScrollState())) {
             val moves = chess.gameChess.status.moves
             val size = moves.size
             moves.forEachIndexed { n, move ->
