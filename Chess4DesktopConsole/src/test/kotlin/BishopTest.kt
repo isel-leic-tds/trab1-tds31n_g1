@@ -1,6 +1,5 @@
 import model.Board.Board
 import model.Board.Success
-import model.Player
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -8,7 +7,7 @@ import kotlin.test.assertEquals
 class BishopTest {
     @Test
     fun `Move Bishop all possible ways`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pd2d4")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Bc1e3")!!) as Success

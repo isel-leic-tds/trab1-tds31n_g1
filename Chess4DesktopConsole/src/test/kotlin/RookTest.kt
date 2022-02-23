@@ -1,13 +1,12 @@
 import model.Board.Board
 import model.Board.Success
-import model.Player
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class RookTest {
     @Test
     fun `Move Rook forward and to the side`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pa2a4")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa7a5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Ra1a3")!!) as Success

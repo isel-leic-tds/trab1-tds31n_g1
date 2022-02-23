@@ -1,13 +1,14 @@
+@file:Suppress("DEPRECATION")
+
 import junit.framework.Assert.assertEquals
 import model.Board.Board
 import model.Board.Success
-import model.Player
 import org.junit.Test
 
 class PawnTest {
     @Test
-    fun ValidMove() {
-        var board = Board()
+    fun `Valid Moves`() {
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pe2e3")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pe3e4")!!) as Success
@@ -26,8 +27,8 @@ class PawnTest {
 
     @Test
     fun `Makes one step forward with Pawn in Board`() {
-        var board = Board()
-        var sut = board.makeMove(board.toMoveOrNull("Pe2e3")!!) as Success
+        val board = Board()
+        val sut = board.makeMove(board.toMoveOrNull("Pe2e3")!!) as Success
         assertEquals(
             "rnbqkbnr"+
                     "pppppppp"+
@@ -41,7 +42,7 @@ class PawnTest {
 
     @Test
     fun `White eats Left`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pe2e4")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pe4d5")!!) as Success
@@ -58,7 +59,7 @@ class PawnTest {
 
     @Test
     fun `White eats Right`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pc2c4")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pc4d5")!!) as Success
@@ -75,7 +76,7 @@ class PawnTest {
 
     @Test
     fun `Black eats Left`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pe2e4")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa2a3")!!) as Success
@@ -93,7 +94,7 @@ class PawnTest {
 
     @Test
     fun `Black eats Right`() {
-        var board = Board()
+        val board = Board()
         var sut = board.makeMove(board.toMoveOrNull("Pc2c4")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pd7d5")!!) as Success
         sut = sut.board.makeMove(sut.board.toMoveOrNull("Pa2a3")!!) as Success
