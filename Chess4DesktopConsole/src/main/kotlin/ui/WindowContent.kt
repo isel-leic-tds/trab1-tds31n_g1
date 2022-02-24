@@ -1,11 +1,14 @@
 import Commands.Command
 import Commands.Option
 import Commands.buildMenuHandlers
+import DataBase.FileDb
 import DataBase.MongoDb
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.FrameWindowScope
 import chess.model.Square
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import model.Board.Board
 import model.Board.Move
@@ -23,6 +26,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
 
     // model
     var chess by remember { mutableStateOf(Chess(gameChess = createGame(driver))) }
+    var waitingJob: Job? = null
     var startGame by remember { mutableStateOf<((gameName: String) -> Chess)?>(null) }
     var openPromotion by remember { mutableStateOf(false) }
     var moveForPromotion by remember { mutableStateOf<Move?>(null) }
@@ -34,10 +38,12 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
         ChessMenuBar(
             onOpen = {
                 startGame = {
+                    stopWait(waitingJob)
+                    waitingJob = null
                     val gameChess = openGame(menuHandlers, chess.gameChess, it)
                     if (gameChess != null) {
                         chess = chess.copy(gameChess = gameChess)
-                        scope.launch {
+                        waitingJob = scope.launch {
                             val gameChess = refreshGame(menuHandlers, chess.gameChess)
                             chess = chess.copy(gameChess = gameChess)
                         }
@@ -46,11 +52,13 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
                 }
             },
             onJoin = {
+                stopWait(waitingJob)
+                waitingJob = null
                 startGame = {
                     val gameChess = joinGame(menuHandlers, chess.gameChess, it)
                     if (gameChess != null) {
                         chess = chess.copy(gameChess = gameChess)
-                        scope.launch {
+                        waitingJob = scope.launch {
                             val gameChess = refreshGame(menuHandlers, chess.gameChess)
                             chess = chess.copy(gameChess = gameChess)
                         }
@@ -68,7 +76,7 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
                 chess = result.chess
                 // if the chess status was updated/changed
                 if (result.chess.gameChess.status !== previousStatus)
-                    scope.launch {
+                    waitingJob = scope.launch {
                         val gameChess = refreshGame(menuHandlers, chess.gameChess)
                         chess = chess.copy(gameChess = gameChess)
                     }
@@ -113,10 +121,11 @@ fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
             onOk = { chess = currStartGame(it); startGame = null },
             onCancel = { startGame = null }
         )
+
 }
 
 fun createGame(driver: MongoDriver) =
-    GameChess(MongoDb(driver), null, null, StatusGame(null,listOf(),null))
+    GameChess(FileDb(), null, null, StatusGame(null,listOf(),null))
 
 abstract class Result()
 object PromotionNecessary: Result()
@@ -168,4 +177,9 @@ private fun squareSelected(selected: Square, board: Board, square: Square, chess
             return Success(Chess(gameChess = gameChess, selected = null))
         return Success(chess)
     }
+}
+
+private fun stopWait(waitingJob: Job?) {
+    val job = waitingJob ?: return
+    job.cancel()
 }
