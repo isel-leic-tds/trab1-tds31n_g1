@@ -1,7 +1,7 @@
-package model.Board
+package chess.model.Board
 
 import chess.model.*
-import model.Player
+import chess.model.Player
 import java.util.*
 import kotlin.math.abs
 
@@ -420,6 +420,7 @@ class Board {
      * @return if the given [move] is valid.
      */
     private fun isValidMove(move: Move, board: Board = this): Boolean {
+        // TODO -> delete two ifs above
         if((move.newSquare.row == blackKingPosition.row && move.newSquare.column == blackKingPosition.column)
             || (move.newSquare.row == whiteKingPosition.row && move.newSquare.column == whiteKingPosition.column)) return false
         if(move.newSquare == whiteKingPosition) return false

@@ -1,11 +1,8 @@
-import Commands.BoardError
-import model.Board.Board
-import model.Board.Success
-import model.Player
+import chess.model.Board.Board
+import chess.model.Board.Success
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNull
 
 
 class KingTest {
@@ -121,7 +118,7 @@ class KingTest {
                     "RNBQ BNR", sut.board.toStringTest() )
         // moves up
         val res = sut.board.makeMove(sut.board.toMoveOrNull("Kc5c6")!!)
-        assertIs<model.Board.Error>(res, "Should be check")
+        assertIs<chess.model.Board.Error>(res, "Should be check")
     }
 }
 

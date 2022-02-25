@@ -1,4 +1,4 @@
-package DataBase
+package chess.DataBase
 
 import Moves
 

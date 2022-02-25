@@ -34,11 +34,12 @@ tasks.withType<KotlinCompile> {
 
 compose.desktop {
     application {
-        mainClass = "MainKt"
+        mainClass = "chess.MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "untitled"
+            packageName = "chess"
             packageVersion = "1.0.0"
+            includeAllModules = true
         }
     }
 }

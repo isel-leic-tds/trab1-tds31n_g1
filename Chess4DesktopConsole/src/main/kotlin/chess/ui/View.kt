@@ -13,10 +13,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import chess.Chess
 import chess.model.Square
-import model.Board.*
-import model.GameChess
-import model.Player
+import chess.model.Board.*
+import chess.model.GameChess
+import chess.model.Player
 import kotlin.math.sqrt
 
 val BOARD_VIEW_PADDING = 30.dp
@@ -236,6 +237,7 @@ fun LogView(chess: Chess) {
                 }
                 // TODO will display all error messages
                 Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod)
+                chess.gameChess.player?.apply { Text(toString())  }
             }
     }
 }

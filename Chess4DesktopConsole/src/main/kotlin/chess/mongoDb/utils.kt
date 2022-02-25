@@ -1,4 +1,4 @@
-package mongoDb
+package chess.mongoDb
 import com.mongodb.*
 import com.mongodb.client.*
 import org.litote.kmongo.*

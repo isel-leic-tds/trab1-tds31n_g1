@@ -1,8 +1,8 @@
 @file:Suppress("DEPRECATION")
 
 import junit.framework.Assert.assertEquals
-import model.Board.Board
-import model.Board.Success
+import chess.model.Board.Board
+import chess.model.Board.Success
 import org.junit.Test
 
 class PawnTest {

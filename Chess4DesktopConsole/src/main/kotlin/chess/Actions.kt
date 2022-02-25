@@ -1,11 +1,11 @@
-import Commands.Command
-import Commands.Option
-import Commands.Success
+import chess.Commands.Command
+import chess.Commands.Option
+import chess.Commands.Success
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import model.Board.Move
-import model.GameChess
+import chess.model.Board.Move
+import chess.model.GameChess
 
 fun play(menuHandlers: Map<Option, Command>, gameChess: GameChess, move: Move): GameChess? {
     val command = Option.PLAY

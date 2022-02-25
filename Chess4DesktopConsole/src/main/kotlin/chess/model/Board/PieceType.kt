@@ -1,8 +1,8 @@
-package model.Board
+package chess.model.Board
 
 import chess.model.Row
 import chess.model.Square
-import model.Player
+import chess.model.Player
 import kotlin.math.abs
 
 fun PieceType.toStr() =

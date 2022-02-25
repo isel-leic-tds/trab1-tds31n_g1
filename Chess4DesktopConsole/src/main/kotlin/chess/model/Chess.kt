@@ -1,13 +1,16 @@
-package model
+package chess.model
 
-import DataBase.ChessDb
-import model.Board.Board
+import chess.DataBase.ChessDb
+import chess.model.Board.Board
 
 
 enum class Player {
     WHITE, BLACK;
     fun other() = if (this === WHITE) BLACK else WHITE
+    override fun toString() = if (this == WHITE) "Branco" else "Preto"
 }
+
+
 
 data class StatusGame(
     val board: Board?,

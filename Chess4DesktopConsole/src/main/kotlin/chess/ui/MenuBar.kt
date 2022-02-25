@@ -1,12 +1,6 @@
-package ui
+package chess.ui
 
-import androidx.compose.desktop.DesktopMaterialTheme
-import androidx.compose.desktop.Window
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.Button
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.*
 
 /**

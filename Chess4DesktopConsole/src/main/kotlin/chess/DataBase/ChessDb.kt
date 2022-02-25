@@ -1,8 +1,8 @@
-package DataBase
+package chess.DataBase
 
 
 import Moves
-import mongoDb.*
+import chess.mongoDb.*
 import java.io.File
 
 /**
@@ -26,7 +26,7 @@ interface ChessDb {
 }
 
 // Name of the collection that holds all the chess games
-const val COLLECTION_NAME = "Chess"
+const val COLLECTION_NAME = "chess"
 
 /**
  * Implements the chess operations using a MongoDB instance.

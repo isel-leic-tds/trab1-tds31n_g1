@@ -1,23 +1,23 @@
-import Commands.Command
-import Commands.Option
-import Commands.buildMenuHandlers
-import DataBase.FileDb
-import DataBase.MongoDb
+import chess.Commands.Command
+import chess.Commands.Option
+import chess.Commands.buildMenuHandlers
+import chess.DataBase.MongoDb
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.FrameWindowScope
+import chess.Chess
+import chess.DataBase.FileDb
 import chess.model.Square
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import model.Board.Board
-import model.Board.Move
-import model.GameChess
-import model.StatusGame
-import mongoDb.MongoDriver
-import ui.ChessMenuBar
-import ui.DialogGameName
-import ui.DialogPromotionPiece
+import chess.model.Board.Board
+import chess.model.Board.Move
+import chess.model.GameChess
+import chess.model.StatusGame
+import chess.mongoDb.MongoDriver
+import chess.ui.ChessMenuBar
+import chess.ui.DialogGameName
+import chess.ui.DialogPromotionPiece
 
 @Composable
 fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {

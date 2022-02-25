@@ -1,6 +1,5 @@
-import model.Board.Board
-import model.Board.Success
-import model.Player
+import chess.model.Board.Board
+import chess.model.Board.Success
 import org.junit.Test
 import kotlin.test.assertEquals
 

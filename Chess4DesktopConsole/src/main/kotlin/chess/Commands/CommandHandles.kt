@@ -1,8 +1,8 @@
-package Commands
+package chess.Commands
 
-import model.Board.Move
-import model.GameChess
-import model.Player
+import chess.model.Board.Move
+import chess.model.GameChess
+import chess.model.Player
 import java.lang.IllegalStateException
 
 /**
