@@ -20,9 +20,6 @@ $set $MONGO_DB_NAME=TDS
 $java -jar chess-windows-x64-1.0.0.jar
  */
 
-
-data class Chess(val selected: Square? = null, val gameChess: GameChess)
-
 fun main() = MongoDriver().use { driver ->
     application {
         val winState = WindowState(width = Dp.Unspecified, height = TOTAL_HEIGHT)

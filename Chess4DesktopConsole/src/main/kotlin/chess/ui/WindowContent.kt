@@ -19,6 +19,8 @@ import chess.ui.ChessMenuBar
 import chess.ui.DialogGameName
 import chess.ui.DialogPromotionPiece
 
+data class Chess(val selected: Square? = null, val status: GameViewStatus)
+
 @Composable
 fun FrameWindowScope.WindowContent(driver: MongoDriver, onExit: ()->Unit ) {
     val scope = rememberCoroutineScope()
