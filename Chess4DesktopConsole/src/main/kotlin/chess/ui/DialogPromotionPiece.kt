@@ -11,7 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogState
-import chess.model.Board.*
+import chess.model.board.*
 
 /**
  * Dialog window to read the name of the game entered by the user.

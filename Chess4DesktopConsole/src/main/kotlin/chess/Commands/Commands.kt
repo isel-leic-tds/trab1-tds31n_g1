@@ -2,8 +2,8 @@ package chess.Commands
 
 import chess.DataBase.*
 import Moves
-import chess.model.Board.Board
-import chess.model.Board.Move
+import chess.model.board.Board
+import chess.model.board.Move
 import chess.model.Player
 import chess.model.StatusGame
 import java.lang.IllegalStateException
@@ -18,7 +18,7 @@ class EmptyMove(): CommandError("Move command is empty")
 class WaitForOtherPlayer(): CommandError("Wait for your turn!")
 class InvalidGameId(): CommandError("Invalid or emprty gameId")
 class GameDoesNotExist(): CommandError("Game not created yet")
-data class BoardError(val boardError: chess.model.Board.Error): CommandError(boardError) {
+data class BoardError(val boardError: chess.model.board.Error): CommandError(boardError) {
     override fun toString(): String {
         return boardError.toString()
     }
@@ -91,9 +91,9 @@ fun makeMove(statusGame: StatusGame, move: Move, player: Player): CommandResult 
     statusGame.board ?: return GameDoesNotExist()
     if (statusGame.board.currentPlayer != player) return WaitForOtherPlayer()
     val result = statusGame.board!!.makeMove(move)
-    if (result is chess.model.Board.Error)
+    if (result is chess.model.board.Error)
         return BoardError(result)
-    if (result is chess.model.Board.Success)
+    if (result is chess.model.board.Success)
         return NewBoard(StatusGame(result.board, statusGame.moves + move.toString(), move.toString()))
     // if the result is something else other than model.Board.Sucess or model.Board.Error
     throw IllegalStateException()

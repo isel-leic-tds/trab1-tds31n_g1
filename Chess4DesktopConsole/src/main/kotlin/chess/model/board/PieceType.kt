@@ -1,4 +1,4 @@
-package chess.model.Board
+package chess.model.board
 
 import chess.model.Row
 import chess.model.Square

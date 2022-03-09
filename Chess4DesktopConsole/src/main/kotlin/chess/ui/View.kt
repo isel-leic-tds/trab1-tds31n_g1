@@ -13,9 +13,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import chess.Chess
 import chess.model.Square
-import chess.model.Board.*
+import chess.model.board.*
 import chess.model.GameChess
 import chess.model.Player
 import kotlin.math.sqrt

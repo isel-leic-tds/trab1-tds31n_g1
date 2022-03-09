@@ -1,7 +1,7 @@
 package chess.model
 
 import chess.DataBase.ChessDb
-import chess.model.Board.Board
+import chess.model.board.Board
 
 
 enum class Player {

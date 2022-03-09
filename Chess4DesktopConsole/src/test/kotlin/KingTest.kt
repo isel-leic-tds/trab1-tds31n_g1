@@ -1,5 +1,5 @@
-import chess.model.Board.Board
-import chess.model.Board.Success
+import chess.model.board.Board
+import chess.model.board.Success
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -118,7 +118,7 @@ class KingTest {
                     "RNBQ BNR", sut.board.toStringTest() )
         // moves up
         val res = sut.board.makeMove(sut.board.toMoveOrNull("Kc5c6")!!)
-        assertIs<chess.model.Board.Error>(res, "Should be check")
+        assertIs<chess.model.board.Error>(res, "Should be check")
     }
 }
 

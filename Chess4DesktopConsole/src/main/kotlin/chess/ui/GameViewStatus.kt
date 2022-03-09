@@ -4,13 +4,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import chess.DataBase.ChessDb;
-import chess.model.Board.Board
-import chess.model.Board.Move;
+import chess.DataBase.postMoves
+import chess.model.GameChess
+import chess.model.board.Board
+import chess.model.board.Move;
 import chess.model.Player
 import chess.model.StatusGame
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.Job;
-import kotlinx.coroutines.launch
+import chess.model.board.*
+import kotlinx.coroutines.*
 
 class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineScope) {
     private var name: String="Unknown"
@@ -23,65 +24,59 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
     private var waitingJob: Job? = null
 
     /**
-     * Create a new game where the player is the cross (first player).
-     * @param gameName Name of the game to create.
+     * Opens a game with [gameName].
+     * If [gameName] does not exist, creates new game with [gameName].
      */
-    fun new(gameName: String) {
+    fun open(gameName: String) {
         stopWait()
         name = gameName
         player = Player.WHITE
-        game = Game()
-        moves = emptyList()
-        scope.launch { opers.save(name, emptyList()) }
+        val game = getGame(gameName)
+        this.board = if (game == null) {
+            // inserts one document in the database so the other player can join the game
+            postMoves(chessDb, gameName, "")
+            this.moves = emptyList()
+            Board()
+        }
+        else {
+            this.moves = game.second
+            game.first
+        }
     }
+
     /**
-     * Open the game where the player is the circle (second player).
-     * @param gameName Name of the game to load.
+     * Tries to open an existent game with [gameName].
+     * If it doesn't exist, does nothing.
      */
     fun join(gameName :String) {
         stopWait()
+        val (board, moves) = getGame(gameName) ?: return
         name = gameName
         player = Player.BLACK
-        scope.launch {
-            moves = opers.load(name)
-            val g = Game(moves)
-            game = g
-            if (player != g.turn) waitForOther()
-        }
+        this.board = board
+        this.moves = moves
     }
+
     /**
-     * Try to make a move in the indicated [position].
-     * @param position Where to make the move
+     * Tries to make [move].
+     * If [move] is invalid, does nothing.
      */
-    fun tryPlay(position: Position) {
-        val g = game ?: return
-        if (g.turn!=player) return
-        val g2 = g.tryPlay(position)
-        if (g2 === g) return
-        moves = moves + Move(position,g.turn)
-        game = g2
-        scope.launch {
-            opers.save(name, moves)
-            waitForOther()
-        }
+    fun tryPlay(move: Move) {
+        val board = this.board
+        if (waiting || board == null) return
+        val newBoard = board.makeMove(move)
+        if (newBoard is Error) return
+        if (newBoard is Success)
+            this.board = newBoard.board
+        waitForOther()
     }
+
     /**
      * Loads game moves, every 3 seconds, until there are more moves (when opponent plays).
      * This function starts a coroutine and suspends its execution.
      * The Job object allows canceling the wait, if necessary.
      */
-    private fun waitForOther() {
-        val g = game
-        if (g==null || g.isOver) return
-        waitingJob = scope.launch {
-            do {
-                delay(3000)
-                moves = opers.load(name)
-            } while (moves.size==g.numberOfPlays)
-            game = Game(moves)
-            waitingJob = null
-        }
-    }
+    private fun waitForOther() = scope.launch { updateGame() }
 
     /**
      * Cancels the waiting for opponent's play.
@@ -90,5 +85,41 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
         val job = waitingJob ?: return
         job.cancel()
         waitingJob = null
+    }
+
+    /**
+     * Tries to refresh current game.
+     * Stays in loop until game is updated.
+     * @return if trying to restore game, detects that the game doesn't exist.
+     */
+    private suspend fun updateGame() {
+        while (true) {
+            delay(500)
+            val (board, moves) = getGame(name) ?: return
+            if (this.moves != moves) {
+                this.moves = moves
+                this.board = board
+            }
+        }
+    }
+
+    /**
+     * Tries to restore the [gameName] game and if it can't, creates one with [gameName].
+     * @return new Board with current game and respective moves list.
+     */
+    private fun getGame(gameName: String): Pair<Board, List<String>>? {
+        val newBoard = Board()
+        val moves = chess.DataBase.getMoves(chessDb, gameName)
+        moves ?: return null
+        if (moves.content == "")
+            return newBoard to emptyList()
+        val movesList = moves.content.trim().split(" ").toList()
+        var statusGame = StatusGame(newBoard,movesList, null)
+        movesList.forEach{ move: String ->
+            val result = statusGame.board!!.makeMoveWithoutCheck(move)
+            val board = result.board
+            statusGame = statusGame.copy(board = board, lastMove = move)
+        }
+        return newBoard to movesList
     }
 }
