@@ -17,6 +17,7 @@ import chess.model.Square
 import chess.model.board.*
 import chess.model.GameChess
 import chess.model.Player
+import chess.ui.GameViewStatus
 import kotlin.math.sqrt
 
 val BOARD_VIEW_PADDING = 30.dp
@@ -53,10 +54,10 @@ fun MainView(chess: Chess, showTargets: Boolean, onClick: (Square)->Unit) {
                 NumbersView()
                 Column {
                     BoardView(chess, onClick, showTargets)
-                    LogView(chess)
-                    CheckView(chess.gameChess)
-                    CheckmateView(chess.gameChess.status.board)
-                    DrawView(chess.gameChess.status.draw)
+                    LogView(chess.status)
+                    CheckView(chess.status)
+                    CheckmateView(chess.status.board)
+                    //DrawView(chess.status.draw)
                 }
                 MoveView(chess)
             }
@@ -66,10 +67,11 @@ fun MainView(chess: Chess, showTargets: Boolean, onClick: (Square)->Unit) {
 
 
 @Composable
-fun CheckView(gameChess: GameChess) {
-    gameChess.status.board?:return
-    if (gameChess.player === gameChess.status.board.currentPlayer && gameChess.status.board.check
-        && !gameChess.status.board.checkmate) {
+fun CheckView(status: GameViewStatus) {
+    val board = status.board ?: return
+    val player = status.player ?: return
+    if (player === board.currentPlayer && board.check
+        && !board.checkmate) {
         Text(
             text = "CHECK",
             color = Color.Red,
@@ -207,11 +209,11 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit, showTargets: Boolean) {
         .background(Color.Black)
         .size(PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1))) {
         val possibleSquares =
-            if (showTargets && chess.selected != null) chess.gameChess.status.board?.getPossibleSquaresToMove(chess.selected) else emptyList()
+            if (showTargets && chess.selected != null) chess.status.board?.getPossibleSquaresToMove(chess.selected) else emptyList()
         Square.values.forEach { square ->
             PlayView(
                 square,
-                chess.gameChess.status.board,
+                chess.status.board,
                 chess.selected === square,
                 possibleSquares?.any {it == square} ?: false
             ) {onClick(square)}
@@ -220,14 +222,14 @@ fun BoardView(chess: Chess, onClick: (Square)->Unit, showTargets: Boolean) {
 }
 
 @Composable
-fun LogView(chess: Chess) {
+fun LogView(status: GameViewStatus) {
     Box(Modifier
         .padding(LOG_VIEW_PADDING)
         .size(width = PLAY_SIDE* GAME_DIM+GRID_WIDTH*(GAME_DIM-1), height = LOG_HEIGHT)
     ) {
         val mod = Modifier.padding(5.dp)
-        val gameId = chess.gameChess.gameId
-        val currentPlayer = chess.gameChess.status.board?.currentPlayer
+        val gameId = status.name
+        val currentPlayer = status.board?.currentPlayer
         if (gameId != null)
             Column {
                 Row {
@@ -236,7 +238,7 @@ fun LogView(chess: Chess) {
                 }
                 // TODO will display all error messages
                 Text("Error: ", fontWeight = FontWeight.Bold, modifier = mod)
-                chess.gameChess.player?.apply { Text(toString())  }
+                status.player?.apply { Text(toString())  }
             }
     }
 }
@@ -249,7 +251,7 @@ fun MoveView(chess: Chess) {
         .background(Color.White)
     ) {
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            val moves = chess.gameChess.status.moves
+            val moves = chess.status.moves
             val size = moves.size
             moves.forEachIndexed { n, move ->
                 if (n % 2 == 0) {

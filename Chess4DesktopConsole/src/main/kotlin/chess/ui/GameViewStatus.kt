@@ -14,13 +14,13 @@ import chess.model.board.*
 import kotlinx.coroutines.*
 
 class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineScope) {
-    private var name: String="Unknown"
+    var name: String="Unknown"
     var player by mutableStateOf<Player?>(null)
         private set
     var board by mutableStateOf<Board?>(null)
         private set
-    private var moves: List<String> = emptyList()
-    val waiting: Boolean get() = waitingJob!=null
+    var moves: List<String> = emptyList()
+    private val waiting: Boolean get() = waitingJob!=null
     private var waitingJob: Job? = null
 
     /**
@@ -42,6 +42,7 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
             this.moves = game.second
             game.first
         }
+        waitForOther()
     }
 
     /**
@@ -55,6 +56,7 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
         player = Player.BLACK
         this.board = board
         this.moves = moves
+        waitForOther()
     }
 
     /**
@@ -76,7 +78,9 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
      * This function starts a coroutine and suspends its execution.
      * The Job object allows canceling the wait, if necessary.
      */
-    private fun waitForOther() = scope.launch { updateGame() }
+    private fun waitForOther() {
+        waitingJob = scope.launch { updateGame() }
+    }
 
     /**
      * Cancels the waiting for opponent's play.
