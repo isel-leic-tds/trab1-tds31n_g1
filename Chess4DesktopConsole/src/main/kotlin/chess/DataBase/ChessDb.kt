@@ -61,17 +61,17 @@ class LocalDb(): ChessDb {
 
 class FileDb(): ChessDb {
     override fun replaceDocument(moves: Moves): Boolean {
-        File(moves._id).writeText( moves.content )
+        File("games/${moves._id}").writeText( moves.content )
         return true
     }
 
     override fun insertDocument(moves: Moves): Boolean {
-        File(moves._id).writeText( moves.content )
+        File("games/${moves._id}").writeText( moves.content )
         return true
     }
 
     override fun getDocument(gameId: String): Moves? {
-        val content = File(gameId).readLines().joinToString { str -> "$str" }
+        val content = File("games/$gameId").readLines().joinToString { str -> "$str" }
         if (content.isEmpty()) return Moves(gameId,"")
         return Moves(gameId, content)
     }

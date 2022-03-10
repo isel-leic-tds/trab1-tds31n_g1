@@ -1,15 +1,15 @@
 package chess.ui;
 
+import Moves
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import chess.DataBase.ChessDb;
 import chess.DataBase.postMoves
-import chess.model.GameChess
+import chess.DataBase.replaceMoves
 import chess.model.board.Board
 import chess.model.board.Move;
 import chess.model.Player
-import chess.model.StatusGame
 import chess.model.board.*
 import kotlinx.coroutines.*
 
@@ -68,8 +68,10 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
         if (waiting || board == null) return
         val newBoard = board.makeMove(move)
         if (newBoard is Error) return
-        if (newBoard is Success)
+        if (newBoard is Success) {
             this.board = newBoard.board
+            saveMove(move.toString())
+        }
         waitForOther()
     }
 
@@ -79,6 +81,9 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
      * The Job object allows canceling the wait, if necessary.
      */
     private fun waitForOther() {
+        val board = this.board ?: return
+        // if it's the players turn
+        if (board.currentPlayer === player) return
         waitingJob = scope.launch { updateGame() }
     }
 
@@ -97,12 +102,14 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
      * @return if trying to restore game, detects that the game doesn't exist.
      */
     private suspend fun updateGame() {
+        val currentBoard = this.board ?: return
         while (true) {
             delay(500)
             val (board, moves) = getGame(name) ?: return
-            if (this.moves != moves) {
+            if (currentBoard.toString() != board.toString()) {
                 this.moves = moves
                 this.board = board
+                return
             }
         }
     }
@@ -112,18 +119,28 @@ class GameViewStatus(private val chessDb: ChessDb, private val scope: CoroutineS
      * @return new Board with current game and respective moves list.
      */
     private fun getGame(gameName: String): Pair<Board, List<String>>? {
-        val newBoard = Board()
+        var newBoard = Board()
         val moves = chess.DataBase.getMoves(chessDb, gameName)
         moves ?: return null
         if (moves.content == "")
             return newBoard to emptyList()
         val movesList = moves.content.trim().split(" ").toList()
-        var statusGame = StatusGame(newBoard,movesList, null)
         movesList.forEach{ move: String ->
-            val result = statusGame.board!!.makeMoveWithoutCheck(move)
-            val board = result.board
-            statusGame = statusGame.copy(board = board, lastMove = move)
+            newBoard = newBoard.makeMoveWithoutCheck(move).board
         }
         return newBoard to movesList
+    }
+
+    /**
+     * Appends a given [move] to the database with the [gameId] game identifier.
+     */
+    fun saveMove(move: String) {
+        val moves: Moves? = chess.DataBase.getMoves(chessDb, name)
+        if (moves == null)
+            // adds a new document in the collection to hold the moves for the new chess game
+            postMoves(chessDb, name, move)
+        else
+            // replace the first document (which) contains the saved moves for the current chess game
+            replaceMoves(chessDb, name, moves.content+" "+move)
     }
 }
